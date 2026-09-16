@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
 import { SongPlayer } from '../engine/player';
-import { STEPS } from '../model/types';
-import type { Hit, Song } from '../model/types';
+import { DIFFICULTIES, STEPS } from '../model/types';
+import type { Difficulty, Hit, Song } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
 import { saveSong, useStore } from '../store';
 
@@ -93,7 +93,19 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
       <div className="row between">
         <div className="row">
           <button onClick={back}>← Songs</button>
-          <input value={song.name} onChange={(e) => patch({ name: e.target.value })} style={{ fontSize: 16, width: 240 }} />
+          <input value={song.name} onChange={(e) => patch({ name: e.target.value })} style={{ fontSize: 16, width: 220 }} placeholder="Name" />
+          <input value={song.author ?? ''} onChange={(e) => patch({ author: e.target.value })} style={{ width: 130 }} placeholder="Author" />
+          <label className="field">
+            Difficulty
+            <select value={song.difficulty ?? ''} onChange={(e) => patch({ difficulty: e.target.value ? (Number(e.target.value) as Difficulty) : undefined })}>
+              <option value="">—</option>
+              {DIFFICULTIES.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="field">
             BPM
             <input type="number" min={20} max={300} value={song.bpm} onChange={(e) => patch({ bpm: Number(e.target.value) || 90 })} />

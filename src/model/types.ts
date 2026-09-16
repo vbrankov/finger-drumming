@@ -12,9 +12,14 @@ export interface Hit {
   velocity?: number; // 1..127, default 100
 }
 
+export const DIFFICULTIES = [1, 2, 3, 4, 5] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
+
 export interface Song {
   id: string;
   name: string;
+  author?: string;
+  difficulty?: Difficulty; // 1 = easiest, 5 = hardest
   bpm: number;
   kitId: string;
   hits: Hit[];

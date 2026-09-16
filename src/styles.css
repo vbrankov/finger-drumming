@@ -208,3 +208,4 @@ table.list td.actions button { margin-left: 4px; }
   touch-action: none;
   cursor: pointer;
 }
+.dots { letter-spacing: 1px; font-size: 11px; color: var(--accent-2); }

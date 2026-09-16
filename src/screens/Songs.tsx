@@ -6,6 +6,11 @@ interface Props {
   onEdit: (song: Song) => void;
 }
 
+function Dots({ n }: { n?: number }) {
+  if (!n) return <span className="muted">—</span>;
+  return <span className="dots">{'●'.repeat(n) + '○'.repeat(5 - n)}</span>;
+}
+
 export default function Songs({ onPractice, onEdit }: Props) {
   const { songs, kits, scores } = useStore();
   const sorted = [...songs].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -25,6 +30,8 @@ export default function Songs({ onPractice, onEdit }: Props) {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Author</th>
+              <th>Difficulty</th>
               <th>BPM</th>
               <th>Kit</th>
               <th>Hits</th>
@@ -36,6 +43,10 @@ export default function Songs({ onPractice, onEdit }: Props) {
             {sorted.map((s) => (
               <tr key={s.id}>
                 <td>{s.name}</td>
+                <td className="muted">{s.author || '—'}</td>
+                <td title={s.difficulty ? s.difficulty + ' / 5' : 'not set'}>
+                  <Dots n={s.difficulty} />
+                </td>
                 <td>{s.bpm}</td>
                 <td className="muted">{kits.find((k) => k.id === s.kitId)?.name ?? 'default (missing)'}</td>
                 <td className="muted">{s.hits.length}</td>

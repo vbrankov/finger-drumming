@@ -146,7 +146,11 @@ export default function Practice({ song, onBack }: Props) {
         <div className="row">
           <button onClick={onBack}>← Songs</button>
           <h2 style={{ margin: 0 }}>{song.name}</h2>
-          <span className="muted small">kit: {kit.name}</span>
+          <span className="muted small">
+            {song.author ? 'by ' + song.author + ' · ' : ''}
+            {song.difficulty ? 'difficulty ' + song.difficulty + '/5 · ' : ''}
+            kit: {kit.name}
+          </span>
         </div>
         <div className="row">
           <button className={mode === 'playalong' ? 'active' : ''} onClick={() => setMode('playalong')}>

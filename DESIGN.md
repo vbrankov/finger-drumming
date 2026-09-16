@@ -29,6 +29,8 @@ type Step     = 0..15;           // 16th notes, one 4/4 measure
 interface Song {
   id: string;
   name: string;
+  author?: string;
+  difficulty?: 1 | 2 | 3 | 4 | 5; // set by the author; a judgment, not computed
   bpm: number;                    // default tempo; best score is only kept at this tempo
   kitId: string;                  // falls back to the default kit if not found
   hits: { pad: PadIndex; step: Step; velocity?: number }[];

@@ -1,22 +1,24 @@
 {
   "id": "seed-basic-rock",
   "name": "Basic Rock",
+  "author": "Claude",
+  "difficulty": 1,
   "bpm": 90,
   "kitId": "default",
   "createdAt": "2026-09-16T00:00:00.000Z",
   "updatedAt": "2026-09-16T00:00:00.000Z",
   "hits": [
-    { "pad": 12, "step": 0 },
-    { "pad": 12, "step": 8 },
-    { "pad": 13, "step": 4 },
-    { "pad": 13, "step": 12 },
-    { "pad": 14, "step": 0 },
-    { "pad": 14, "step": 2 },
-    { "pad": 14, "step": 4 },
-    { "pad": 14, "step": 6 },
-    { "pad": 14, "step": 8 },
-    { "pad": 14, "step": 10 },
-    { "pad": 14, "step": 12 },
-    { "pad": 14, "step": 14 }
+    {"pad": 12, "step": 0},
+    {"pad": 12, "step": 8},
+    {"pad": 13, "step": 4},
+    {"pad": 13, "step": 12},
+    {"pad": 14, "step": 0},
+    {"pad": 14, "step": 2},
+    {"pad": 14, "step": 4},
+    {"pad": 14, "step": 6},
+    {"pad": 14, "step": 8},
+    {"pad": 14, "step": 10},
+    {"pad": 14, "step": 12},
+    {"pad": 14, "step": 14}
   ]
 }

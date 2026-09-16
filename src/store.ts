@@ -88,7 +88,7 @@ export function deleteSong(id: string): void {
 
 export function emptySong(): Song {
   const now = new Date().toISOString();
-  return { id: newId('song'), name: 'Untitled', bpm: 90, kitId: DEFAULT_KIT_ID, hits: [], createdAt: now, updatedAt: now };
+  return { id: newId('song'), name: 'Untitled', author: '', difficulty: 1, bpm: 90, kitId: DEFAULT_KIT_ID, hits: [], createdAt: now, updatedAt: now };
 }
 
 // ── Kits ─────────────────────────────────────────────────────────────────────
