@@ -25,8 +25,7 @@ src/engine/    Web Audio, scheduler, MIDI, sample storage, calibration
 src/screens/   Songs · SongEditor · Practice · Kits · KitEditor · Settings
 src/songs/     seed songs (JSON) copied into localStorage on first run
 src/kits/      default kit definition
-public/sounds/ bundled samples referenced by the default kit
-scripts/       placeholder-sounds.py — crude dev-only WAVs until real ones land
+public/sounds/ bundled CC0 samples (see the README there) used by the default kit
 ```
 
 ## Tests
