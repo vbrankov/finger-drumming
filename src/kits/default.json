@@ -1,0 +1,24 @@
+{
+  "id": "default",
+  "name": "Default",
+  "createdAt": "2026-09-16T00:00:00.000Z",
+  "updatedAt": "2026-09-16T00:00:00.000Z",
+  "slots": [
+    { "role": "Crash",      "sound": { "type": "bundled", "file": "crash.wav" } },
+    { "role": "Ride",       "sound": { "type": "bundled", "file": "ride.wav" } },
+    { "role": "Perc 1",     "sound": { "type": "bundled", "file": "perc1.wav" } },
+    { "role": "Perc 2",     "sound": { "type": "bundled", "file": "perc2.wav" } },
+    { "role": "Tom Hi",     "sound": { "type": "bundled", "file": "tom-hi.wav" } },
+    { "role": "Tom Mid",    "sound": { "type": "bundled", "file": "tom-mid.wav" } },
+    { "role": "Tom Lo",     "sound": { "type": "bundled", "file": "tom-lo.wav" } },
+    { "role": "FX",         "sound": { "type": "bundled", "file": "fx.wav" } },
+    { "role": "Kick 2",     "sound": { "type": "bundled", "file": "kick2.wav" } },
+    { "role": "Snare 2",    "sound": { "type": "bundled", "file": "snare2.wav" } },
+    { "role": "Clap",       "sound": { "type": "bundled", "file": "clap.wav" } },
+    { "role": "Rim",        "sound": { "type": "bundled", "file": "rim.wav" } },
+    { "role": "Kick",       "sound": { "type": "bundled", "file": "kick.wav" } },
+    { "role": "Snare",      "sound": { "type": "bundled", "file": "snare.wav" } },
+    { "role": "Closed Hat", "sound": { "type": "bundled", "file": "hat-closed.wav" } },
+    { "role": "Open Hat",   "sound": { "type": "bundled", "file": "hat-open.wav" } }
+  ]
+}
