@@ -210,3 +210,7 @@ table.list td.actions button { margin-left: 4px; }
   cursor: pointer;
 }
 .dots { letter-spacing: 1px; font-size: 11px; color: var(--accent-2); }
+
+.pads-below { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pads-below .pad-grid { width: min(100%, 520px); gap: 8px; }
+.pads-below .pad { font-size: 13px; }

@@ -222,16 +222,13 @@ export default function Practice({ song, onBack }: Props) {
         <div className="countin">{countIn !== null ? countIn : running ? '' : loaded ? 'ready' : 'loading…'}</div>
       </div>
 
-      <div className="row" style={{ alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <StepGrid kit={kit} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
-        </div>
-        <div className="stack">
-          <PadGrid kit={kit} flashPads={flashPads} onPadClick={clickPad} showKeys />
-          <p className="muted small" style={{ margin: 0, width: 260 }}>
-            No controller? Play with the keyboard (keys shown on the pads) or tap the pads on screen.
-          </p>
-        </div>
+      <StepGrid kit={kit} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
+
+      <div className="pads-below">
+        <PadGrid kit={kit} flashPads={flashPads} onPadClick={clickPad} showKeys />
+        <p className="muted small" style={{ margin: 0 }}>
+          No controller? Tap the pads or use the keyboard (keys shown on the pads).
+        </p>
       </div>
       <p className="muted small">
         Score = sum of the 3 worst errors in a pass. Miss or extra hit = 1000. Best is only recorded at the song&apos;s own tempo ({song.bpm} bpm).
