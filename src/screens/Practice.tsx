@@ -137,11 +137,6 @@ export default function Practice({ song, onBack }: Props) {
   }, [running, song, bpm]);
 
   const expectedSet = useMemo(() => new Set(song.hits.map((h) => h.pad + ':' + h.step)), [song]);
-  // Only the pads the song uses; extras on other pads still count and flash on the pad grid.
-  const rows = useMemo(() => {
-    const used = [...new Set(song.hits.map((h) => h.pad))].sort((a, b) => a - b);
-    return used.length ? used : undefined;
-  }, [song]);
 
   const cell = (pad: number, step: number): CellState => {
     const key = pad + ':' + step;
@@ -227,7 +222,9 @@ export default function Practice({ song, onBack }: Props) {
         <div className="countin">{countIn !== null ? countIn : running ? '' : loaded ? 'ready' : 'loading…'}</div>
       </div>
 
-      <StepGrid kit={kit} rows={rows} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
+      <div className="practice-grid">
+        <StepGrid kit={kit} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
+      </div>
 
       <div className="pads-below">
         <PadGrid kit={kit} flashPads={flashPads} onPadClick={clickPad} showKeys />

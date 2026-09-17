@@ -214,6 +214,15 @@ table.list td.actions button { margin-left: 4px; }
 .dots { letter-spacing: 1px; font-size: 11px; color: var(--accent-2); }
 
 .pads-below { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.pads-below .pad-grid { width: min(100%, 560px); gap: 8px; }
-.pads-below .pad { aspect-ratio: 1.6; }
+.pads-below .pad-grid { width: min(100%, 560px); gap: 6px; }
+.pads-below .pad { aspect-ratio: 2; }
 .pads-below .pad { font-size: 13px; }
+
+/* Practice: 16 rows must share the screen with the pads, so row height follows
+   viewport height. ~520px is everything else on the screen (top bar, header,
+   stats, pads, gaps). */
+.practice-grid { --cell-h: clamp(13px, calc((100vh - 500px) / 17), 30px); }
+.practice-grid .step-grid { gap: 1px 2px; }
+.practice-grid .step-grid .cell { aspect-ratio: auto; height: var(--cell-h); min-height: 0; font-size: clamp(9px, calc(var(--cell-h) * 0.5), 13px); border-radius: 2px; }
+.practice-grid .step-grid .label { font-size: clamp(9px, calc(var(--cell-h) * 0.55), 12px); padding: 0 6px; }
+.practice-grid .step-grid .head { font-size: 10px; padding: 0; }
