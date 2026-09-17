@@ -66,11 +66,18 @@ time signatures / triplet grids (a `resolution` field on the song).
 
 Samples only; no synthesizer.
 
-1. **Bundled samples** — WAV/MP3 files in `public/sounds/`, supplied by the
-   project owner. The **default kit** (`src/kits/default.json`) wires 16 of
-   them to the 16 slots with role names. It is the fallback whenever a song's
-   kit or a slot's sample is missing. (If the repo is ever made public, these
-   files must be redistributable.)
+1. **Bundled samples** — CC0 one-shots from the Sonic Pi collection in
+   `public/sounds/` (attribution in the README there). The **default kit**
+   (`src/kits/default.json`) uses the Quest for Groove mirror layout, the most
+   common finger-drumming convention (bottom row nearest the player):
+
+   | Low Tom | Mid Tom | High Tom | Crash |
+   |---|---|---|---|
+   | Closed Hat | Open Hat | Closed Hat | Ride |
+   | Sidestick | Snare | Snare | Sidestick |
+   | Crash 2 | Kick | Kick | Cymbal |
+
+   It is the fallback whenever a song's kit or a slot's sample is missing.
 2. **User samples** — in the kit editor, drop a WAV/MP3 onto a slot. Stored as
    a blob in IndexedDB, referenced by `blobId`. The app never distributes user
    audio.
@@ -125,9 +132,12 @@ pass is graded independently and the display updates as each pass completes.
   where `t ∈ [pStart − W, pEnd − W)`. This sends early hits for the next pass's
   step 0 to the next pass and keeps late hits for step 15 in this one. Since
   `W ≤ stepDur / 2` there is no ambiguity. A pass is finalised at `pEnd + W`.
-- For each pad: expected times `pStart + step · stepDur`; player hits on that
-  pad. Greedy match by smallest `|offset|` within `W`; each hit and each
-  expectation is used at most once.
+- For each **pad group**: expected times `pStart + step · stepDur`; player
+  hits in that group. Greedy match by smallest `|offset|` within `W`; each hit
+  and each expectation is used at most once. Pads whose kit role names are
+  equal form one group, so in a mirror layout the two Kick pads are the same
+  drum: hitting either satisfies the expectation. A matched hit is reported on
+  the expected pad's cell.
 - Errors, in ms:
   - matched hit → `|offset|` (sign kept for display: early / late)
   - unmatched expectation → **miss, 1000**

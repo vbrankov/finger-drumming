@@ -1,5 +1,5 @@
 import type { Hit } from './types';
-import { gradePass, type PassResult, type PlayerHit } from './grading';
+import { gradePass, type PadGroup, type PassResult, type PlayerHit } from './grading';
 import { passClosesAt, passIndexOf, passStart } from './timing';
 
 /**
@@ -15,6 +15,7 @@ export class PracticeSession {
     private readonly bpm: number,
     /** Audio time of step 0 of pass 0. */
     private readonly songStart: number,
+    private readonly groupOf?: PadGroup,
   ) {}
 
   addHit(hit: PlayerHit): void {
@@ -32,7 +33,7 @@ export class PracticeSession {
       const p = this.nextToClose++;
       const hits = this.pending.get(p) ?? [];
       this.pending.delete(p);
-      out.push({ passIndex: p, result: gradePass(this.expected, hits, passStart(p, this.songStart, this.bpm), this.bpm) });
+      out.push({ passIndex: p, result: gradePass(this.expected, hits, passStart(p, this.songStart, this.bpm), this.bpm, this.groupOf) });
     }
     return out;
   }

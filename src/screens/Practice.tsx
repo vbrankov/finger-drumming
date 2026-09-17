@@ -7,7 +7,7 @@ import { SongPlayer } from '../engine/player';
 import type { HitResult, PassResult } from '../model/grading';
 import { PracticeSession } from '../model/session';
 import { matchWindow } from '../model/timing';
-import { STEPS } from '../model/types';
+import { padGroupOf, STEPS } from '../model/types';
 import type { Song } from '../model/types';
 import { auditionPad, useFlash, useLoadedKit, usePadInput } from '../hooks';
 import { kitFor, recordScore, useStore } from '../store';
@@ -60,7 +60,7 @@ export default function Practice({ song, onBack }: Props) {
       });
       const songStart = p.start();
       player.current = p;
-      session.current = new PracticeSession(song.hits, bpm, songStart);
+      session.current = new PracticeSession(song.hits, bpm, songStart, padGroupOf(kit));
       setLastPass(null);
       setPassCount(0);
       setRunning(true);

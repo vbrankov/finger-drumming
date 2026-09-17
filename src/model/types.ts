@@ -61,6 +61,11 @@ export type Scores = Record<string, ScoreRecord>;
 
 export const DEFAULT_KIT_ID = 'default';
 
+/** Pads sharing a role name (case-insensitive) are the same drum, e.g. mirrored kicks. */
+export function padGroupOf(kit: Kit): (pad: number) => string {
+  return (pad) => (kit.slots[pad]?.role ?? String(pad)).trim().toLowerCase() || String(pad);
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   calibrationMs: 0,
   midiDeviceId: null,

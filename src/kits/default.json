@@ -5,101 +5,31 @@
   "updatedAt": "2026-09-16T00:00:00.000Z",
   "slots": [
     {
-      "role": "Crash",
-      "sound": {
-        "type": "bundled",
-        "file": "crash.flac"
-      }
-    },
-    {
-      "role": "Ride",
-      "sound": {
-        "type": "bundled",
-        "file": "ride.flac"
-      }
-    },
-    {
-      "role": "Cowbell",
-      "sound": {
-        "type": "bundled",
-        "file": "cowbell.flac"
-      }
-    },
-    {
-      "role": "Snap",
-      "sound": {
-        "type": "bundled",
-        "file": "snap.flac"
-      }
-    },
-    {
-      "role": "Tom Hi",
-      "sound": {
-        "type": "bundled",
-        "file": "tom-hi.flac"
-      }
-    },
-    {
-      "role": "Tom Mid",
-      "sound": {
-        "type": "bundled",
-        "file": "tom-mid.flac"
-      }
-    },
-    {
-      "role": "Tom Lo",
+      "role": "Low Tom",
       "sound": {
         "type": "bundled",
         "file": "tom-lo.flac"
       }
     },
     {
-      "role": "FX",
+      "role": "Mid Tom",
       "sound": {
         "type": "bundled",
-        "file": "fx.flac"
+        "file": "tom-mid.flac"
       }
     },
     {
-      "role": "Kick 2",
+      "role": "High Tom",
       "sound": {
         "type": "bundled",
-        "file": "kick2.flac"
+        "file": "tom-hi.flac"
       }
     },
     {
-      "role": "Snare 2",
+      "role": "Crash",
       "sound": {
         "type": "bundled",
-        "file": "snare2.flac"
-      }
-    },
-    {
-      "role": "E-Snare",
-      "sound": {
-        "type": "bundled",
-        "file": "e-snare.flac"
-      }
-    },
-    {
-      "role": "Rim",
-      "sound": {
-        "type": "bundled",
-        "file": "rim.flac"
-      }
-    },
-    {
-      "role": "Kick",
-      "sound": {
-        "type": "bundled",
-        "file": "kick.flac"
-      }
-    },
-    {
-      "role": "Snare",
-      "sound": {
-        "type": "bundled",
-        "file": "snare.flac"
+        "file": "crash.flac"
       }
     },
     {
@@ -114,6 +44,76 @@
       "sound": {
         "type": "bundled",
         "file": "hat-open.flac"
+      }
+    },
+    {
+      "role": "Closed Hat",
+      "sound": {
+        "type": "bundled",
+        "file": "hat-closed.flac"
+      }
+    },
+    {
+      "role": "Ride",
+      "sound": {
+        "type": "bundled",
+        "file": "ride.flac"
+      }
+    },
+    {
+      "role": "Sidestick",
+      "sound": {
+        "type": "bundled",
+        "file": "sidestick.flac"
+      }
+    },
+    {
+      "role": "Snare",
+      "sound": {
+        "type": "bundled",
+        "file": "snare.flac"
+      }
+    },
+    {
+      "role": "Snare",
+      "sound": {
+        "type": "bundled",
+        "file": "snare.flac"
+      }
+    },
+    {
+      "role": "Sidestick",
+      "sound": {
+        "type": "bundled",
+        "file": "sidestick.flac"
+      }
+    },
+    {
+      "role": "Crash 2",
+      "sound": {
+        "type": "bundled",
+        "file": "crash2.flac"
+      }
+    },
+    {
+      "role": "Kick",
+      "sound": {
+        "type": "bundled",
+        "file": "kick.flac"
+      }
+    },
+    {
+      "role": "Kick",
+      "sound": {
+        "type": "bundled",
+        "file": "kick.flac"
+      }
+    },
+    {
+      "role": "Cymbal",
+      "sound": {
+        "type": "bundled",
+        "file": "cymbal.flac"
       }
     }
   ]

@@ -136,6 +136,32 @@ describe('gradePass', () => {
   });
 });
 
+describe('gradePass with pad groups (mirror layout)', () => {
+  const group = (pad: number) => (pad === 13 || pad === 14 ? 'kick' : pad);
+  const expected = [{ pad: 13, step: 0 }, { pad: 13, step: 8 }];
+
+  it('accepts the mirror pad as the same drum and reports it on the expected pad', () => {
+    const hits = [
+      { pad: 14, time: 10 + 0.01 },
+      { pad: 13, time: 10 + 8 * SD },
+    ];
+    const r = gradePass(expected, hits, 10, BPM, group);
+    expect(r.results.map((x) => x.kind)).toEqual(['hit', 'hit']);
+    expect(r.results[0]).toMatchObject({ pad: 13, step: 0 });
+    expect(r.score).toBeCloseTo(10);
+  });
+
+  it('still treats a non-grouped pad as wrong', () => {
+    const hits = [
+      { pad: 9, time: 10 },
+      { pad: 13, time: 10 + 8 * SD },
+    ];
+    const r = gradePass(expected, hits, 10, BPM, group);
+    expect(r.score).toBe(2 * MISS_MS);
+    expect(r.results.find((x) => x.kind === 'extra')).toMatchObject({ pad: 9 });
+  });
+});
+
 describe('PracticeSession', () => {
   const expected = [{ pad: 0, step: 0 }, { pad: 0, step: 8 }];
   const pd = passDuration(BPM);
