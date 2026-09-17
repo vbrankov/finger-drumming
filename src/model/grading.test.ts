@@ -171,11 +171,11 @@ describe('PracticeSession', () => {
     const s = new PracticeSession(expected, BPM, 10);
     s.addHit({ pad: 0, time: 10 });
     s.addHit({ pad: 0, time: 10 + 8 * SD + 0.005 });
-    expect(s.collect(10 + pd - W - 0.001)).toEqual([]); // not closed yet
-    const out = s.collect(10 + pd);
-    expect(out).toHaveLength(1);
-    expect(out[0].passIndex).toBe(0);
-    expect(out[0].result.score).toBeCloseTo(5);
+    expect(s.collect(10 + pd - W - 0.001).passes).toEqual([]); // not closed yet
+    const { passes } = s.collect(10 + pd);
+    expect(passes).toHaveLength(1);
+    expect(passes[0].passIndex).toBe(0);
+    expect(passes[0].result.score).toBeCloseTo(5);
   });
 
   it('routes an early hit for the next pass correctly', () => {
@@ -183,18 +183,39 @@ describe('PracticeSession', () => {
     s.addHit({ pad: 0, time: 10 });
     s.addHit({ pad: 0, time: 10 + 8 * SD });
     s.addHit({ pad: 0, time: 10 + pd - 0.02 }); // early for pass 1 step 0
-    const [p0] = s.collect(10 + pd);
+    const [p0] = s.collect(10 + pd).passes;
     expect(p0.result.score).toBe(0);
     s.addHit({ pad: 0, time: 10 + pd + 8 * SD });
-    const [p1] = s.collect(10 + 2 * pd);
+    const [p1] = s.collect(10 + 2 * pd).passes;
     expect(p1.passIndex).toBe(1);
     expect(p1.result.score).toBeCloseTo(20);
   });
 
   it('grades a silent pass as all misses', () => {
     const s = new PracticeSession(expected, BPM, 10);
-    const out = s.collect(10 + 3 * pd);
-    expect(out.map((o) => o.passIndex)).toEqual([0, 1, 2]);
-    expect(out[0].result.score).toBe(2 * MISS_MS);
+    const { passes } = s.collect(10 + 3 * pd);
+    expect(passes.map((o) => o.passIndex)).toEqual([0, 1, 2]);
+    expect(passes[0].result.score).toBe(2 * MISS_MS);
+  });
+
+  it('gives an immediate verdict per hit', () => {
+    const s = new PracticeSession(expected, BPM, 10);
+    expect(s.addHit({ pad: 0, time: 10 + 0.02 })).toMatchObject({ kind: 'hit', pad: 0, step: 0, passIndex: 0 });
+    expect(s.addHit({ pad: 0, time: 10 + 0.03 })).toMatchObject({ kind: 'extra', step: 0 }); // expectation already claimed
+    expect(s.addHit({ pad: 1, time: 10 + 8 * SD })).toMatchObject({ kind: 'extra', pad: 1, step: 8 });
+  });
+
+  it('reports a miss as soon as its window expires, once', () => {
+    const s = new PracticeSession(expected, BPM, 10);
+    expect(s.collect(10 + W - 0.001).live).toEqual([]);
+    expect(s.collect(10 + W).live).toMatchObject([{ kind: 'miss', pad: 0, step: 0, passIndex: 0 }]);
+    expect(s.collect(10 + W + 0.1).live).toEqual([]);
+    s.addHit({ pad: 0, time: 10 + 8 * SD });
+    expect(s.collect(10 + pd).live).toEqual([]); // step 8 was hit, no miss
+  });
+
+  it('uses the pad group for live matching too', () => {
+    const s = new PracticeSession([{ pad: 13, step: 0 }], BPM, 10, (pad) => (pad === 13 || pad === 14 ? 'kick' : pad));
+    expect(s.addHit({ pad: 14, time: 10.01 })).toMatchObject({ kind: 'hit', pad: 13, step: 0 });
   });
 });

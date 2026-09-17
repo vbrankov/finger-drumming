@@ -4,8 +4,9 @@ import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
 import { getAudioContext, playBuffer, resumeAudio, velocityGain } from '../engine/audio';
 import { SongPlayer } from '../engine/player';
-import type { HitResult, PassResult } from '../model/grading';
+import type { PassResult } from '../model/grading';
 import { PracticeSession } from '../model/session';
+import type { LiveResult } from '../model/session';
 import { matchWindow } from '../model/timing';
 import { padGroupOf, STEPS } from '../model/types';
 import type { Song } from '../model/types';
@@ -31,6 +32,9 @@ export default function Practice({ song, onBack }: Props) {
   const [position, setPosition] = useState<number | null>(null); // fractional global step
   const [lastPass, setLastPass] = useState<PassResult | null>(null);
   const [passCount, setPassCount] = useState(0);
+  // Latest live verdict per cell, kept across passes so the previous pass stays visible (dimmed).
+  const [cells, setCells] = useState<Map<string, LiveResult>>(() => new Map());
+  const [currentPass, setCurrentPass] = useState(0);
   const [flashPads, flash] = useFlash();
 
   const player = useRef<SongPlayer | null>(null);
@@ -39,12 +43,27 @@ export default function Practice({ song, onBack }: Props) {
   const best = scores[song.id];
   const win = matchWindow(bpm);
 
+  function showLive(results: LiveResult[]) {
+    if (!results.length) return;
+    setCells((prev) => {
+      const next = new Map(prev);
+      for (const r of results) {
+        const key = r.pad + ':' + r.step;
+        const cur = next.get(key);
+        // An expected cell's own verdict (hit/miss) beats an extra landing on it.
+        if (!cur || cur.passIndex < r.passIndex || r.kind !== 'extra') next.set(key, r);
+      }
+      return next;
+    });
+  }
+
   const clickPad = usePadInput((hit) => {
     flash(hit.pad);
     if (loaded?.buffers[hit.pad]) {
       playBuffer(loaded.buffers[hit.pad]!, getAudioContext().currentTime, velocityGain(hit.velocity) * (loaded.gains[hit.pad] ?? 1));
     }
-    session.current?.addHit(hit);
+    const r = session.current?.addHit(hit);
+    if (r) showLive([r]);
   });
 
   function start() {
@@ -63,6 +82,8 @@ export default function Practice({ song, onBack }: Props) {
       session.current = new PracticeSession(song.hits, bpm, songStart, padGroupOf(kit));
       setLastPass(null);
       setPassCount(0);
+      setCells(new Map());
+      setCurrentPass(0);
       setRunning(true);
     });
   }
@@ -89,7 +110,9 @@ export default function Practice({ song, onBack }: Props) {
     const collect = () => {
       const s = session.current;
       if (!s) return;
-      for (const { result } of s.collect(getAudioContext().currentTime)) {
+      const { passes, live } = s.collect(getAudioContext().currentTime);
+      showLive(live);
+      for (const { result } of passes) {
         setLastPass(result);
         setPassCount((n) => n + 1);
         recordScore(song, bpm, result.score);
@@ -99,7 +122,11 @@ export default function Practice({ song, onBack }: Props) {
     let raf = 0;
     const tick = () => {
       const p = player.current;
-      if (p) setPosition(p.positionAt(getAudioContext().currentTime));
+      if (p) {
+        const pos = p.positionAt(getAudioContext().currentTime);
+        setPosition(pos);
+        setCurrentPass(Math.max(0, Math.floor(pos / STEPS)));
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -109,30 +136,22 @@ export default function Practice({ song, onBack }: Props) {
     };
   }, [running, song, bpm]);
 
-  const resultMap = useMemo(() => {
-    const m = new Map<string, HitResult>();
-    for (const r of lastPass?.results ?? []) {
-      const key = r.pad + ':' + r.step;
-      // A hit/miss on the expected cell wins over an extra landing on the same cell.
-      if (!m.has(key) || r.kind !== 'extra') m.set(key, r);
-    }
-    return m;
-  }, [lastPass]);
-
   const expectedSet = useMemo(() => new Set(song.hits.map((h) => h.pad + ':' + h.step)), [song]);
 
   const cell = (pad: number, step: number): CellState => {
     const key = pad + ':' + step;
     const on = expectedSet.has(key);
-    const r = resultMap.get(key);
+    const r = cells.get(key);
     if (!r) return { on };
-    if (r.kind === 'miss') return { on, className: 'miss', content: '✕', title: 'Missed' };
-    if (r.kind === 'extra') return { on, className: 'extra', content: '+', title: 'Extra hit' };
+    const stale = r.passIndex < currentPass ? ' stale' : '';
+    if (r.kind === 'miss') return { on, className: 'miss' + stale, content: '✕', title: 'Missed' };
+    if (r.kind === 'extra') return { on, className: 'extra' + stale, content: '+', title: 'Extra hit' };
     const ms = Math.round(r.offsetMs);
     return {
       on,
-      className: 'graded',
-      content: <span style={{ color: offsetColor(r.errorMs, win * 1000) }}>{ms > 0 ? '+' + ms : ms}</span>,
+      className: 'graded' + stale,
+      style: { background: offsetColor(r.errorMs, win * 1000) },
+      content: ms > 0 ? '+' + ms : ms,
       title: (ms > 0 ? 'Late ' : 'Early ') + Math.abs(ms) + ' ms',
     };
   };
@@ -221,9 +240,9 @@ export default function Practice({ song, onBack }: Props) {
   );
 }
 
-/** Green at 0, amber around a third of the window, red at the window edge. */
+/** Green at 0, amber around half the window, red at the window edge. */
 function offsetColor(errorMs: number, windowMs: number): string {
   const t = Math.min(1, errorMs / windowMs);
   const hue = 120 * (1 - t);
-  return 'hsl(' + hue + ' 80% 60%)';
+  return 'hsl(' + hue + ' 70% 42%)';
 }

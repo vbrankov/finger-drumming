@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { PAD_COUNT, STEPS } from '../model/types';
 import type { Kit } from '../model/types';
 
 export interface CellState {
   on: boolean;
   className?: string;
+  style?: CSSProperties;
   content?: ReactNode;
   title?: string;
 }
@@ -74,7 +75,7 @@ function Row({
           .filter(Boolean)
           .join(' ');
         return (
-          <div key={step} className={cls} title={c.title} onClick={() => onCellClick?.(pad, step)}>
+          <div key={step} className={cls} style={c.style} title={c.title} onClick={() => onCellClick?.(pad, step)}>
             {c.content}
           </div>
         );

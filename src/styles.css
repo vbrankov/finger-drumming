@@ -118,7 +118,7 @@ table.list td.actions button { margin-left: 4px; }
 .step-grid .label.flash { background: var(--accent); color: #fff; }
 .step-grid .cell {
   aspect-ratio: 1.6;
-  min-height: 26px;
+  min-height: 30px;
   border-radius: 3px;
   background: var(--panel);
   border: 1px solid transparent;
@@ -135,9 +135,11 @@ table.list td.actions button { margin-left: 4px; }
 .step-grid .cell.editable:hover { border-color: var(--muted); }
 .step-grid .cell.playhead { border-color: var(--text); }
 .step-grid .cell.playhead.on { border-color: #fff; box-shadow: 0 0 0 1px #fff inset; }
-.step-grid .cell.miss { background: var(--bad); color: #fff; }
-.step-grid .cell.extra { outline: 2px solid var(--extra); outline-offset: -2px; color: var(--extra); }
+.step-grid .cell.miss { background: var(--bad); color: #fff; font-size: 13px; }
+.step-grid .cell.extra { outline: 2px solid var(--extra); outline-offset: -2px; color: var(--extra); font-size: 14px; font-weight: 700; }
 .step-grid .cell.on.extra { color: #fff; }
+.step-grid .cell.graded { color: #fff; font-size: 13px; font-weight: 700; }
+.step-grid .cell.stale { opacity: 0.4; }
 
 /* ── Pad mirror ────────────────────────────────────────────────────────── */
 
@@ -192,7 +194,6 @@ table.list td.actions button { margin-left: 4px; }
 .slot .file.user { color: var(--accent-2); }
 .slot .row { gap: 4px; }
 .slot .row button { padding: 3px 8px; font-size: 12px; }
-.step-grid .cell.on.graded { background: var(--panel-2); font-weight: 600; }
 
 .pad-grid .pad { position: relative; touch-action: none; }
 .pad-grid .pad .key { position: absolute; top: 4px; left: 6px; font-size: 10px; color: var(--muted); }

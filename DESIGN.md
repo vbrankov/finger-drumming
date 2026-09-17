@@ -148,9 +148,14 @@ pass is graded independently and the display updates as each pass completes.
 **Best score** is stored per song, only when practising at `song.bpm`.
 
 **Display.** The same 16-pad × 16-step grid as the editor, with a playhead.
-After each pass, expected cells show the signed offset in ms coloured on a
-gradient (green ≤ 15 ms → amber ~ 50 ms → red ≥ W), misses in red, extras drawn
-in their landing cell in a distinct colour. A 4×4 pad mirror flashes on every
+Feedback is immediate: the instant a hit arrives it is matched to the nearest
+unclaimed expectation of that drum within the window and its cell fills with
+the signed offset in ms on a green → amber → red background; a miss turns its
+cell red the moment its window expires; an extra appears at once in its landing
+cell. The previous pass stays visible dimmed and is overwritten cell by cell as
+the next pass sweeps through. The pass score is computed from the full greedy
+grading at pass end (which can differ from the live verdicts only when two hits
+compete for one expectation). A 4×4 pad mirror flashes on every
 hit so you can see mapping problems immediately. Header shows mode, tempo,
 last score, best score.
 
