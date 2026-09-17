@@ -171,10 +171,12 @@ table.list td.actions button { margin-left: 4px; }
 
 /* ── Practice ──────────────────────────────────────────────────────────── */
 
-.stats { display: flex; gap: 24px; }
-.stat .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stats { display: flex; gap: 24px; align-items: baseline; }
+.stat { display: flex; align-items: baseline; gap: 6px; }
+.stat .v { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stat .k { color: var(--muted); font-size: 12px; }
-.countin { font-size: 22px; font-weight: 600; color: var(--accent-2); min-width: 3em; }
+.countin { font-size: 20px; font-weight: 600; color: var(--accent-2); min-width: 3em; }
+.stats-bar { padding: 6px 12px; }
 
 /* ── Kit editor ────────────────────────────────────────────────────────── */
 
@@ -212,5 +214,6 @@ table.list td.actions button { margin-left: 4px; }
 .dots { letter-spacing: 1px; font-size: 11px; color: var(--accent-2); }
 
 .pads-below { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.pads-below .pad-grid { width: min(100%, 520px); gap: 8px; }
+.pads-below .pad-grid { width: min(100%, 560px); gap: 8px; }
+.pads-below .pad { aspect-ratio: 1.6; }
 .pads-below .pad { font-size: 13px; }

@@ -12,6 +12,8 @@ export interface CellState {
 
 interface Props {
   kit: Kit;
+  /** Pads to show as rows, in order. Default: all 16. */
+  rows?: number[];
   cell: (pad: number, step: number) => CellState;
   playheadStep?: number | null;
   onCellClick?: (pad: number, step: number) => void;
@@ -19,7 +21,8 @@ interface Props {
   flashPads?: Set<number>;
 }
 
-export default function StepGrid({ kit, cell, playheadStep, onCellClick, onLabelClick, flashPads }: Props) {
+export default function StepGrid({ kit, rows, cell, playheadStep, onCellClick, onLabelClick, flashPads }: Props) {
+  const pads = rows ?? Array.from({ length: PAD_COUNT }, (_, i) => i);
   return (
     <div className="step-grid">
       <div />
@@ -28,7 +31,7 @@ export default function StepGrid({ kit, cell, playheadStep, onCellClick, onLabel
           {s % 4 === 0 ? s / 4 + 1 : '·'}
         </div>
       ))}
-      {Array.from({ length: PAD_COUNT }, (_, pad) => (
+      {pads.map((pad) => (
         <Row
           key={pad}
           pad={pad}
