@@ -1,6 +1,7 @@
-import type { Hit, Swing } from '../model/types';
+import type { Hit } from '../model/types';
 import { STEPS } from '../model/types';
-import { stepDuration, stepTime } from '../model/timing';
+import { stepDuration } from '../model/timing';
+import type { Timeline } from '../model/timing';
 import { getAudioContext, makeClick, playBuffer, velocityGain } from './audio';
 import { Scheduler } from './scheduler';
 
@@ -17,11 +18,10 @@ export function playSlot(kit: LoadedKit, pad: number, velocity: number | undefin
 }
 
 export interface PlayerOptions {
+  /** Hits with global steps within the timeline's pass. */
   hits: Hit[];
-  bpm: number;
-  /** Pattern length in 16th steps (a multiple of STEPS). */
-  steps: number;
-  swing?: Swing;
+  /** Steps → seconds for one pass; also fixes the tempo. */
+  timeline: Timeline;
   kit: LoadedKit;
   /** Play the pattern's drums. Off = Solo mode. */
   playSong: boolean;
@@ -48,7 +48,7 @@ export class PatternPlayer {
     const ctx = getAudioContext();
     this.clickHi ??= makeClick(true);
     this.clickLo ??= makeClick(false);
-    const stepDur = stepDuration(this.opts.bpm);
+    const stepDur = stepDuration(this.opts.timeline.bpm);
     const countInSteps = this.opts.countInBars * STEPS;
     const now = ctx.currentTime + START_DELAY_S;
     this.songStart = now + countInSteps * stepDur;
@@ -69,13 +69,13 @@ export class PatternPlayer {
 
   /** Global step index (negative during count-in) at audio time t, fractional. */
   positionAt(t: number): number {
-    return (t - this.songStart) / stepDuration(this.opts.bpm);
+    return (t - this.songStart) / stepDuration(this.opts.timeline.bpm);
   }
 
   private schedule(from: number, to: number): void {
-    const { hits, bpm, steps, swing, kit, playSong, metronome } = this.opts;
-    const stepDur = stepDuration(bpm);
-    const passDur = steps * stepDur;
+    const { hits, timeline: tl, kit, playSong, metronome } = this.opts;
+    const stepDur = stepDuration(tl.bpm);
+    const passDur = tl.duration;
     // Metronome and count-in are straight; pattern hits take their swung times.
     const first = Math.ceil((from - this.songStart) / stepDur - 1e-9);
     const last = Math.floor((to - this.songStart) / stepDur - 1e-9);
@@ -89,7 +89,7 @@ export class PatternPlayer {
     for (let p = firstPass; p <= lastPass; p++) {
       const pStart = this.songStart + p * passDur;
       for (const h of hits) {
-        const t = pStart + stepTime(h.step, bpm, swing);
+        const t = pStart + tl.timeOf(h.step);
         if (t >= from && t < to) playSlot(kit, h.pad, h.velocity, t);
       }
     }

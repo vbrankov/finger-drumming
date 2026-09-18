@@ -1,5 +1,6 @@
-import type { Hit, Swing } from './types';
-import { matchWindow, nearestStep, stepTime } from './timing';
+import type { Hit } from './types';
+import { matchWindow } from './timing';
+import type { Timeline } from './timing';
 
 export const MISS_MS = 1000;
 export const SCORE_WORST_N = 3;
@@ -40,16 +41,8 @@ const identity: PadGroup = (pad) => pad;
  * once. A matched hit is reported on the expected pad, so it lands on the cell
  * the pattern shows even if it was played on the mirror pad.
  */
-export function gradePass(
-  expected: Hit[],
-  playerHits: PlayerHit[],
-  passStart: number,
-  bpm: number,
-  steps: number,
-  groupOf: PadGroup = identity,
-  swing?: Swing,
-): PassResult {
-  const window = matchWindow(bpm);
+export function gradePass(expected: Hit[], playerHits: PlayerHit[], passStart: number, tl: Timeline, groupOf: PadGroup = identity): PassResult {
+  const window = matchWindow(tl.bpm);
   const results: HitResult[] = [];
 
   const groups = new Set<number | string>();
@@ -63,7 +56,7 @@ export function gradePass(
     // Every candidate pairing within the window, best first.
     const pairs: { ei: number; gi: number; offset: number }[] = [];
     exp.forEach((e, ei) => {
-      const expectedTime = passStart + stepTime(e.step, bpm, swing);
+      const expectedTime = passStart + tl.timeOf(e.step);
       got.forEach((g, gi) => {
         const offset = g.time - expectedTime;
         if (Math.abs(offset) <= window) pairs.push({ ei, gi, offset });
@@ -85,7 +78,7 @@ export function gradePass(
     });
     got.forEach((g, gi) => {
       if (usedG.has(gi)) return;
-      const step = nearestStep(g.time - passStart, bpm, steps, swing);
+      const step = tl.nearestStep(g.time - passStart);
       results.push({ kind: 'extra', pad: g.pad, step, time: g.time, errorMs: MISS_MS });
     });
   }

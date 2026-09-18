@@ -8,7 +8,7 @@ import { playSlot, PatternPlayer } from '../engine/player';
 import type { PassResult } from '../model/grading';
 import { PracticeSession } from '../model/session';
 import type { LiveResult } from '../model/session';
-import { matchWindow } from '../model/timing';
+import { matchWindow, patternTimeline } from '../model/timing';
 import { LEVEL_GLYPH, kitRows, levelOfHit, levelOfVelocity, padGroupOf, padRepOf, patternBars, patternSteps } from '../model/types';
 import type { Pattern } from '../model/types';
 import { auditionPad, useFlash, useLoadedKit, usePadInput } from '../hooks';
@@ -125,11 +125,10 @@ export default function Practice({ pattern, onBack, onSettings }: Props) {
   function start() {
     if (!loaded) return;
     resumeAudio().then(() => {
+      const tl = patternTimeline(bpm, steps, pattern.swing);
       const p = new PatternPlayer({
         hits: pattern.hits,
-        bpm,
-        steps,
-        swing: pattern.swing,
+        timeline: tl,
         kit: loaded,
         playSong: mode === 'playalong',
         metronome,
@@ -137,7 +136,7 @@ export default function Practice({ pattern, onBack, onSettings }: Props) {
       });
       const songStart = p.start();
       player.current = p;
-      session.current = new PracticeSession(pattern.hits, bpm, songStart, steps, padGroupOf(kit), pattern.swing);
+      session.current = new PracticeSession(pattern.hits, tl, songStart, padGroupOf(kit));
       setLastPass(null);
       setPassCount(0);
       setCells(new Map());

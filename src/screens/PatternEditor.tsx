@@ -3,6 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
 import { PatternPlayer } from '../engine/player';
+import { patternTimeline } from '../model/timing';
 import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, SWING_MAX, SWING_MIN, kitRows, levelOfHit, padRepOf, patternBars, patternSteps } from '../model/types';
 import type { Difficulty, Hit, Pattern, Swing } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
@@ -104,7 +105,7 @@ export default function PatternEditor({ pattern: initial, onDone, onEditKit }: P
   function play() {
     if (!loaded) return;
     resumeAudio().then(() => {
-      const p = new PatternPlayer({ hits: pattern.hits, bpm: pattern.bpm, steps, swing: pattern.swing, kit: loaded, playSong: true, metronome: true, countInBars: 0 });
+      const p = new PatternPlayer({ hits: pattern.hits, timeline: patternTimeline(pattern.bpm, steps, pattern.swing), kit: loaded, playSong: true, metronome: true, countInBars: 0 });
       p.start();
       player.current = p;
       setPlaying(true);

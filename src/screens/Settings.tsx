@@ -4,6 +4,7 @@ import { perfToAudioTime, resumeAudio } from '../engine/audio';
 import { estimateCalibrationMs, robustMean } from '../engine/calibration';
 import { onMidiHit } from '../engine/midi';
 import { PatternPlayer } from '../engine/player';
+import { patternTimeline } from '../model/timing';
 import { isTypingTarget, KEY_TO_PAD, useFlash, useMidiStatus } from '../hooks';
 import { standardNoteMap } from '../model/types';
 import ImportDialog from '../components/ImportDialog';
@@ -64,7 +65,7 @@ export default function Settings() {
       calTapsRef.current = [];
       setCalTaps(0);
       setCalResult(null);
-      const p = new PatternPlayer({ hits: [], bpm: CAL_BPM, steps: 16, kit: { buffers: [], gains: [], rates: [] }, playSong: false, metronome: true, countInBars: 0 });
+      const p = new PatternPlayer({ hits: [], timeline: patternTimeline(CAL_BPM, 16), kit: { buffers: [], gains: [], rates: [] }, playSong: false, metronome: true, countInBars: 0 });
       p.start();
       calPlayer.current = p;
       setCalRunning(true);

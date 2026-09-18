@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { gradePass, scoreOf, MISS_MS } from './grading';
-import { matchWindow, nearestStep, passDuration, passIndexOf, stepDuration, stepTime } from './timing';
+import { makeTimeline, matchWindow, passIndexOf, patternTimeline, stepDuration, stepTime } from './timing';
 import { PracticeSession } from './session';
 
 const BPM = 120; // stepDur = 0.125 s, window = 0.0625 s
 const SD = stepDuration(BPM);
 const N = 16; // one-bar patterns unless stated
+const TL = patternTimeline(BPM, N);
+const passDuration = (bpm: number, steps: number) => patternTimeline(bpm, steps).duration;
 
 describe('timing', () => {
   it('derives step duration and window from bpm', () => {
@@ -20,9 +22,9 @@ describe('timing', () => {
   it('assigns early step-0 hits to the next pass and late step-15 hits to this one', () => {
     const W = matchWindow(BPM);
     const pd = passDuration(BPM, N);
-    expect(passIndexOf(10 + pd - W / 2, 10, BPM, N)).toBe(1); // slightly early for pass 1 step 0
-    expect(passIndexOf(10 + pd - W - 0.001, 10, BPM, N)).toBe(0); // late step 15 of pass 0
-    expect(passIndexOf(10 - W / 2, 10, BPM, N)).toBe(0); // early for the very first hit
+    expect(passIndexOf(10 + pd - W / 2, 10, TL)).toBe(1); // slightly early for pass 1 step 0
+    expect(passIndexOf(10 + pd - W - 0.001, 10, TL)).toBe(0); // late step 15 of pass 0
+    expect(passIndexOf(10 - W / 2, 10, TL)).toBe(0); // early for the very first hit
   });
 });
 
@@ -49,18 +51,32 @@ describe('swing', () => {
     expect(stepTime(4, BPM, sw)).toBeCloseTo(4 * SD);
   });
 
-  it('nearestStep inverts stepTime under swing', () => {
-    const sw = { amount: 70, unit: 'sixteenth' as const };
-    for (let k = 0; k < 16; k++) expect(nearestStep(stepTime(k, BPM, sw) + 0.005, BPM, 16, sw)).toBe(k);
+  it('nearestStep inverts timeOf under swing', () => {
+    const tl = patternTimeline(BPM, 16, { amount: 70, unit: 'sixteenth' });
+    for (let k = 0; k < 16; k++) expect(tl.nearestStep(tl.timeOf(k) + 0.005)).toBe(k);
   });
 
   it('grades a swung hit as on time and a straight hit as early', () => {
-    const sw = { amount: 66.67, unit: 'sixteenth' as const };
+    const tl = patternTimeline(BPM, N, { amount: 66.67, unit: 'sixteenth' });
     const expected = [{ pad: 0, step: 1 }];
-    const swung = gradePass(expected, [{ pad: 0, time: 10 + (4 / 3) * SD }], 10, BPM, N, undefined, sw);
+    const swung = gradePass(expected, [{ pad: 0, time: 10 + (4 / 3) * SD }], 10, tl);
     expect(swung.score).toBeCloseTo(0, 0);
-    const straight = gradePass(expected, [{ pad: 0, time: 10 + SD }], 10, BPM, N, undefined, sw);
+    const straight = gradePass(expected, [{ pad: 0, time: 10 + SD }], 10, tl);
     expect((straight.results[0] as { offsetMs: number }).offsetMs).toBeCloseTo(-SD * 1000 / 3, 0);
+  });
+
+  it('a sequence timeline applies each segment its own swing on a straight boundary grid', () => {
+    const tl = makeTimeline(BPM, [
+      { steps: 16 }, // straight bar
+      { steps: 16, swing: { amount: 66.67, unit: 'sixteenth' } }, // swung bar
+    ]);
+    expect(tl.steps).toBe(32);
+    expect(tl.duration).toBeCloseTo(32 * SD);
+    expect(tl.timeOf(1)).toBeCloseTo(SD);
+    expect(tl.timeOf(16)).toBeCloseTo(16 * SD);
+    expect(tl.timeOf(17)).toBeCloseTo(16 * SD + (4 / 3) * SD, 3);
+    expect(tl.nearestStep(16 * SD + (4 / 3) * SD + 0.004)).toBe(17);
+    expect(tl.segments.map((s) => s.start)).toEqual([0, 16]);
   });
 });
 
@@ -84,7 +100,7 @@ describe('gradePass', () => {
 
   it('grades a perfect pass as zero', () => {
     const hits = expected.map((h) => ({ pad: h.pad, time: 10 + h.step * SD }));
-    const r = gradePass(expected, hits, 10, BPM, N);
+    const r = gradePass(expected, hits, 10, TL);
     expect(r.score).toBe(0);
     expect(r.results.every((x) => x.kind === 'hit')).toBe(true);
   });
@@ -96,7 +112,7 @@ describe('gradePass', () => {
       { pad: kick, time: 10 + 8 * SD },
       { pad: snare, time: 10 + 12 * SD + 0.03 },
     ];
-    const r = gradePass(expected, hits, 10, BPM, N);
+    const r = gradePass(expected, hits, 10, TL);
     const byStep = Object.fromEntries(r.results.map((x) => [x.step, x]));
     expect(byStep[0].kind).toBe('hit');
     expect((byStep[0] as { offsetMs: number }).offsetMs).toBeCloseTo(20);
@@ -107,7 +123,7 @@ describe('gradePass', () => {
 
   it('counts a missing hit as 1000', () => {
     const hits = expected.slice(1).map((h) => ({ pad: h.pad, time: 10 + h.step * SD }));
-    const r = gradePass(expected, hits, 10, BPM, N);
+    const r = gradePass(expected, hits, 10, TL);
     expect(r.results.find((x) => x.kind === 'miss')).toMatchObject({ pad: kick, step: 0, errorMs: MISS_MS });
     expect(r.score).toBe(MISS_MS);
   });
@@ -117,7 +133,7 @@ describe('gradePass', () => {
       ...expected.map((h) => ({ pad: h.pad, time: 10 + h.step * SD })),
       { pad: kick, time: 10 + 5.4 * SD },
     ];
-    const r = gradePass(expected, hits, 10, BPM, N);
+    const r = gradePass(expected, hits, 10, TL);
     expect(r.results.find((x) => x.kind === 'extra')).toMatchObject({ pad: kick, step: 5, errorMs: MISS_MS });
     expect(r.score).toBe(MISS_MS);
   });
@@ -129,7 +145,7 @@ describe('gradePass', () => {
       { pad: kick, time: 10 + 8 * SD },
       { pad: snare, time: 10 + 12 * SD },
     ];
-    const r = gradePass(expected, hits, 10, BPM, N);
+    const r = gradePass(expected, hits, 10, TL);
     expect(r.results.filter((x) => x.kind === 'miss')).toHaveLength(1);
     expect(r.results.filter((x) => x.kind === 'extra')).toHaveLength(1);
     expect(r.score).toBe(2 * MISS_MS);
@@ -143,7 +159,7 @@ describe('gradePass', () => {
       { pad: kick, time: 10 + 8 * SD },
       { pad: snare, time: 10 + 12 * SD },
     ];
-    const r = gradePass(expected, hits, 10, BPM, N);
+    const r = gradePass(expected, hits, 10, TL);
     expect(r.score).toBe(2 * MISS_MS);
   });
 
@@ -155,7 +171,7 @@ describe('gradePass', () => {
       { pad: kick, time: 10 + 8 * SD },
       { pad: snare, time: 10 + 12 * SD },
     ];
-    const r = gradePass(expected, hits, 10, BPM, N);
+    const r = gradePass(expected, hits, 10, TL);
     const step0 = r.results.filter((x) => x.pad === kick && x.step === 0);
     expect(step0.map((x) => x.kind).sort()).toEqual(['extra', 'hit']);
     expect((step0.find((x) => x.kind === 'hit') as { offsetMs: number }).offsetMs).toBeCloseTo(10);
@@ -170,7 +186,7 @@ describe('gradePass', () => {
       { pad: kick, time: 10 + 0.04 }, // late for step 0, but closer to step 0 than step 1? 0.04 vs 0.085
       { pad: kick, time: 10 + SD + 0.02 },
     ];
-    const r = gradePass(roll, hits, 10, BPM, N);
+    const r = gradePass(roll, hits, 10, TL);
     expect(r.results.map((x) => x.kind)).toEqual(['hit', 'hit']);
     expect(r.score).toBeCloseTo(60);
   });
@@ -185,7 +201,7 @@ describe('gradePass with pad groups (mirror layout)', () => {
       { pad: 14, time: 10 + 0.01 },
       { pad: 13, time: 10 + 8 * SD },
     ];
-    const r = gradePass(expected, hits, 10, BPM, N, group);
+    const r = gradePass(expected, hits, 10, TL, group);
     expect(r.results.map((x) => x.kind)).toEqual(['hit', 'hit']);
     expect(r.results[0]).toMatchObject({ pad: 13, step: 0 });
     expect(r.score).toBeCloseTo(10);
@@ -196,7 +212,7 @@ describe('gradePass with pad groups (mirror layout)', () => {
       { pad: 9, time: 10 },
       { pad: 13, time: 10 + 8 * SD },
     ];
-    const r = gradePass(expected, hits, 10, BPM, N, group);
+    const r = gradePass(expected, hits, 10, TL, group);
     expect(r.score).toBe(2 * MISS_MS);
     expect(r.results.find((x) => x.kind === 'extra')).toMatchObject({ pad: 9 });
   });
@@ -205,8 +221,9 @@ describe('gradePass with pad groups (mirror layout)', () => {
 describe('multi-bar patterns', () => {
   it('treats the whole pattern as one pass and places extras beyond bar 1', () => {
     const steps = 32;
+    const tl = patternTimeline(BPM, steps);
     const expected = [{ pad: 0, step: 0 }, { pad: 0, step: 20 }];
-    const s = new PracticeSession(expected, BPM, 10, steps);
+    const s = new PracticeSession(expected, tl, 10);
     expect(s.addHit({ pad: 0, time: 10 + 20 * SD + 0.01 })).toMatchObject({ kind: 'hit', step: 20, passIndex: 0 });
     expect(s.addHit({ pad: 1, time: 10 + 27 * SD })).toMatchObject({ kind: 'extra', step: 27 });
     expect(s.collect(10 + passDuration(BPM, steps) - matchWindow(BPM) - 0.01).passes).toEqual([]);
@@ -222,7 +239,7 @@ describe('PracticeSession', () => {
   const W = matchWindow(BPM);
 
   it('grades passes only once they have closed, in order', () => {
-    const s = new PracticeSession(expected, BPM, 10, N);
+    const s = new PracticeSession(expected, TL, 10);
     s.addHit({ pad: 0, time: 10 });
     s.addHit({ pad: 0, time: 10 + 8 * SD + 0.005 });
     expect(s.collect(10 + pd - W - 0.001).passes).toEqual([]); // not closed yet
@@ -233,7 +250,7 @@ describe('PracticeSession', () => {
   });
 
   it('routes an early hit for the next pass correctly', () => {
-    const s = new PracticeSession(expected, BPM, 10, N);
+    const s = new PracticeSession(expected, TL, 10);
     s.addHit({ pad: 0, time: 10 });
     s.addHit({ pad: 0, time: 10 + 8 * SD });
     s.addHit({ pad: 0, time: 10 + pd - 0.02 }); // early for pass 1 step 0
@@ -246,21 +263,21 @@ describe('PracticeSession', () => {
   });
 
   it('grades a silent pass as all misses', () => {
-    const s = new PracticeSession(expected, BPM, 10, N);
+    const s = new PracticeSession(expected, TL, 10);
     const { passes } = s.collect(10 + 3 * pd);
     expect(passes.map((o) => o.passIndex)).toEqual([0, 1, 2]);
     expect(passes[0].result.score).toBe(2 * MISS_MS);
   });
 
   it('gives an immediate verdict per hit', () => {
-    const s = new PracticeSession(expected, BPM, 10, N);
+    const s = new PracticeSession(expected, TL, 10);
     expect(s.addHit({ pad: 0, time: 10 + 0.02 })).toMatchObject({ kind: 'hit', pad: 0, step: 0, passIndex: 0 });
     expect(s.addHit({ pad: 0, time: 10 + 0.03 })).toMatchObject({ kind: 'extra', step: 0 }); // expectation already claimed
     expect(s.addHit({ pad: 1, time: 10 + 8 * SD })).toMatchObject({ kind: 'extra', pad: 1, step: 8 });
   });
 
   it('reports a miss as soon as its window expires, once', () => {
-    const s = new PracticeSession(expected, BPM, 10, N);
+    const s = new PracticeSession(expected, TL, 10);
     expect(s.collect(10 + W - 0.001).live).toEqual([]);
     expect(s.collect(10 + W).live).toMatchObject([{ kind: 'miss', pad: 0, step: 0, passIndex: 0 }]);
     expect(s.collect(10 + W + 0.1).live).toEqual([]);
@@ -269,7 +286,7 @@ describe('PracticeSession', () => {
   });
 
   it('uses the pad group for live matching too', () => {
-    const s = new PracticeSession([{ pad: 13, step: 0 }], BPM, 10, N, (pad) => (pad === 13 || pad === 14 ? 'kick' : pad));
+    const s = new PracticeSession([{ pad: 13, step: 0 }], TL, 10, (pad) => (pad === 13 || pad === 14 ? 'kick' : pad));
     expect(s.addHit({ pad: 14, time: 10.01 })).toMatchObject({ kind: 'hit', pad: 13, step: 0 });
   });
 });
