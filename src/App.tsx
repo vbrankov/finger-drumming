@@ -71,7 +71,7 @@ export default function App() {
       body = <Settings />;
       break;
     case 'practice':
-      body = <Practice key={screen.song.id} song={screen.song} onBack={() => setScreen({ name: 'songs' })} />;
+      body = <Practice key={screen.song.id} song={screen.song} onBack={() => setScreen({ name: 'songs' })} onSettings={() => setScreen({ name: 'settings' })} />;
       break;
     case 'edit-song':
       body = (

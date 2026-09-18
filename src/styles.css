@@ -280,3 +280,5 @@ table.list td.actions button { margin-left: 4px; }
 .split-handle span { width: 64px; height: 4px; border-radius: 2px; background: var(--border); }
 .split-handle:hover span, .split-handle:active span { background: var(--muted); }
 .pads-below .pad-grid { max-width: 100%; }
+
+.notice.warn { background: var(--accent-2); color: #1a1a1a; margin-bottom: 0; }

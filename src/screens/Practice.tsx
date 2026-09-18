@@ -19,9 +19,10 @@ type Mode = 'playalong' | 'solo';
 interface Props {
   song: Song;
   onBack: () => void;
+  onSettings: () => void;
 }
 
-export default function Practice({ song, onBack }: Props) {
+export default function Practice({ song, onBack, onSettings }: Props) {
   const { scores, settings } = useStore();
   const kit = useMemo(() => kitFor(song), [song]);
   const loaded = useLoadedKit(kit);
@@ -37,6 +38,8 @@ export default function Practice({ song, onBack }: Props) {
   const [cells, setCells] = useState<Map<string, LiveResult>>(() => new Map());
   const [currentPass, setCurrentPass] = useState(0);
   const [flashPads, flash] = useFlash();
+  // A controller note that is not mapped to any pad: the app would otherwise just stay silent.
+  const [unmapped, setUnmapped] = useState<{ note: number; device: string } | null>(null);
 
   const player = useRef<SongPlayer | null>(null);
   const session = useRef<PracticeSession | null>(null);
@@ -113,7 +116,8 @@ export default function Practice({ song, onBack }: Props) {
     // Only a controller reports real velocity; keyboard and touch hits carry none, so no dynamics mark for them.
     const r = session.current?.addHit({ pad: hit.pad, time: hit.time, velocity: hit.source === 'midi' ? hit.velocity : undefined });
     if (r) showLive([r]);
-  });
+  }, (m) => setUnmapped({ note: m.note, device: m.deviceName }));
+  const mappedCount = Object.keys(settings.noteMap).length;
 
   function start() {
     if (!loaded) return;
@@ -277,6 +281,15 @@ export default function Practice({ song, onBack }: Props) {
           )}
         </div>
       </div>
+
+      {(unmapped || mappedCount === 0) && (
+        <div className="notice warn" onClick={onSettings}>
+          {unmapped
+            ? 'Note ' + unmapped.note + ' from ' + unmapped.device + ' is not mapped to a pad'
+            : 'No controller pads are mapped on this site yet'}
+          {' \u2014 open Settings \u2192 MIDI to map them. (Mappings are stored per site: localhost and the live site are separate.)'}
+        </div>
+      )}
 
       <div className="row between panel stats-bar">
         <div className="stats">
