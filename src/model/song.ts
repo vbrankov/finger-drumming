@@ -39,7 +39,7 @@ export function layoutSong(song: Song, patterns: Pattern[]): SongLayout {
     sections.push({ index, patternId: sec.patternId, pattern, repeat, start, steps: each * repeat, patternStepsEach: each });
     for (let r = 0; r < repeat; r++) {
       parts.push({ steps: each, swing: pattern?.swing, tag: { section: index, repeat: r } });
-      if (pattern) for (const h of pattern.hits) hits.push({ ...h, step: start + r * each + h.step });
+      if (pattern) for (const h of pattern.hits) hits.push({ ...h, step: start + h.step });
       start += each;
     }
   });

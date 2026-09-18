@@ -321,3 +321,9 @@ table.sections td { padding: 4px 8px; }
 table.sections tr.current td { background: var(--panel-2); }
 table.sections select { min-width: 200px; }
 table.sections input[type='number'] { width: 4em; }
+
+/* Upcoming pattern, read-ahead while practising a song. */
+.next-up { border: 1px dashed var(--border); border-radius: var(--radius); padding: 4px 6px 6px; opacity: 0.85; }
+.next-up .practice-grid .step-grid .cell { font-size: 0; }
+.next-up .practice-grid .step-grid .label { font-size: clamp(8px, calc(var(--cell-h) * 0.9), 11px); }
+.next-up .practice-grid .step-grid .head { font-size: 9px; }
