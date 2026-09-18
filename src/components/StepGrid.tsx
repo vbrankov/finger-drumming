@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { PAD_COUNT, STEPS } from '../model/types';
 import type { Kit } from '../model/types';
 
@@ -20,12 +20,13 @@ interface Props {
   rows?: number[];
   cell: (pad: number, step: number) => CellState;
   playheadStep?: number | null;
-  onCellClick?: (pad: number, step: number) => void;
+  /** Editing: fired on pointer down; the handler owns the drag from there. */
+  onCellPointerDown?: (pad: number, step: number, e: ReactPointerEvent<HTMLDivElement>) => void;
   onLabelClick?: (pad: number) => void;
   flashPads?: Set<number>;
 }
 
-export default function StepGrid({ kit, steps = STEPS, rows, cell, playheadStep, onCellClick, onLabelClick, flashPads }: Props) {
+export default function StepGrid({ kit, steps = STEPS, rows, cell, playheadStep, onCellPointerDown, onLabelClick, flashPads }: Props) {
   const pads = rows ?? Array.from({ length: PAD_COUNT }, (_, i) => i);
   return (
     <div className="step-grid" style={{ gridTemplateColumns: 'var(--label-w, 90px) repeat(' + steps + ', minmax(0, 1fr))' }}>
@@ -44,7 +45,7 @@ export default function StepGrid({ kit, steps = STEPS, rows, cell, playheadStep,
           steps={steps}
           cell={cell}
           playheadStep={playheadStep}
-          onCellClick={onCellClick}
+          onCellPointerDown={onCellPointerDown}
           onLabelClick={onLabelClick}
         />
       ))}
@@ -59,14 +60,14 @@ function Row({
   steps,
   cell,
   playheadStep,
-  onCellClick,
+  onCellPointerDown,
   onLabelClick,
 }: {
   pad: number;
   label: string;
   flash: boolean;
   steps: number;
-} & Pick<Props, 'cell' | 'playheadStep' | 'onCellClick' | 'onLabelClick'>) {
+} & Pick<Props, 'cell' | 'playheadStep' | 'onCellPointerDown' | 'onLabelClick'>) {
   return (
     <>
       <div className={'label' + (flash ? ' flash' : '')} onClick={() => onLabelClick?.(pad)} title={'Pad ' + (pad + 1)}>
@@ -79,7 +80,7 @@ function Row({
           step % 4 === 0 ? 'beat' : '',
           step % STEPS === 0 && step > 0 ? 'bar' : '',
           c.on ? 'on' : '',
-          onCellClick ? 'editable' : '',
+          onCellPointerDown ? 'editable' : '',
           playheadStep === step ? 'playhead' : '',
           c.className ?? '',
         ]
@@ -91,7 +92,7 @@ function Row({
             className={cls}
             style={c.style}
             title={c.title}
-            onClick={() => onCellClick?.(pad, step)}
+            onPointerDown={onCellPointerDown && ((e) => onCellPointerDown(pad, step, e))}
             {...Object.fromEntries(Object.entries(c.data ?? {}).map(([k, v]) => ['data-' + k, v]))}
           >
             {c.content}

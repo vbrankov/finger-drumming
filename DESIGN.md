@@ -166,10 +166,12 @@ pass is graded independently and the display updates as each pass completes.
 
 **Best score** is stored per song, only when practising at `song.bpm`.
 
-**Dynamics.** Hits carry one of three levels — *ghost*, *normal*, *accent* —
-stored as velocity 40 / 100 / 127 and read back by thresholds (< 64 ghost,
-≥ 112 accent). The editor cycles a cell off → normal → accent → ghost → off.
-Playback honours the level. In practice, the level a controller hit was
+**Dynamics.** Hits carry a velocity 1–127 (default 100) which is graded and
+displayed at three levels — *ghost* < 64, *normal*, *accent* ≥ 112. In the
+editor a click adds a hit at 100 (or removes an existing one); press-and-drag
+up or down sets the velocity, 1 px per unit, Ableton-style, with the value
+shown live and the cell's opacity following it. Playback honours the
+velocity. In practice, the level a controller hit was
 played at is classified against the user's calibrated `velocityThresholds`
 and shown as a mark in the cell's corner (orange when it differs from what
 was written) — **shown, not scored**, until real-hardware use shows the
@@ -201,7 +203,9 @@ last score, best score.
 
 Fields: name, author, difficulty, bpm, **bars** (1–4), **kit** (dropdown of
 all kits). Below, 16 pad rows labelled by the chosen kit's roles × bars·16 step
-columns. Reducing bars drops the hits past the new end, after a confirm. Click to toggle a hit; click the
+columns. Click a cell to add a hit, click again to remove it, press and drag
+vertically to set velocity. Reducing bars drops the hits past the new end,
+after a confirm. Click to toggle a hit; click the
 row label to audition that slot. Changing the kit relabels the rows and changes
 the sounds; hits stay where they are. Preview play loops the measure with the
 metronome. Save writes the song.

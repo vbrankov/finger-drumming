@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
 import { SongPlayer } from '../engine/player';
@@ -39,18 +40,54 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
     patch({ bars: n, hits: keep });
   }
 
-  // Each click steps the cell through: off → normal → accent → ghost → off.
-  function toggle(pad: number, step: number) {
-    const cur = hitMap.get(pad + ':' + step);
-    const rest = song.hits.filter((h) => !(h.pad === pad && h.step === step));
-    let next: Hit | null;
-    if (!cur) next = { pad, step };
-    else if (levelOfHit(cur) === 'normal') next = { pad, step, velocity: LEVEL_VELOCITY.accent };
-    else if (levelOfHit(cur) === 'accent') next = { pad, step, velocity: LEVEL_VELOCITY.ghost };
-    else next = null;
-    const hits: Hit[] = next ? [...rest, next].sort((a, b) => a.step - b.step || a.pad - b.pad) : rest;
-    patch({ hits });
-    if (next) auditionPad(loaded, pad, next.velocity);
+  function setHit(pad: number, step: number, hit: Hit | null) {
+    setSong((s) => {
+      const rest = s.hits.filter((h) => !(h.pad === pad && h.step === step));
+      return { ...s, hits: hit ? [...rest, hit].sort((a, b) => a.step - b.step || a.pad - b.pad) : rest };
+    });
+    setDirty(true);
+  }
+
+  // Ableton-style: press creates a hit (or grabs the existing one); dragging up/down
+  // sets its velocity, 1 px per unit; a press without movement on an existing hit removes it.
+  const [dragging, setDragging] = useState<{ pad: number; step: number; velocity: number } | null>(null);
+  function onCellPointerDown(pad: number, step: number, e: ReactPointerEvent<HTMLDivElement>) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const existing = hitMap.get(pad + ':' + step);
+    const startVel = existing?.velocity ?? LEVEL_VELOCITY.normal;
+    if (!existing) {
+      setHit(pad, step, { pad, step });
+      auditionPad(loaded, pad, startVel);
+    }
+    const startY = e.clientY;
+    let moved = false;
+    let lastLevel = levelOfHit({ velocity: startVel });
+    setDragging({ pad, step, velocity: startVel });
+
+    const move = (ev: PointerEvent) => {
+      const dy = startY - ev.clientY;
+      if (!moved && Math.abs(dy) < 3) return;
+      moved = true;
+      const velocity = Math.max(1, Math.min(127, Math.round(startVel + dy)));
+      setDragging({ pad, step, velocity });
+      setHit(pad, step, velocity === LEVEL_VELOCITY.normal ? { pad, step } : { pad, step, velocity });
+      const lvl = levelOfHit({ velocity });
+      if (lvl !== lastLevel) {
+        lastLevel = lvl;
+        auditionPad(loaded, pad, velocity);
+      }
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+      setDragging(null);
+      if (!moved && existing) setHit(pad, step, null);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
   }
 
   function stop() {
@@ -164,14 +201,24 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
           const h = hitMap.get(pad + ':' + step);
           if (!h) return { on: false };
           const lvl = levelOfHit(h);
-          return { on: true, className: 'lvl-' + lvl, title: lvl, data: { lvl } };
+          const v = h.velocity ?? LEVEL_VELOCITY.normal;
+          const isDrag = dragging?.pad === pad && dragging.step === step;
+          return {
+            on: true,
+            className: 'lvl-' + lvl + (isDrag ? ' dragging' : ''),
+            style: { opacity: 0.35 + 0.65 * (v / 127) },
+            title: lvl + ' (' + v + ')',
+            content: isDrag ? dragging.velocity : undefined,
+            data: { lvl },
+          };
         }}
         playheadStep={playhead}
-        onCellClick={toggle}
+        onCellPointerDown={onCellPointerDown}
         onLabelClick={(pad) => auditionPad(loaded, pad)}
       />
       <p className="muted small">
-        Click a cell to cycle: off {'\u2192'} normal {'\u2192'} <b>accent</b> ({'\u25b2'}) {'\u2192'} ghost ({'\u00b7'}) {'\u2192'} off. Click a row label to hear that pad. {song.hits.length} hits.
+        Click a cell to add a hit, click again to remove it. Press and drag up or down to set its velocity: {'\u2265'}112 is an <b>accent</b> ({'\u25b2'}),{' '}
+        {'<'}64 a ghost ({'\u00b7'}). Click a row label to hear that pad. {song.hits.length} hits.
       </p>
     </div>
   );
