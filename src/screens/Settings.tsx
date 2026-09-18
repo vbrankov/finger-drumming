@@ -6,6 +6,7 @@ import { onMidiHit } from '../engine/midi';
 import { SongPlayer } from '../engine/player';
 import { isTypingTarget, KEY_TO_PAD, useFlash, useMidiStatus } from '../hooks';
 import { standardNoteMap } from '../model/types';
+import { importText } from '../share';
 import { defaultKit, exportJson, importJson, updateSettings, useStore } from '../store';
 
 const CAL_BPM = 100;
@@ -126,6 +127,22 @@ export default function Settings() {
     setVelCount(0);
     setVelResult(null);
     setVelPhase('soft');
+  }
+
+  // ── Paste import: pack tokens and share links ───────────────────────────
+  const [pasted, setPasted] = useState('');
+  const [pasteResult, setPasteResult] = useState<string | null>(null);
+  async function doPasteImport() {
+    const r = await importText(pasted);
+    const parts = [];
+    if (r.songs) parts.push(r.songs + ' song' + (r.songs === 1 ? '' : 's'));
+    if (r.kits) parts.push(r.kits + ' kit' + (r.kits === 1 ? '' : 's'));
+    let msg = parts.length ? 'Added ' + parts.join(' and ') + '.' : 'Nothing new to add.';
+    if (r.skipped) msg += ' Skipped ' + r.skipped + ' you already had.';
+    if (r.unreadable) msg += ' ' + r.unreadable + ' item' + (r.unreadable === 1 ? '' : 's') + ' could not be read.';
+    if (r.newerVersion) msg += ' Some items were made with a newer version of the app; update to import them.';
+    setPasteResult(msg);
+    if (r.songs || r.kits) setPasted('');
   }
 
   // ── Export / import ────────────────────────────────────────────────────
@@ -280,6 +297,23 @@ export default function Settings() {
           <button onClick={doImport}>Import…</button>
         </div>
         <p className="muted small" style={{ margin: 0 }}>Uploaded samples are not exported; imported kits fall back to bundled sounds for those slots.</p>
+        <h4 style={{ margin: '8px 0 0' }}>Paste songs or kits</h4>
+        <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
+          Paste text copied from the Songs list (starts with <code>fd1:</code>) or share links. Anything around them is ignored, so a whole forum post works.
+        </p>
+        <textarea
+          value={pasted}
+          onChange={(e) => setPasted(e.target.value)}
+          rows={4}
+          placeholder="fd1:… or https://…/#s=…"
+          style={{ width: '100%', maxWidth: 600, fontFamily: 'monospace', fontSize: 12 }}
+        />
+        <div className="row">
+          <button className="primary" onClick={doPasteImport} disabled={!pasted.trim()}>
+            Import pasted
+          </button>
+          {pasteResult && <span className="small">{pasteResult}</span>}
+        </div>
       </div>
     </div>
   );

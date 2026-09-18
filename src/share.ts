@@ -11,9 +11,15 @@ import { DEFAULT_KIT, getState, newId, saveKit, saveSong } from './store';
 type SharedSong = Pick<Song, 'name' | 'author' | 'difficulty' | 'bpm' | 'bars' | 'swing' | 'hits'>;
 type SharedKit = Pick<Kit, 'name' | 'slots'>;
 
-export type SharePayload = { t: 'song'; song: SharedSong; kit?: SharedKit } | { t: 'kit'; kit: SharedKit };
+export type SharePayload =
+  | { t: 'song'; song: SharedSong; kit?: SharedKit }
+  | { t: 'kit'; kit: SharedKit }
+  | { t: 'pack'; v: number; items: SharePayload[] };
 
 const PARAM = 's';
+/** Text-pack format: "fd1:" + token. Bump the number when the payload shape changes incompatibly. */
+export const PACK_VERSION = 1;
+const PACK_PREFIX = 'fd' + PACK_VERSION + ':';
 
 function stripKit(kit: Kit): SharedKit {
   return {
@@ -38,6 +44,15 @@ export function songPayload(song: Song, kit: Kit): SharePayload {
 
 export function kitPayload(kit: Kit): SharePayload {
   return { t: 'kit', kit: stripKit(kit) };
+}
+
+/** Many songs and kits in one payload; a song's non-default kit is embedded with it. */
+export function packPayload(songs: Song[], kits: Kit[], kitFor: (song: Song) => Kit): SharePayload {
+  return {
+    t: 'pack',
+    v: PACK_VERSION,
+    items: [...kits.map(kitPayload), ...songs.map((s) => songPayload(s, kitFor(s)))],
+  };
 }
 
 // ── Encoding: deflate-raw + base64url, falling back to plain base64url ──────
@@ -73,12 +88,63 @@ export async function decodeShare(token: string): Promise<SharePayload | null> {
     const bytes = fromBase64Url(token.slice(1));
     const json = kind === 'z' ? await pipe(bytes, new DecompressionStream('deflate-raw')) : bytes;
     const payload = JSON.parse(new TextDecoder().decode(json)) as SharePayload;
-    if (payload.t === 'song' && Array.isArray(payload.song?.hits)) return payload;
-    if (payload.t === 'kit' && Array.isArray(payload.kit?.slots)) return payload;
-    return null;
+    return validPayload(payload) ? payload : null;
   } catch {
     return null;
   }
+}
+
+function validPayload(p: SharePayload): boolean {
+  if (!p || typeof p !== 'object') return false;
+  if (p.t === 'song') return Array.isArray(p.song?.hits);
+  if (p.t === 'kit') return Array.isArray(p.kit?.slots);
+  if (p.t === 'pack') return Array.isArray(p.items) && p.items.every(validPayload);
+  return false;
+}
+
+/** A pack as a string that survives being pasted into a forum post. */
+export async function packText(payload: SharePayload): Promise<string> {
+  return PACK_PREFIX + (await encodeShare(payload));
+}
+
+export interface TextImportResult {
+  songs: number;
+  kits: number;
+  skipped: number;
+  unreadable: number;
+  newerVersion: boolean;
+}
+
+/**
+ * Import everything recognisable in a pasted text: pack tokens ("fd1:…") and
+ * share links ("…#s=…"), in any surrounding prose. Items already in the
+ * library are skipped.
+ */
+export async function importText(text: string): Promise<TextImportResult> {
+  const result: TextImportResult = { songs: 0, kits: 0, skipped: 0, unreadable: 0, newerVersion: false };
+  const tokens: string[] = [];
+  for (const m of text.matchAll(/\bfd(\d+):([A-Za-z0-9_-]+)/g)) {
+    if (Number(m[1]) > PACK_VERSION) result.newerVersion = true;
+    else tokens.push(m[2]);
+  }
+  for (const m of text.matchAll(/#s=([A-Za-z0-9_-]+)/g)) tokens.push(m[1]);
+
+  const apply = (p: SharePayload) => {
+    if (p.t === 'pack') {
+      p.items.forEach(apply);
+      return;
+    }
+    const r = importShared(p);
+    if (!r.added) result.skipped++;
+    else if (p.t === 'song') result.songs++;
+    else result.kits++;
+  };
+  for (const token of tokens) {
+    const payload = await decodeShare(token);
+    if (payload) apply(payload);
+    else result.unreadable++;
+  }
+  return result;
 }
 
 export async function shareLink(payload: SharePayload): Promise<string> {
@@ -123,6 +189,16 @@ function importKit(shared: SharedKit): Kit {
 }
 
 export function importShared(payload: SharePayload): { song?: Song; kit: Kit; added: boolean } {
+  if (payload.t === 'pack') {
+    // Callers wanting per-item results use importText; here a pack just imports everything.
+    let added = false;
+    let last: { song?: Song; kit: Kit; added: boolean } | null = null;
+    for (const item of payload.items) {
+      last = importShared(item);
+      added ||= last.added;
+    }
+    return last ? { ...last, added } : { kit: DEFAULT_KIT, added: false };
+  }
   if (payload.t === 'kit') {
     const before = getState().kits.length;
     const kit = importKit(payload.kit);

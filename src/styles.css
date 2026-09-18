@@ -24,10 +24,11 @@ body {
   font: 14px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-button, input, select {
+button, input, select, textarea {
   font: inherit;
   color: inherit;
 }
+input[type='checkbox'] { width: auto; padding: 0; accent-color: var(--accent); }
 
 button {
   background: var(--panel-2);
@@ -42,7 +43,7 @@ button.danger { color: var(--bad); }
 button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 button:disabled { opacity: 0.5; cursor: default; }
 
-input, select {
+input, select, textarea {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);

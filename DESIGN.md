@@ -260,6 +260,16 @@ library — without duplicating something they already have — and opens it.
 Nothing is uploaded anywhere; there is no server. *Share* buttons on the Songs
 and Kits lists copy the link.
 
+**Packs** are the same payload for many items as plain text: tick songs (or
+kits) in their list, *Copy as text* → one token `fd1:<deflate+base64url>` (a
+20-song pack is ~8 KB, small enough for a forum comment). Settings → Data has
+a paste box that imports every pack token and share link it finds in the
+pasted text, ignoring surrounding prose, skipping items already present. The
+`fd1` prefix is the format version: a token with a higher number is refused
+with a "made with a newer version" message rather than misread. A song's
+non-default kit is embedded with it, so songs never arrive without their
+layout.
+
 ## Screens
 
 Top-level navigation: **Songs** · **Kits** · **Settings**.

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { Song } from '../model/types';
-import { copyLink, shareLink, songPayload } from '../share';
+import { copyLink, packPayload, packText, shareLink, songPayload } from '../share';
 import { deleteSong, emptySong, kitFor, useStore } from '../store';
 
 interface Props {
@@ -14,6 +15,26 @@ function Dots({ n }: { n?: number }) {
 
 export default function Songs({ onPractice, onEdit }: Props) {
   const { songs, kits, scores } = useStore();
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const toggle = (id: string) =>
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  const allSelected = selected.size === songs.length && songs.length > 0;
+
+  async function copySelected() {
+    const chosen = songs.filter((s) => selected.has(s.id));
+    const text = await packText(packPayload(chosen, [], kitFor));
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(chosen.length + ' song' + (chosen.length === 1 ? '' : 's') + ' copied as text (' + text.length + ' characters). Paste it anywhere; others import it in Settings \u2192 Data.');
+    } catch {
+      prompt('Copy this text:', text);
+    }
+  }
   // Easiest first, so the list reads as a progression; unrated songs last.
   const sorted = [...songs].sort((a, b) => (a.difficulty ?? 9) - (b.difficulty ?? 9) || a.bpm - b.bpm || a.name.localeCompare(b.name));
 
@@ -21,9 +42,16 @@ export default function Songs({ onPractice, onEdit }: Props) {
     <div className="stack">
       <div className="row between">
         <h2 style={{ margin: 0 }}>Songs</h2>
-        <button className="primary" onClick={() => onEdit(emptySong())}>
-          + New song
-        </button>
+        <div className="row">
+          {selected.size > 0 && (
+            <button onClick={copySelected} title="Copy the selected songs as one text token you can paste in a forum post">
+              Copy {selected.size} as text
+            </button>
+          )}
+          <button className="primary" onClick={() => onEdit(emptySong())}>
+            + New song
+          </button>
+        </div>
       </div>
       {sorted.length === 0 ? (
         <p className="muted">No songs yet.</p>
@@ -31,6 +59,14 @@ export default function Songs({ onPractice, onEdit }: Props) {
         <table className="list">
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={() => setSelected(allSelected ? new Set() : new Set(songs.map((s) => s.id)))}
+                  title="Select all"
+                />
+              </th>
               <th>Name</th>
               <th>Author</th>
               <th>Difficulty</th>
@@ -44,6 +80,9 @@ export default function Songs({ onPractice, onEdit }: Props) {
           <tbody>
             {sorted.map((s) => (
               <tr key={s.id}>
+                <td>
+                  <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
+                </td>
                 <td>{s.name}</td>
                 <td className="muted">{s.author || '—'}</td>
                 <td title={s.difficulty ? s.difficulty + ' / 5' : 'not set'}>
