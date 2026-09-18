@@ -131,8 +131,11 @@ reference — edit a pattern and every song using it changes.
 **Practising a song** works like a pattern, plus:
 
 - A **structure strip** above the grid shows the sections; the current one
-  is highlighted with its repeat count (2/4). The grid shows the pattern
-  that's playing, switching as the song moves on.
+  is highlighted with its repeat count (2/4).
+- The grid **scrolls**: the playhead stays put a little in from the left,
+  half a bar of what you just played trails behind it, and two bars of what's
+  coming slide in from the right, with the next pattern's name above its bar
+  line. A ↺ marks where the loop restarts.
 - **Loop modes**: *Whole song*; *Section* (click a section in the strip);
   *Section + next* — the fill *and* the bar you land on, which is the thing
   worth drilling.

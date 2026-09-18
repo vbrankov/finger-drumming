@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import PadGrid from '../components/PadGrid';
+import ScrollGrid from '../components/ScrollGrid';
 import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
@@ -118,7 +119,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
   // ── Split between grid and pads: a draggable handle sets the row height; the
   // pads take whatever height is left. Remembered per browser.
   const SPLIT_KEY = 'fd.practice.cellH';
-  const autoCellH = () => Math.min(30, Math.max(11, (window.innerHeight - (isSong ? 640 : 500)) / 17));
+  const autoCellH = () => Math.min(30, Math.max(12, (window.innerHeight - (isSong ? 580 : 500)) / 17));
   const [cellH, setCellH] = useState<number>(() => {
     const v = Number(localStorage.getItem(SPLIT_KEY));
     return v >= 8 && v <= 48 ? v : autoCellH();
@@ -308,14 +309,14 @@ export default function Practice({ target, onBack, onSettings }: Props) {
     return run.views[0] ?? { start: 0, steps: 16, pattern: null, section: -1, repeat: 0 };
   }, [run.views, passPos, position]);
 
-  const cell = (pad: number, local: number): CellState => {
-    const step = view.start + local;
+  /** Cell for a pass-local step. `upcoming` = a step of the next pass: expected hits only, no results. */
+  const cellAt = (pad: number, step: number, upcoming = false): CellState => {
     const key = pad + ':' + step;
     const exp = expectedMap.get(key);
     const on = !!exp;
     const lvl = exp ? levelOfHit(exp) : undefined;
     const base: CellState = { on, className: lvl ? 'lvl-' + lvl : '', data: lvl ? { lvl } : undefined };
-    const r = cells.get(key);
+    const r = upcoming ? undefined : cells.get(key);
     if (!r) return base;
     const stale = r.passIndex < currentPass ? ' stale' : '';
     if (r.kind === 'miss') return { ...base, className: base.className + ' miss' + stale, content: '✕', title: 'Missed' };
@@ -338,32 +339,15 @@ export default function Practice({ target, onBack, onSettings }: Props) {
       data: { ...(lvl ? { lvl } : {}), ...(played ? { played: LEVEL_GLYPH[played] || '●', dyn } : {}) },
     };
   };
-
-  // The next *different* pattern coming up in the loop (wrapping), so the player can read ahead.
-  const next = useMemo(() => {
-    if (!song || run.views.length < 2) return null;
-    const i = run.views.indexOf(view);
-    for (let k = 1; k <= run.views.length; k++) {
-      const v = run.views[(i + k) % run.views.length];
-      if (v.pattern && v.pattern !== view.pattern) {
-        const distance = ((v.start - view.start + steps) % steps) / STEPS; // bars from the start of the current view
-        return { view: v, inBars: distance, wraps: i + k >= run.views.length };
-      }
-    }
-    return null;
-  }, [song, run.views, view, steps]);
-  const nextExpected = useMemo(() => {
-    if (!next) return null;
-    const m = new Map<string, Hit>();
-    for (const h of next.view.pattern!.hits) m.set(rep(h.pad) + ':' + h.step, h);
-    return m;
-  }, [next, rep]);
-  const nextCell = (pad: number, local: number): CellState => {
-    const h = nextExpected?.get(pad + ':' + local);
-    const lvl = h ? levelOfHit(h) : undefined;
-    return { on: !!h, className: lvl ? 'lvl-' + lvl : '', data: lvl ? { lvl } : undefined };
+  const cell = (pad: number, local: number): CellState => cellAt(pad, view.start + local);
+  const labelAt = (step: number): string | undefined => {
+    const v = run.views.find((v) => v.start === step);
+    if (!v) return undefined;
+    const prev = run.views[run.views.indexOf(v) - 1];
+    // Name a bar when a section starts; inside a repeated section show the repeat count.
+    if (!prev || prev.section !== v.section) return (v.pattern?.name ?? '?') + (v.repeat === 0 && (layout?.sections[v.section]?.repeat ?? 1) > 1 ? ' ×' + layout!.sections[v.section].repeat : '');
+    return undefined;
   };
-  const barsUntilNext = next && passPos !== null && position! >= 0 ? Math.max(0, next.inBars - (passPos - view.start) / STEPS) : next?.inBars ?? 0;
 
   const playheadStep = passPos === null || position! < 0 ? null : Math.floor(passPos) - view.start;
   const countIn = position !== null && position < 0 ? Math.ceil(-position / 4) : null;
@@ -492,28 +476,22 @@ export default function Practice({ target, onBack, onSettings }: Props) {
         <div className="countin">{countIn !== null ? countIn : running ? '' : loaded ? 'ready' : 'loading…'}</div>
       </div>
 
-      <div className={'practice-grid' + (viewBars >= 3 ? ' dense' : '')} style={{ ['--cell-h' as string]: cellH + 'px' }}>
-        <StepGrid kit={kit} steps={view.steps} rows={rows} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
+      <div className={'practice-grid' + (!song && viewBars >= 3 ? ' dense' : '')} style={{ ['--cell-h' as string]: cellH + 'px' }}>
+        {song ? (
+          <ScrollGrid
+            kit={kit}
+            rows={rows}
+            cellAt={cellAt}
+            position={position === null ? null : position < 0 ? position : passPos}
+            steps={steps}
+            labelAt={labelAt}
+            flashPads={flashPads}
+            onLabelClick={(pad) => auditionPad(loaded, pad)}
+          />
+        ) : (
+          <StepGrid kit={kit} steps={view.steps} rows={rows} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
+        )}
       </div>
-
-      {next && (
-        <div className="next-up">
-          <div className="row between small">
-            <span>
-              <span className="muted">Next: </span>
-              <b>{next.view.pattern!.name}</b>
-              <span className="muted">
-                {' '}
-                in {Math.ceil(barsUntilNext)} bar{Math.ceil(barsUntilNext) === 1 ? '' : 's'}
-                {next.wraps ? ' (after the loop restarts)' : ''}
-              </span>
-            </span>
-          </div>
-          <div className={'practice-grid dense-numbers' + (next.view.steps / STEPS >= 3 ? ' dense' : '')} style={{ ['--cell-h' as string]: Math.max(6, cellH * 0.5) + 'px' }}>
-            <StepGrid kit={kit} steps={next.view.steps} rows={rows} cell={nextCell} />
-          </div>
-        </div>
-      )}
 
       <div className="split-handle" onPointerDown={onHandlePointerDown} onDoubleClick={resetSplit} title="Drag to resize; double-click to reset">
         <span />

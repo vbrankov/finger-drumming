@@ -264,8 +264,12 @@ song uses it.
 Timeline from one part per repeat so each keeps its pattern's swing. Practice
 takes a pattern or a song. For a song, the pass is the loop range: the whole
 song, one section, or a section and the next (clicked in the structure strip).
-The grid shows the pattern under the playhead and switches as sections
-change. Scoring per pass: worst-3 per section, averaged over the sections in
+For a song the grid is a sliding window (`ScrollGrid`): the playhead is
+fixed 8 steps in from the left, 40 columns are visible, the content
+translates smoothly with the audio clock, bar lines carry the pattern name
+where a section starts, and steps past the end of the pass show the next
+pass's expected hits (no results) so the loop restart is visible ahead. A
+lone pattern keeps the static grid, which is better for reading results. Scoring per pass: worst-3 per section, averaged over the sections in
 the loop; best is recorded only for whole-song loops at the song's tempo.
 Storage: `fd.songs` (the old `fd.songs` holding patterns migrates to
 `fd.patterns` once), `fd.songScores`.
