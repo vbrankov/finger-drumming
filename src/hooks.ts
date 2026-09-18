@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAudioContext, perfToAudioTime, playBuffer, resumeAudio, velocityGain } from './engine/audio';
+import { getAudioContext, perfToAudioTime, resumeAudio } from './engine/audio';
 import { loadKit } from './engine/kitLoader';
 import { initMidi, listMidiInputs, onMidiDevicesChanged, onMidiHit, setMidiDeviceFilter } from './engine/midi';
 import type { MidiHit, MidiInputInfo } from './engine/midi';
+import { playSlot } from './engine/player';
 import type { LoadedKit } from './engine/player';
 import type { Kit } from './model/types';
 import { defaultKit, getState, useStore } from './store';
@@ -118,9 +119,8 @@ export function useLoadedKit(kit: Kit): LoadedKit | null {
 }
 
 export function auditionPad(loaded: LoadedKit | null, pad: number, velocity = 100): void {
-  const buf = loaded?.buffers[pad];
-  if (!buf) return;
-  resumeAudio().then(() => playBuffer(buf, getAudioContext().currentTime, velocityGain(velocity) * (loaded!.gains[pad] ?? 1)));
+  if (!loaded?.buffers[pad]) return;
+  resumeAudio().then(() => playSlot(loaded, pad, velocity, getAudioContext().currentTime));
 }
 
 // ── Pad flash ────────────────────────────────────────────────────────────────

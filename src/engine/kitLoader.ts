@@ -48,7 +48,11 @@ export async function loadKit(kit: Kit, fallback?: Kit): Promise<LoadedKit> {
       return buf;
     }),
   );
-  return { buffers, gains: kit.slots.map((s) => s?.gain ?? 1) };
+  return {
+    buffers,
+    gains: kit.slots.map((s) => s?.gain ?? 1),
+    rates: kit.slots.map((s) => Math.pow(2, (s?.pitch ?? 0) / 12)),
+  };
 }
 
 export function invalidateSound(ref: SoundRef): void {

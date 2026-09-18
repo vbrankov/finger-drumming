@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import PadGrid from '../components/PadGrid';
 import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
-import { getAudioContext, playBuffer, resumeAudio, velocityGain } from '../engine/audio';
-import { SongPlayer } from '../engine/player';
+import { getAudioContext, resumeAudio } from '../engine/audio';
+import { playSlot, SongPlayer } from '../engine/player';
 import type { PassResult } from '../model/grading';
 import { PracticeSession } from '../model/session';
 import type { LiveResult } from '../model/session';
 import { matchWindow } from '../model/timing';
-import { padGroupOf, songBars, songSteps } from '../model/types';
+import { LEVEL_GLYPH, levelOfHit, levelOfVelocity, padGroupOf, songBars, songSteps } from '../model/types';
 import type { Song } from '../model/types';
 import { auditionPad, useFlash, useLoadedKit, usePadInput } from '../hooks';
 import { kitFor, recordScore, useStore } from '../store';
@@ -21,7 +21,7 @@ interface Props {
 }
 
 export default function Practice({ song, onBack }: Props) {
-  const { scores } = useStore();
+  const { scores, settings } = useStore();
   const kit = useMemo(() => kitFor(song), [song]);
   const loaded = useLoadedKit(kit);
 
@@ -61,10 +61,9 @@ export default function Practice({ song, onBack }: Props) {
 
   const clickPad = usePadInput((hit) => {
     flash(hit.pad);
-    if (loaded?.buffers[hit.pad]) {
-      playBuffer(loaded.buffers[hit.pad]!, getAudioContext().currentTime, velocityGain(hit.velocity) * (loaded.gains[hit.pad] ?? 1));
-    }
-    const r = session.current?.addHit(hit);
+    if (loaded) playSlot(loaded, hit.pad, hit.velocity, getAudioContext().currentTime);
+    // Only a controller reports real velocity; keyboard and touch hits carry none, so no dynamics mark for them.
+    const r = session.current?.addHit({ pad: hit.pad, time: hit.time, velocity: hit.source === 'midi' ? hit.velocity : undefined });
     if (r) showLive([r]);
   });
 
@@ -152,24 +151,35 @@ export default function Practice({ song, onBack }: Props) {
     };
   }, [running, song, bpm, steps]);
 
-  const expectedSet = useMemo(() => new Set(song.hits.map((h) => h.pad + ':' + h.step)), [song]);
+  const expectedMap = useMemo(() => new Map(song.hits.map((h) => [h.pad + ':' + h.step, h])), [song]);
 
   const cell = (pad: number, step: number): CellState => {
     const key = pad + ':' + step;
-    const on = expectedSet.has(key);
+    const exp = expectedMap.get(key);
+    const on = !!exp;
+    const lvl = exp ? levelOfHit(exp) : undefined;
+    const base: CellState = { on, className: lvl ? 'lvl-' + lvl : '', data: lvl ? { lvl } : undefined };
     const r = cells.get(key);
-    if (!r) return { on };
+    if (!r) return base;
     const stale = r.passIndex < currentPass ? ' stale' : '';
-    if (r.kind === 'miss') return { on, className: 'miss' + stale, content: '✕', title: 'Missed' };
-    if (r.kind === 'extra') return { on, className: 'extra' + stale, content: '+', title: 'Extra hit' };
+    if (r.kind === 'miss') return { ...base, className: base.className + ' miss' + stale, content: '✕', title: 'Missed' };
+    if (r.kind === 'extra') return { ...base, className: base.className + ' extra' + stale, content: '+', title: 'Extra hit' };
     const ms = Math.round(r.offsetMs);
     const abs = Math.abs(ms);
+    // Dynamics: shown, not scored. Keyboard and touch have no velocity and always read as normal.
+    const played = r.velocity === undefined ? undefined : levelOfVelocity(r.velocity, settings.velocityThresholds);
+    const dyn = played && lvl ? (played === lvl ? 'ok' : 'off') : '';
     return {
-      on,
-      className: 'graded' + stale,
+      ...base,
+      className: base.className + ' graded' + stale,
       style: { background: offsetColor(r.offsetMs, win * 1000) },
       content: ms < 0 ? '◂' + abs : ms > 0 ? abs + '▸' : abs,
-      title: (ms > 0 ? 'Late (dragging) ' : ms < 0 ? 'Early (rushing) ' : 'On time ') + abs + ' ms',
+      title:
+        (ms > 0 ? 'Late (dragging) ' : ms < 0 ? 'Early (rushing) ' : 'On time ') +
+        abs +
+        ' ms' +
+        (played ? ' · played ' + played + (lvl && played !== lvl ? ', expected ' + lvl : '') : ''),
+      data: { ...(lvl ? { lvl } : {}), ...(played ? { played: LEVEL_GLYPH[played] || '\u25cf', dyn } : {}) },
     };
   };
 
@@ -250,8 +260,8 @@ export default function Practice({ song, onBack }: Props) {
         </p>
       </div>
       <p className="muted small">
-        <span className="swatch early" /> {'◂'} early (rushing) &nbsp; <span className="swatch ontime" /> on time &nbsp; <span className="swatch late" /> late (dragging) {'▸'} &nbsp;·&nbsp; Score = sum of the 3 worst
-        errors in a pass; miss or extra = 1000. Best is only recorded at the song&apos;s own tempo ({song.bpm} bpm).
+        <span className="swatch early" /> {'◂'} early (rushing) &nbsp; <span className="swatch ontime" /> on time &nbsp; <span className="swatch late" /> late (dragging) {'▸'} &nbsp;·&nbsp; {'▲'} accent, {'·'} ghost; the corner mark is the level you played (orange = not the level written). Dynamics are shown, not scored.
+        Score = sum of the 3 worst timing errors in a pass; miss or extra = 1000. Best is only recorded at the song&apos;s own tempo ({song.bpm} bpm).
       </p>
     </div>
   );

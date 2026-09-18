@@ -28,13 +28,16 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
   function patchSlot(i: number, p: Partial<KitSlot>) {
     setKit((k) => ({ ...k, slots: k.slots.with(i, { ...k.slots[i], ...p }) }));
     setDirty(true);
+    if (p.pitch !== undefined && loaded?.buffers[i]) {
+      auditionPad({ buffers: [loaded.buffers[i]], gains: [kit.slots[i].gain ?? 1], rates: [Math.pow(2, p.pitch / 12)] }, 0);
+    }
   }
 
   function pickBundled(i: number, file: string) {
     const sound: SoundRef = { type: 'bundled', file };
     patchSlot(i, { sound });
     // Audition the new choice as soon as it is decoded.
-    loadSound(sound).then((buf) => buf && auditionPad({ buffers: [buf], gains: [kit.slots[i].gain ?? 1] }, 0));
+    loadSound(sound).then((buf) => buf && auditionPad({ buffers: [buf], gains: [kit.slots[i].gain ?? 1], rates: [Math.pow(2, (kit.slots[i].pitch ?? 0) / 12)] }, 0));
   }
 
   async function setFile(i: number, file: File) {
@@ -140,6 +143,11 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
             {loaded && !loaded.buffers[i] && <div className="file">(missing — using default)</div>}
             <div className="row">
               {slot.sound.type === 'user' && <button onClick={() => patchSlot(i, { sound: DEFAULT_KIT.slots[i].sound })}>Reset</button>}
+              <label className="field small pitch" title="Pitch in semitones">
+                <button onClick={() => patchSlot(i, { pitch: Math.max(-24, (slot.pitch ?? 0) - 1) })}>{'\u266d'}</button>
+                <span className={slot.pitch ? 'val set' : 'val'}>{(slot.pitch ?? 0) > 0 ? '+' + slot.pitch : (slot.pitch ?? 0)}</span>
+                <button onClick={() => patchSlot(i, { pitch: Math.min(24, (slot.pitch ?? 0) + 1) })}>{'\u266f'}</button>
+              </label>
               <label className="field small" title="Gain">
                 <input
                   type="range"

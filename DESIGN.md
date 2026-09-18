@@ -34,7 +34,7 @@ interface Song {
   bpm: number;                    // default tempo; best score is only kept at this tempo
   bars?: number;                  // 1..4 bars of 4/4, default 1
   kitId: string;                  // falls back to the default kit if not found
-  hits: { pad: PadIndex; step: Step; velocity?: number }[];
+  hits: { pad: PadIndex; step: Step; velocity?: number }[];  // velocity encodes a level, see Dynamics
   createdAt: string; updatedAt: string;   // ISO
 }
 
@@ -45,7 +45,7 @@ type SoundRef =
 interface Kit {
   id: string;
   name: string;
-  slots: { role: string; sound: SoundRef; gain?: number }[];   // length 16
+  slots: { role: string; sound: SoundRef; gain?: number; pitch?: number }[];   // length 16; pitch in semitones
   createdAt: string; updatedAt: string;
 }
 
@@ -53,6 +53,7 @@ interface Settings {
   calibrationMs: number;          // subtracted from measured hit offsets
   midiDeviceId: string | null;    // null = all inputs
   noteMap: Record<number, PadIndex>;   // MIDI note → pad; global, it's about the controller
+  velocityThresholds: { ghost: number; accent: number };  // from the dynamics calibration
 }
 
 interface ScoreRecord { best: number; bpm: number; at: string }
@@ -93,7 +94,10 @@ silently, links rot, and it would have the app fetch audio from arbitrary
 sites. The bundled library covers the need without any of that.
 
 All samples are decoded to `AudioBuffer`s once at load. Playback is one-shot,
-velocity → gain. Choke groups (open hat cut by closed hat) are a later nicety.
+velocity → gain, and each slot can be transposed in semitones (`pitch`, played
+as `playbackRate = 2^(pitch/12)`, so it also shortens or lengthens the sample
+the way a sampler would). Choke groups (open hat cut by closed hat) are a
+later nicety.
 
 ## Audio scheduling
 
@@ -162,8 +166,23 @@ pass is graded independently and the display updates as each pass completes.
 
 **Best score** is stored per song, only when practising at `song.bpm`.
 
+**Dynamics.** Hits carry one of three levels — *ghost*, *normal*, *accent* —
+stored as velocity 40 / 100 / 127 and read back by thresholds (< 64 ghost,
+≥ 112 accent). The editor cycles a cell off → normal → accent → ghost → off.
+Playback honours the level. In practice, the level a controller hit was
+played at is classified against the user's calibrated `velocityThresholds`
+and shown as a mark in the cell's corner (orange when it differs from what
+was written) — **shown, not scored**, until real-hardware use shows the
+three-level read is stable enough to penalise. Three levels rather than raw
+velocity because pad sensors differ too much between controllers, pads and
+fingers for finer distinctions to be musically meaningful. Keyboard and touch
+hits carry no velocity and get no mark. Settings has a dynamics calibration:
+8 soft hits, 8 hard hits; the thresholds sit a third and two thirds of the way
+between their robust means.
+
 **Display.** The same 16-pad × (bars·16)-step grid as the editor, bars side
-by side with a divider, with a playhead. At 3–4 bars the cells are too narrow
+by side with a divider, with a playhead. Written accents show a bright top
+edge and ▲, ghosts are dimmer with a ·. At 3–4 bars the cells are too narrow
 for numbers, so colour alone carries the verdict (the tooltip keeps the ms).
 Feedback is immediate: the instant a hit arrives it is matched to the nearest
 unclaimed expectation of that drum within the window and its cell fills with
@@ -190,8 +209,9 @@ metronome. Save writes the song.
 ## Kit editor
 
 Fields: name. 16 slots in a 4×4 layout matching the controller. Per slot:
-role name (editable), current sound (bundled or uploaded file name), drop
-zone / file picker to replace it, *reset to bundled default*, audition button.
+role name (editable), a sound picker over the bundled library grouped by
+family (plus *Upload a file…*), drop zone for your own file, *reset*,
+audition, gain, and pitch in semitones (♭ / ♯, ±24; auditions on change).
 *Duplicate kit* is the easy way to make a variant. The default kit is editable
 too; *Reset default kit* restores it from the shipped JSON.
 

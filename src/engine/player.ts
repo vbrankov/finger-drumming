@@ -7,6 +7,13 @@ import { Scheduler } from './scheduler';
 export interface LoadedKit {
   buffers: (AudioBuffer | null)[]; // by pad index
   gains: number[];
+  rates: number[]; // playback rate from the slot's pitch
+}
+
+/** Play one slot of a loaded kit at `when` (audio time) with the given velocity. */
+export function playSlot(kit: LoadedKit, pad: number, velocity: number | undefined, when: number): void {
+  const buf = kit.buffers[pad];
+  if (buf) playBuffer(buf, when, velocityGain(velocity) * (kit.gains[pad] ?? 1), kit.rates[pad] ?? 1);
 }
 
 export interface PlayerOptions {
@@ -78,9 +85,7 @@ export class SongPlayer {
       }
       if (k < 0 || !playSong) continue;
       for (const h of hits) {
-        if (h.step !== step) continue;
-        const buf = kit.buffers[h.pad];
-        if (buf) playBuffer(buf, t, velocityGain(h.velocity) * (kit.gains[h.pad] ?? 1));
+        if (h.step === step) playSlot(kit, h.pad, h.velocity, t);
       }
     }
   }

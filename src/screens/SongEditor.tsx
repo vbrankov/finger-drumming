@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
 import { SongPlayer } from '../engine/player';
-import { DIFFICULTIES, MAX_BARS, songBars, songSteps } from '../model/types';
+import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, levelOfHit, songBars, songSteps } from '../model/types';
 import type { Difficulty, Hit, Song } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
 import { saveSong, useStore } from '../store';
@@ -25,7 +25,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
   const steps = songSteps(song);
   const bars = songBars(song);
   const loaded = useLoadedKit(kit);
-  const hitSet = useMemo(() => new Set(song.hits.map((h) => h.pad + ':' + h.step)), [song.hits]);
+  const hitMap = useMemo(() => new Map(song.hits.map((h) => [h.pad + ':' + h.step, h])), [song.hits]);
 
   function patch(p: Partial<Song>) {
     setSong((s) => ({ ...s, ...p }));
@@ -39,13 +39,18 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
     patch({ bars: n, hits: keep });
   }
 
+  // Each click steps the cell through: off → normal → accent → ghost → off.
   function toggle(pad: number, step: number) {
-    const key = pad + ':' + step;
-    const hits: Hit[] = hitSet.has(key)
-      ? song.hits.filter((h) => !(h.pad === pad && h.step === step))
-      : [...song.hits, { pad, step }].sort((a, b) => a.step - b.step || a.pad - b.pad);
+    const cur = hitMap.get(pad + ':' + step);
+    const rest = song.hits.filter((h) => !(h.pad === pad && h.step === step));
+    let next: Hit | null;
+    if (!cur) next = { pad, step };
+    else if (levelOfHit(cur) === 'normal') next = { pad, step, velocity: LEVEL_VELOCITY.accent };
+    else if (levelOfHit(cur) === 'accent') next = { pad, step, velocity: LEVEL_VELOCITY.ghost };
+    else next = null;
+    const hits: Hit[] = next ? [...rest, next].sort((a, b) => a.step - b.step || a.pad - b.pad) : rest;
     patch({ hits });
-    if (!hitSet.has(key)) auditionPad(loaded, pad);
+    if (next) auditionPad(loaded, pad, next.velocity);
   }
 
   function stop() {
@@ -155,12 +160,19 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
       <StepGrid
         kit={kit}
         steps={steps}
-        cell={(pad, step) => ({ on: hitSet.has(pad + ':' + step) })}
+        cell={(pad, step) => {
+          const h = hitMap.get(pad + ':' + step);
+          if (!h) return { on: false };
+          const lvl = levelOfHit(h);
+          return { on: true, className: 'lvl-' + lvl, title: lvl, data: { lvl } };
+        }}
         playheadStep={playhead}
         onCellClick={toggle}
         onLabelClick={(pad) => auditionPad(loaded, pad)}
       />
-      <p className="muted small">Click a cell to toggle a hit. Click a row label to hear that pad. {song.hits.length} hits.</p>
+      <p className="muted small">
+        Click a cell to cycle: off {'\u2192'} normal {'\u2192'} <b>accent</b> ({'\u25b2'}) {'\u2192'} ghost ({'\u00b7'}) {'\u2192'} off. Click a row label to hear that pad. {song.hits.length} hits.
+      </p>
     </div>
   );
 }

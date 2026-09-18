@@ -12,10 +12,11 @@ export async function resumeAudio(): Promise<AudioContext> {
   return c;
 }
 
-export function playBuffer(buffer: AudioBuffer, when: number, gain = 1): void {
+export function playBuffer(buffer: AudioBuffer, when: number, gain = 1, rate = 1): void {
   const c = getAudioContext();
   const src = c.createBufferSource();
   src.buffer = buffer;
+  if (rate !== 1) src.playbackRate.value = rate;
   if (gain === 1) {
     src.connect(c.destination);
   } else {

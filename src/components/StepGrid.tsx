@@ -8,6 +8,8 @@ export interface CellState {
   style?: CSSProperties;
   content?: ReactNode;
   title?: string;
+  /** Rendered as data-* attributes, for CSS-driven marks. */
+  data?: Record<string, string>;
 }
 
 interface Props {
@@ -84,7 +86,14 @@ function Row({
           .filter(Boolean)
           .join(' ');
         return (
-          <div key={step} className={cls} style={c.style} title={c.title} onClick={() => onCellClick?.(pad, step)}>
+          <div
+            key={step}
+            className={cls}
+            style={c.style}
+            title={c.title}
+            onClick={() => onCellClick?.(pad, step)}
+            {...Object.fromEntries(Object.entries(c.data ?? {}).map(([k, v]) => ['data-' + k, v]))}
+          >
             {c.content}
           </div>
         );

@@ -12,7 +12,7 @@ export interface PlayerHit {
 }
 
 export type HitResult =
-  | { kind: 'hit'; pad: number; step: number; offsetMs: number; errorMs: number }
+  | { kind: 'hit'; pad: number; step: number; offsetMs: number; errorMs: number; velocity?: number }
   | { kind: 'miss'; pad: number; step: number; errorMs: number }
   | { kind: 'extra'; pad: number; step: number; time: number; errorMs: number };
 
@@ -78,7 +78,7 @@ export function gradePass(
       usedE.add(p.ei);
       usedG.add(p.gi);
       const offsetMs = p.offset * 1000;
-      results.push({ kind: 'hit', pad: exp[p.ei].pad, step: exp[p.ei].step, offsetMs, errorMs: Math.abs(offsetMs) });
+      results.push({ kind: 'hit', pad: exp[p.ei].pad, step: exp[p.ei].step, offsetMs, errorMs: Math.abs(offsetMs), velocity: got[p.gi].velocity });
     }
     exp.forEach((e, ei) => {
       if (!usedE.has(ei)) results.push({ kind: 'miss', pad: e.pad, step: e.step, errorMs: MISS_MS });

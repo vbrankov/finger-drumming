@@ -60,7 +60,7 @@ export class PracticeSession {
       this.matched.add(this.key(p, best.e));
       this.reported.add(this.key(p, best.e));
       const offsetMs = best.offset * 1000;
-      return { kind: 'hit', pad: best.e.pad, step: best.e.step, offsetMs, errorMs: Math.abs(offsetMs), passIndex: p };
+      return { kind: 'hit', pad: best.e.pad, step: best.e.step, offsetMs, errorMs: Math.abs(offsetMs), velocity: hit.velocity, passIndex: p };
     }
     const step = Math.min(this.steps - 1, Math.max(0, Math.round((hit.time - pStart) / this.stepDur)));
     return { kind: 'extra', pad: hit.pad, step, time: hit.time, errorMs: MISS_MS, passIndex: p };

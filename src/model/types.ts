@@ -11,7 +11,34 @@ export type Step = number;
 export interface Hit {
   pad: PadIndex;
   step: Step;
-  velocity?: number; // 1..127, default 100
+  velocity?: number; // 1..127, default 100; see Level
+}
+
+/**
+ * Dynamics are graded at three levels, not by raw velocity: pad sensors vary
+ * too much between controllers, pads and fingers for finer distinctions to
+ * mean anything musically.
+ */
+export type Level = 'ghost' | 'normal' | 'accent';
+export const LEVELS: Level[] = ['ghost', 'normal', 'accent'];
+/** Velocity stored in a song for each level. */
+export const LEVEL_VELOCITY: Record<Level, number> = { ghost: 40, normal: 100, accent: 127 };
+export const LEVEL_GLYPH: Record<Level, string> = { ghost: '\u00b7', normal: '', accent: '\u25b2' };
+
+export interface VelocityThresholds {
+  ghost: number; // played velocity below this is a ghost
+  accent: number; // played velocity at or above this is an accent
+}
+
+/** Level a song hit was written at. */
+export function levelOfHit(h: Pick<Hit, 'velocity'>): Level {
+  const v = h.velocity ?? LEVEL_VELOCITY.normal;
+  return v < 64 ? 'ghost' : v >= 112 ? 'accent' : 'normal';
+}
+
+/** Level a played velocity counts as, given the user's calibrated thresholds. */
+export function levelOfVelocity(v: number, t: VelocityThresholds): Level {
+  return v < t.ghost ? 'ghost' : v >= t.accent ? 'accent' : 'normal';
 }
 
 export const DIFFICULTIES = [1, 2, 3, 4, 5] as const;
@@ -38,6 +65,7 @@ export interface KitSlot {
   role: string;
   sound: SoundRef;
   gain?: number; // linear, default 1
+  pitch?: number; // semitones, default 0; playback rate = 2^(pitch/12)
 }
 
 export interface Kit {
@@ -52,6 +80,7 @@ export interface Settings {
   calibrationMs: number;
   midiDeviceId: string | null;
   noteMap: Record<number, PadIndex>;
+  velocityThresholds: VelocityThresholds;
 }
 
 export interface ScoreRecord {
@@ -82,4 +111,5 @@ export const DEFAULT_SETTINGS: Settings = {
   calibrationMs: 0,
   midiDeviceId: null,
   noteMap: {},
+  velocityThresholds: { ghost: 60, accent: 110 },
 };

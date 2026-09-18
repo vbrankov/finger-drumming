@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import PadGrid from '../components/PadGrid';
 import { perfToAudioTime, resumeAudio } from '../engine/audio';
-import { estimateCalibrationMs } from '../engine/calibration';
+import { estimateCalibrationMs, robustMean } from '../engine/calibration';
 import { onMidiHit } from '../engine/midi';
 import { SongPlayer } from '../engine/player';
 import { isTypingTarget, KEY_TO_PAD, useFlash, useMidiStatus } from '../hooks';
@@ -59,7 +59,7 @@ export default function Settings() {
       calTapsRef.current = [];
       setCalTaps(0);
       setCalResult(null);
-      const p = new SongPlayer({ hits: [], bpm: CAL_BPM, steps: 16, kit: { buffers: [], gains: [] }, playSong: false, metronome: true, countInBars: 0 });
+      const p = new SongPlayer({ hits: [], bpm: CAL_BPM, steps: 16, kit: { buffers: [], gains: [], rates: [] }, playSong: false, metronome: true, countInBars: 0 });
       p.start();
       calPlayer.current = p;
       setCalRunning(true);
@@ -88,6 +88,44 @@ export default function Settings() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calRunning]);
   useEffect(() => () => calPlayer.current?.stop(), []);
+
+  // ── Velocity calibration: soft hits, then hard hits ───────────────────
+  const VEL_TAPS = 8;
+  const [velPhase, setVelPhase] = useState<'idle' | 'soft' | 'hard'>('idle');
+  const velSoft = useRef<number[]>([]);
+  const velHard = useRef<number[]>([]);
+  const [velCount, setVelCount] = useState(0);
+  const [velResult, setVelResult] = useState<{ ghost: number; accent: number; soft: number; hard: number } | null>(null);
+
+  useEffect(() => {
+    if (velPhase === 'idle') return;
+    return onMidiHit((m) => {
+      const list = velPhase === 'soft' ? velSoft.current : velHard.current;
+      list.push(m.velocity);
+      setVelCount(list.length);
+      if (list.length < VEL_TAPS) return;
+      if (velPhase === 'soft') {
+        setVelPhase('hard');
+        setVelCount(0);
+        return;
+      }
+      const soft = robustMean(velSoft.current);
+      const hard = robustMean(velHard.current);
+      // Ghost/accent thresholds sit a third and two thirds of the way between your soft and hard hits.
+      const ghost = Math.round(soft + (hard - soft) / 3);
+      const accent = Math.round(soft + ((hard - soft) * 2) / 3);
+      setVelResult({ ghost, accent, soft: Math.round(soft), hard: Math.round(hard) });
+      setVelPhase('idle');
+    });
+  }, [velPhase]);
+
+  function velStart() {
+    velSoft.current = [];
+    velHard.current = [];
+    setVelCount(0);
+    setVelResult(null);
+    setVelPhase('soft');
+  }
 
   // ── Export / import ────────────────────────────────────────────────────
   function doExport() {
@@ -173,6 +211,58 @@ export default function Settings() {
             Current
             <input type="number" step={0.5} value={settings.calibrationMs} onChange={(e) => updateSettings({ calibrationMs: Number(e.target.value) || 0 })} />
             ms
+          </label>
+        </div>
+      </div>
+
+      <div className="panel stack">
+        <h3 style={{ margin: 0 }}>Dynamics</h3>
+        <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
+          Songs mark hits as ghost, normal or accent. Teach the app what soft and hard mean on your controller: hit any pad {VEL_TAPS} times softly, then {VEL_TAPS}{' '}
+          times hard. Keyboard and on-screen pads have no velocity and always count as normal.
+        </p>
+        <div className="row">
+          {velPhase === 'idle' ? (
+            <button className="primary" onClick={velStart} disabled={!midi.ok}>
+              {'\u25b6'} Calibrate dynamics
+            </button>
+          ) : (
+            <>
+              <span className="tap-target" style={{ cursor: 'default' }}>
+                {velPhase === 'soft' ? 'hit SOFTLY' : 'hit HARD'} {'\u00b7'} {velCount}/{VEL_TAPS}
+              </span>
+              <button onClick={() => setVelPhase('idle')}>Cancel</button>
+            </>
+          )}
+          {velResult && (
+            <>
+              <span>
+                soft {'\u2248'} {velResult.soft}, hard {'\u2248'} {velResult.hard} {'\u2192'} ghost below <b>{velResult.ghost}</b>, accent from <b>{velResult.accent}</b>
+              </span>
+              <button className="primary" onClick={() => updateSettings({ velocityThresholds: { ghost: velResult.ghost, accent: velResult.accent } })}>
+                Use this
+              </button>
+            </>
+          )}
+          <label className="field">
+            Ghost below
+            <input
+              type="number"
+              min={1}
+              max={126}
+              value={settings.velocityThresholds.ghost}
+              onChange={(e) => updateSettings({ velocityThresholds: { ...settings.velocityThresholds, ghost: Number(e.target.value) || 1 } })}
+            />
+          </label>
+          <label className="field">
+            Accent from
+            <input
+              type="number"
+              min={2}
+              max={127}
+              value={settings.velocityThresholds.accent}
+              onChange={(e) => updateSettings({ velocityThresholds: { ...settings.velocityThresholds, accent: Number(e.target.value) || 127 } })}
+            />
           </label>
         </div>
       </div>

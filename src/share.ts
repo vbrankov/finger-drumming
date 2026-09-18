@@ -22,6 +22,7 @@ function stripKit(kit: Kit): SharedKit {
       role: s.role,
       sound: s.sound.type === 'bundled' ? s.sound : DEFAULT_KIT.slots[i].sound,
       ...(s.gain !== undefined && s.gain !== 1 ? { gain: s.gain } : {}),
+      ...(s.pitch ? { pitch: s.pitch } : {}),
     })),
   };
 }

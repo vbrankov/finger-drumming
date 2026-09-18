@@ -245,3 +245,21 @@ table.list td.actions button { margin-left: 4px; }
   margin-bottom: 12px;
   cursor: pointer;
 }
+
+/* ── Dynamics ──────────────────────────────────────────────────────────── */
+/* Written level: accent gets a bright top edge and a ▲, ghost is dimmer and smaller. */
+.step-grid .cell.on.lvl-accent { box-shadow: inset 0 3px 0 #fff; }
+.step-grid .cell.on.lvl-ghost { opacity: 0.55; }
+.step-grid .cell.on.lvl-ghost.graded, .step-grid .cell.on.lvl-ghost.miss { opacity: 1; }
+.step-grid .cell.on.lvl-ghost.graded { box-shadow: inset 0 0 0 2px var(--bg); }
+.step-grid .cell[data-lvl='accent']::before { content: '\25B2'; position: absolute; top: 0; right: 2px; font-size: 7px; line-height: 1; opacity: 0.9; }
+.step-grid .cell[data-lvl='ghost']::before { content: '\B7'; position: absolute; top: -1px; right: 3px; font-size: 10px; line-height: 1; }
+/* Played level after a hit: bottom-left mark; orange when it differs from what was written. */
+.step-grid .cell[data-played]::after { content: attr(data-played); position: absolute; bottom: 0; left: 2px; font-size: 8px; line-height: 1; opacity: 0.9; }
+.step-grid .cell[data-dyn='off']::after { color: var(--accent-2); font-weight: 700; text-shadow: 0 0 2px #000; }
+.step-grid .cell.stale::after, .step-grid .cell.stale::before { opacity: 0.5; }
+
+.slot .pitch { gap: 2px; }
+.slot .pitch button { padding: 2px 6px; font-size: 12px; }
+.slot .pitch .val { min-width: 2.2em; text-align: center; font-variant-numeric: tabular-nums; }
+.slot .pitch .val.set { color: var(--accent-2); font-weight: 600; }
