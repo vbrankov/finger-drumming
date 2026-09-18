@@ -7,6 +7,7 @@ import type { Kit } from '../model/types';
 export const WINDOW = 40; // 2.5 bars
 export const LEAD = 8; // steps of history left of the playhead
 const RENDER_BARS = 5; // columns per strip: the window plus slack on both sides
+const GAP = 2; // px between columns (must match .scroll-inner's column gap)
 
 interface Props {
   kit: Kit;
@@ -45,7 +46,7 @@ export default function ScrollGrid({ kit, rows, cellAt, base, getPosition, steps
 
   useLayoutEffect(() => {
     const fit = () => {
-      if (ref.current) setCellW(Math.max(8, Math.floor((ref.current.clientWidth - 2) / WINDOW)));
+      if (ref.current) setCellW(Math.max(8, Math.floor((ref.current.clientWidth - 2) / WINDOW) - GAP));
     };
     fit();
     window.addEventListener('resize', fit);
@@ -137,7 +138,9 @@ export default function ScrollGrid({ kit, rows, cellAt, base, getPosition, steps
       const el = inner.current;
       if (el) {
         const pos = getPosition() ?? base + LEAD;
-        el.style.transform = 'translateX(' + -(pos - LEAD - base) * cellW + 'px)';
+        // Column pitch is the cell width plus the grid gap; using cellW alone made the strip
+        // fall behind by GAP px per step and snap back at each bar.
+        el.style.transform = 'translateX(' + -(pos - LEAD - base) * (cellW + GAP) + 'px)';
       }
       raf = requestAnimationFrame(tick);
     };
@@ -155,7 +158,7 @@ export default function ScrollGrid({ kit, rows, cellAt, base, getPosition, steps
         ))}
       </div>
       <div className="scroll-viewport">
-        <div className="scroll-playhead" style={{ left: LEAD * cellW }} />
+        <div className="scroll-playhead" style={{ left: LEAD * (cellW + GAP) }} />
         <div className="scroll-inner" ref={inner} />
       </div>
     </div>
