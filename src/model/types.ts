@@ -58,6 +58,24 @@ export interface Pattern {
   updatedAt: string;
 }
 
+/** A song is a sequence of patterns, each repeated a number of times. */
+export interface SongSection {
+  patternId: string;
+  repeat: number; // ≥ 1
+}
+
+export interface Song {
+  id: string;
+  name: string;
+  author?: string;
+  difficulty?: Difficulty;
+  bpm: number; // overrides the patterns' own tempos
+  kitId: string; // all patterns play on this kit
+  sections: SongSection[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type SoundRef =
   | { type: 'bundled'; file: string } // public/sounds/<file>
   | { type: 'user'; blobId: string; name: string }; // IndexedDB

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Kit, Pattern } from './model/types';
+import type { Kit, Pattern, Song } from './model/types';
 import { useMidiStatus } from './hooks';
 import KitEditor from './screens/KitEditor';
 import Kits from './screens/Kits';
 import Practice from './screens/Practice';
+import SongEditor from './screens/SongEditor';
+import Songs from './screens/Songs';
 import Settings from './screens/Settings';
 import PatternEditor from './screens/PatternEditor';
 import Patterns from './screens/Patterns';
@@ -15,10 +17,13 @@ import { getState, useStore } from './store';
 
 type Screen =
   | { name: 'patterns' }
+  | { name: 'songs' }
   | { name: 'kits' }
   | { name: 'settings' }
   | { name: 'practice'; pattern: Pattern }
+  | { name: 'practice-song'; song: Song }
   | { name: 'edit-pattern'; pattern: Pattern }
+  | { name: 'edit-song'; song: Song }
   | { name: 'edit-kit'; kit: Kit; back: Screen };
 
 function collectPatternIds(p: { t: string; pattern?: { id?: string }; items?: unknown[] }): string[] {
@@ -27,8 +32,9 @@ function collectPatternIds(p: { t: string; pattern?: { id?: string }; items?: un
   return [];
 }
 
-const TABS: { name: 'patterns' | 'kits' | 'settings'; label: string }[] = [
+const TABS: { name: 'patterns' | 'songs' | 'kits' | 'settings'; label: string }[] = [
   { name: 'patterns', label: 'Patterns' },
+  { name: 'songs', label: 'Songs' },
   { name: 'kits', label: 'Kits' },
   { name: 'settings', label: 'Settings' },
 ];
@@ -76,12 +82,34 @@ export default function App() {
     return () => window.clearTimeout(t);
   }, [notice]);
 
-  const section = screen.name === 'practice' || screen.name === 'edit-pattern' ? 'patterns' : screen.name === 'edit-kit' ? 'kits' : screen.name;
+  const section =
+    screen.name === 'practice' || screen.name === 'edit-pattern'
+      ? 'patterns'
+      : screen.name === 'practice-song' || screen.name === 'edit-song'
+        ? 'songs'
+        : screen.name === 'edit-kit'
+          ? 'kits'
+          : screen.name;
 
   let body;
   switch (screen.name) {
     case 'patterns':
       body = <Patterns onPractice={(pattern) => setScreen({ name: 'practice', pattern })} onEdit={(pattern) => setScreen({ name: 'edit-pattern', pattern })} />;
+      break;
+    case 'songs':
+      body = (
+        <Songs
+          onPractice={(song) => setScreen({ name: 'practice-song', song })}
+          onEdit={(song) => setScreen({ name: 'edit-song', song })}
+          onShare={(song) => setNotice('Sharing songs is coming in the next step: ' + song.name)}
+        />
+      );
+      break;
+    case 'practice-song':
+      body = <Practice key={'song:' + screen.song.id} target={{ kind: 'song', song: screen.song }} onBack={() => setScreen({ name: 'songs' })} onSettings={() => setScreen({ name: 'settings' })} />;
+      break;
+    case 'edit-song':
+      body = <SongEditor key={screen.song.id} song={screen.song} onDone={() => setScreen({ name: 'songs' })} />;
       break;
     case 'kits':
       body = <Kits onEdit={(kit) => setScreen({ name: 'edit-kit', kit, back: { name: 'kits' } })} />;
@@ -90,7 +118,7 @@ export default function App() {
       body = <Settings />;
       break;
     case 'practice':
-      body = <Practice key={screen.pattern.id} pattern={screen.pattern} onBack={() => setScreen({ name: 'patterns' })} onSettings={() => setScreen({ name: 'settings' })} />;
+      body = <Practice key={screen.pattern.id} target={{ kind: 'pattern', pattern: screen.pattern }} onBack={() => setScreen({ name: 'patterns' })} onSettings={() => setScreen({ name: 'settings' })} />;
       break;
     case 'edit-pattern':
       body = (

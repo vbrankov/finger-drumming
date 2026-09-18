@@ -291,3 +291,33 @@ table.list td.actions button { margin-left: 4px; }
 .modal table.list td.actions button { padding: 3px 8px; font-size: 12px; }
 
 a { color: var(--accent); }
+
+/* ── Song structure strip ──────────────────────────────────────────────── */
+.structure { display: flex; flex-direction: column; gap: 6px; }
+.strip { display: flex; gap: 3px; min-height: 34px; }
+.strip .sec {
+  flex-basis: 0;
+  min-width: 36px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0.55;
+  font-size: 12px;
+}
+.strip .sec.in-loop { opacity: 1; }
+.strip .sec.selected { border-color: var(--muted); }
+.strip .sec.current { background: var(--accent); border-color: var(--accent); color: #fff; }
+.strip .sec .sec-name { overflow: hidden; text-overflow: ellipsis; }
+.strip .sec .sec-meta { color: inherit; opacity: 0.8; font-size: 11px; }
+.strip .sec .sec-score { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+table.sections td { padding: 4px 8px; }
+table.sections tr.current td { background: var(--panel-2); }
+table.sections select { min-width: 200px; }
+table.sections input[type='number'] { width: 4em; }

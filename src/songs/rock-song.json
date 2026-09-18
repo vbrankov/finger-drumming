@@ -1,0 +1,17 @@
+{
+  "id": "seed-song-rock",
+  "name": "Rock Song",
+  "author": "Claude",
+  "difficulty": 2,
+  "bpm": 92,
+  "kitId": "default",
+  "createdAt": "2026-09-18T00:00:00.000Z",
+  "updatedAt": "2026-09-18T00:00:00.000Z",
+  "sections": [
+    { "patternId": "seed-basic-rock", "repeat": 3 },
+    { "patternId": "seed-basic-rock-one-beat-fill", "repeat": 1 },
+    { "patternId": "seed-money-beat-accents", "repeat": 3 },
+    { "patternId": "seed-rock-with-fill", "repeat": 1 },
+    { "patternId": "seed-basic-rock-phrase", "repeat": 1 }
+  ]
+}

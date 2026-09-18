@@ -108,7 +108,14 @@ export default function Patterns({ onPractice, onEdit }: Props) {
                   <button onClick={() => shareLink(patternPayload(s, kitFor(s))).then((url) => copyLink(url, '\u201c' + s.name + '\u201d'))} title="Copy a link that adds this pattern to someone's library">
                     Share
                   </button>
-                  <button className="danger" onClick={() => confirm('Delete "' + s.name + '"?') && deletePattern(s.id)}>
+                  <button
+                    className="danger"
+                    onClick={() => {
+                      if (!confirm('Delete "' + s.name + '"?')) return;
+                      const err = deletePattern(s.id);
+                      if (err) alert(err);
+                    }}
+                  >
                     Delete
                   </button>
                 </td>

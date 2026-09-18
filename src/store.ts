@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { Kit, Scores, Settings, Pattern } from "./model/types";
+import type { Kit, Scores, Settings, Pattern, Song } from "./model/types";
 import {
   DEFAULT_KIT_ID,
   DEFAULT_SETTINGS,
@@ -14,17 +14,22 @@ const seedPatterns = Object.values(
 const seedKits = Object.values(
   import.meta.glob("./kits/*.json", { eager: true, import: "default" }),
 ) as Kit[];
+const seedSongs = Object.values(import.meta.glob("./songs/*.json", { eager: true, import: "default" })) as Song[];
 export const DEFAULT_KIT = defaultKitJson as Kit;
 
 export interface State {
   patterns: Pattern[];
+  songs: Song[];
   kits: Kit[];
-  scores: Scores;
+  scores: Scores; // best per pattern
+  songScores: Scores; // best per song (whole-song passes at the song's tempo)
   settings: Settings;
 }
 
 const KEYS: Record<keyof State, string> = {
   patterns: "fd.patterns", // was "fd.songs" before songs became sequences of patterns
+  songs: "fd.songs",
+  songScores: "fd.songScores",
   kits: "fd.kits",
   scores: "fd.scores",
   settings: "fd.settings",
@@ -136,6 +141,12 @@ let state: State = (() => {
     ),
     seedPatterns,
   );
+  const songs = mergeSeeds(
+    readList<Song>(KEYS.songs, (s) => Array.isArray(s.sections) && typeof s.bpm === "number"),
+    seedSongs,
+  );
+  const rawSongScores = read<unknown>(KEYS.songScores, {});
+  const songScores = rawSongScores && typeof rawSongScores === "object" && !Array.isArray(rawSongScores) ? (rawSongScores as Scores) : {};
   const repaired = repairKits(
     readList<Kit>(
       KEYS.kits,
@@ -159,7 +170,7 @@ let state: State = (() => {
   };
   if (!settings.noteMap || Object.keys(settings.noteMap).length === 0)
     settings.noteMap = standardNoteMap();
-  return { patterns, kits, scores, settings };
+  return { patterns, songs, kits, scores, songScores, settings };
 })();
 
 const listeners = new Set<() => void>();
@@ -199,7 +210,10 @@ export function savePattern(pattern: Pattern): void {
   );
 }
 
-export function deletePattern(id: string): void {
+/** Refused if any song uses the pattern. Returns the reason. */
+export function deletePattern(id: string): string | null {
+  const users = state.songs.filter((s) => s.sections.some((sec) => sec.patternId === id));
+  if (users.length) return "Used by " + users.map((s) => s.name).join(", ") + ".";
   set(
     "patterns",
     state.patterns.filter((s) => s.id !== id),
@@ -208,6 +222,37 @@ export function deletePattern(id: string): void {
     const { [id]: _, ...rest } = state.scores;
     set("scores", rest);
   }
+  return null;
+}
+
+// ── Songs ────────────────────────────────────────────────────────────────────
+
+export function saveSong(song: Song): void {
+  const updated = { ...song, updatedAt: new Date().toISOString() };
+  const i = state.songs.findIndex((s) => s.id === song.id);
+  set("songs", i < 0 ? [...state.songs, updated] : state.songs.with(i, updated));
+}
+
+export function deleteSong(id: string): void {
+  set("songs", state.songs.filter((s) => s.id !== id));
+  if (state.songScores[id]) {
+    const { [id]: _, ...rest } = state.songScores;
+    set("songScores", rest);
+  }
+}
+
+export function emptySong(): Song {
+  const now = new Date().toISOString();
+  return { id: newId("song"), name: "Untitled song", author: "", difficulty: 1, bpm: 90, kitId: DEFAULT_KIT_ID, sections: [], createdAt: now, updatedAt: now };
+}
+
+/** Record a whole-song pass score. Only kept at the song's own tempo. */
+export function recordSongScore(song: Song, bpm: number, score: number): boolean {
+  if (bpm !== song.bpm) return false;
+  const prev = state.songScores[song.id];
+  if (prev && prev.best <= score) return false;
+  set("songScores", { ...state.songScores, [song.id]: { best: score, bpm, at: new Date().toISOString() } });
+  return true;
 }
 
 export function emptyPattern(): Pattern {
