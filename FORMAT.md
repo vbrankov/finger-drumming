@@ -113,8 +113,8 @@ and ignores everything else, so tokens can sit inside a forum post.
   "id": "me-kit-1",
   "name": "My Kit",
   "slots": [                  // exactly 16, pad 0 first (top-left), row by row
-    { "role": "Low Tom", "sound": { "type": "bundled", "file": "drum_tom_lo_hard.flac" } },
-    { "role": "Kick",    "sound": { "type": "bundled", "file": "bd_808.flac" }, "pitch": -2, "gain": 1.2 },
+    { "role": "Low Tom", "sound": { "type": "bundled", "file": "drum_tom_lo_hard.wav" } },
+    { "role": "Kick",    "sound": { "type": "bundled", "file": "bd_808.wav" }, "pitch": -2, "gain": 1.2 },
     …
   ]
 }

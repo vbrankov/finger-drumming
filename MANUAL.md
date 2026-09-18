@@ -175,7 +175,8 @@ recipient.
 ## The sound library
 
 134 one-shot samples from the Sonic Pi collection, all **CC0 (public
-domain)**, bundled with the app. Files are fetched only when a kit uses them.
+domain)**, bundled with the app as WAV so every browser can decode them.
+Files are fetched only when a kit uses them.
 
 **Bass Drum** (15): `bd_808`, `bd_ada`, `bd_boom`, `bd_chip`, `bd_fat`, `bd_gas`, `bd_haus`, `bd_jazz`, `bd_klub`, `bd_mehackit`, `bd_pure`, `bd_sone`, `bd_tek`, `bd_zome`, `bd_zum`
 
@@ -197,7 +198,7 @@ domain)**, bundled with the app. Files are fetched only when a kit uses them.
 
 **Misc** (3): `misc_burp`, `misc_cineboom`, `misc_crow`
 
-All files are `.flac`. The default kit uses `drum_heavy_kick`,
+All files are `.wav` (16-bit, 44.1 kHz). The default kit uses `drum_heavy_kick`,
 `drum_snare_hard`, `drum_cymbal_closed/open/hard/soft`, `drum_splash_hard/soft`,
 `drum_tom_*_hard` and `elec_wood` (sidestick).
 

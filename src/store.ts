@@ -68,21 +68,31 @@ function readList<T extends { id: string }>(
 
 /** Bundled files that were renamed when the full library came in. */
 const RENAMED_SOUNDS: Record<string, string> = {
-  "kick.flac": "drum_heavy_kick.flac",
-  "snare.flac": "drum_snare_hard.flac",
-  "sidestick.flac": "elec_wood.flac",
-  "rim.flac": "elec_wood.flac",
-  "hat-closed.flac": "drum_cymbal_closed.flac",
-  "hat-open.flac": "drum_cymbal_open.flac",
-  "ride.flac": "drum_cymbal_hard.flac",
-  "crash.flac": "drum_splash_hard.flac",
-  "crash2.flac": "drum_splash_soft.flac",
-  "cymbal.flac": "drum_cymbal_soft.flac",
-  "tom-hi.flac": "drum_tom_hi_hard.flac",
-  "tom-mid.flac": "drum_tom_mid_hard.flac",
-  "tom-lo.flac": "drum_tom_lo_hard.flac",
+  "kick.flac": "drum_heavy_kick.wav",
+  "snare.flac": "drum_snare_hard.wav",
+  "sidestick.flac": "elec_wood.wav",
+  "rim.flac": "elec_wood.wav",
+  "hat-closed.flac": "drum_cymbal_closed.wav",
+  "hat-open.flac": "drum_cymbal_open.wav",
+  "ride.flac": "drum_cymbal_hard.wav",
+  "crash.flac": "drum_splash_hard.wav",
+  "crash2.flac": "drum_splash_soft.wav",
+  "cymbal.flac": "drum_cymbal_soft.wav",
+  "tom-hi.flac": "drum_tom_hi_hard.wav",
+  "tom-mid.flac": "drum_tom_mid_hard.wav",
+  "tom-lo.flac": "drum_tom_lo_hard.wav",
 };
 const BUNDLED = new Set(manifest.sounds.map((s) => s.file));
+
+/** The current name of a bundled file that may be referred to by an old name; null if unknown. */
+export function repairedFile(file: string): string | null {
+  if (BUNDLED.has(file)) return file;
+  const renamed = RENAMED_SOUNDS[file];
+  if (renamed && BUNDLED.has(renamed)) return renamed;
+  // The library shipped as FLAC for a while; same names, .wav now.
+  const wav = file.replace(/\.flac$/i, ".wav");
+  return BUNDLED.has(wav) ? wav : null;
+}
 
 /**
  * Point stored kits at files that exist: renamed files get their new name,
@@ -107,7 +117,7 @@ function repairKits(kits: Kit[]): { kits: Kit[]; changed: boolean } {
         if (slot.sound.type !== "bundled" || BUNDLED.has(slot.sound.file))
           return slot;
         changed = true;
-        const renamed = RENAMED_SOUNDS[slot.sound.file];
+        const renamed = repairedFile(slot.sound.file);
         return {
           ...slot,
           sound: renamed

@@ -1,6 +1,6 @@
 import type { Kit, Pattern, Song, SongSection } from './model/types';
 import { DEFAULT_KIT_ID } from './model/types';
-import { DEFAULT_KIT, getState, newId, saveKit, savePattern, saveSong } from './store';
+import { DEFAULT_KIT, getState, newId, repairedFile, saveKit, savePattern, saveSong } from './store';
 
 /**
  * Share links and text packs carry whole patterns, songs and kits in the URL
@@ -382,7 +382,12 @@ export function applyImport(plan: ImportPlan, resolutions: Record<string, Resolu
   const localKitId = (id: string) => kitIdMap.get(id) ?? (getState().kits.some((k) => k.id === id) ? id : DEFAULT_KIT_ID);
 
   const saveIncomingKit = (k: SharedKit, id: string) => {
-    const kit: Kit = { id, name: k.name, slots: k.slots.slice(0, 16), createdAt: now, updatedAt: now };
+    const slots = k.slots.slice(0, 16).map((slot, i) => {
+      if (slot.sound?.type !== 'bundled') return { ...slot, sound: DEFAULT_KIT.slots[i].sound };
+      const file = repairedFile(slot.sound.file);
+      return file ? { ...slot, sound: { type: 'bundled' as const, file } } : { ...slot, sound: DEFAULT_KIT.slots[i].sound };
+    });
+    const kit: Kit = { id, name: k.name, slots, createdAt: now, updatedAt: now };
     saveKit(kit);
     out.kit ??= kit;
     if (k.id) kitIdMap.set(k.id, id);

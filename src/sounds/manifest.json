@@ -13,672 +13,672 @@
   },
   "sounds": [
     {
-      "file": "bd_808.flac",
+      "file": "bd_808.wav",
       "family": "bd",
       "label": "808"
     },
     {
-      "file": "bd_ada.flac",
+      "file": "bd_ada.wav",
       "family": "bd",
       "label": "Ada"
     },
     {
-      "file": "bd_boom.flac",
+      "file": "bd_boom.wav",
       "family": "bd",
       "label": "Boom"
     },
     {
-      "file": "bd_chip.flac",
+      "file": "bd_chip.wav",
       "family": "bd",
       "label": "Chip"
     },
     {
-      "file": "bd_fat.flac",
+      "file": "bd_fat.wav",
       "family": "bd",
       "label": "Fat"
     },
     {
-      "file": "bd_gas.flac",
+      "file": "bd_gas.wav",
       "family": "bd",
       "label": "Gas"
     },
     {
-      "file": "bd_haus.flac",
+      "file": "bd_haus.wav",
       "family": "bd",
       "label": "Haus"
     },
     {
-      "file": "bd_jazz.flac",
+      "file": "bd_jazz.wav",
       "family": "bd",
       "label": "Jazz"
     },
     {
-      "file": "bd_klub.flac",
+      "file": "bd_klub.wav",
       "family": "bd",
       "label": "Klub"
     },
     {
-      "file": "bd_mehackit.flac",
+      "file": "bd_mehackit.wav",
       "family": "bd",
       "label": "Mehackit"
     },
     {
-      "file": "bd_pure.flac",
+      "file": "bd_pure.wav",
       "family": "bd",
       "label": "Pure"
     },
     {
-      "file": "bd_sone.flac",
+      "file": "bd_sone.wav",
       "family": "bd",
       "label": "Sone"
     },
     {
-      "file": "bd_tek.flac",
+      "file": "bd_tek.wav",
       "family": "bd",
       "label": "Tek"
     },
     {
-      "file": "bd_zome.flac",
+      "file": "bd_zome.wav",
       "family": "bd",
       "label": "Zome"
     },
     {
-      "file": "bd_zum.flac",
+      "file": "bd_zum.wav",
       "family": "bd",
       "label": "Zum"
     },
     {
-      "file": "drum_bass_hard.flac",
+      "file": "drum_bass_hard.wav",
       "family": "drum",
       "label": "Bass Hard"
     },
     {
-      "file": "drum_bass_soft.flac",
+      "file": "drum_bass_soft.wav",
       "family": "drum",
       "label": "Bass Soft"
     },
     {
-      "file": "drum_cowbell.flac",
+      "file": "drum_cowbell.wav",
       "family": "drum",
       "label": "Cowbell"
     },
     {
-      "file": "drum_cymbal_closed.flac",
+      "file": "drum_cymbal_closed.wav",
       "family": "drum",
       "label": "Cymbal Closed"
     },
     {
-      "file": "drum_cymbal_hard.flac",
+      "file": "drum_cymbal_hard.wav",
       "family": "drum",
       "label": "Cymbal Hard"
     },
     {
-      "file": "drum_cymbal_open.flac",
+      "file": "drum_cymbal_open.wav",
       "family": "drum",
       "label": "Cymbal Open"
     },
     {
-      "file": "drum_cymbal_pedal.flac",
+      "file": "drum_cymbal_pedal.wav",
       "family": "drum",
       "label": "Cymbal Pedal"
     },
     {
-      "file": "drum_cymbal_soft.flac",
+      "file": "drum_cymbal_soft.wav",
       "family": "drum",
       "label": "Cymbal Soft"
     },
     {
-      "file": "drum_heavy_kick.flac",
+      "file": "drum_heavy_kick.wav",
       "family": "drum",
       "label": "Heavy Kick"
     },
     {
-      "file": "drum_roll.flac",
+      "file": "drum_roll.wav",
       "family": "drum",
       "label": "Roll"
     },
     {
-      "file": "drum_snare_hard.flac",
+      "file": "drum_snare_hard.wav",
       "family": "drum",
       "label": "Snare Hard"
     },
     {
-      "file": "drum_snare_soft.flac",
+      "file": "drum_snare_soft.wav",
       "family": "drum",
       "label": "Snare Soft"
     },
     {
-      "file": "drum_splash_hard.flac",
+      "file": "drum_splash_hard.wav",
       "family": "drum",
       "label": "Splash Hard"
     },
     {
-      "file": "drum_splash_soft.flac",
+      "file": "drum_splash_soft.wav",
       "family": "drum",
       "label": "Splash Soft"
     },
     {
-      "file": "drum_tom_hi_hard.flac",
+      "file": "drum_tom_hi_hard.wav",
       "family": "drum",
       "label": "Tom Hi Hard"
     },
     {
-      "file": "drum_tom_hi_soft.flac",
+      "file": "drum_tom_hi_soft.wav",
       "family": "drum",
       "label": "Tom Hi Soft"
     },
     {
-      "file": "drum_tom_lo_hard.flac",
+      "file": "drum_tom_lo_hard.wav",
       "family": "drum",
       "label": "Tom Lo Hard"
     },
     {
-      "file": "drum_tom_lo_soft.flac",
+      "file": "drum_tom_lo_soft.wav",
       "family": "drum",
       "label": "Tom Lo Soft"
     },
     {
-      "file": "drum_tom_mid_hard.flac",
+      "file": "drum_tom_mid_hard.wav",
       "family": "drum",
       "label": "Tom Mid Hard"
     },
     {
-      "file": "drum_tom_mid_soft.flac",
+      "file": "drum_tom_mid_soft.wav",
       "family": "drum",
       "label": "Tom Mid Soft"
     },
     {
-      "file": "sn_dolf.flac",
+      "file": "sn_dolf.wav",
       "family": "sn",
       "label": "Dolf"
     },
     {
-      "file": "sn_dub.flac",
+      "file": "sn_dub.wav",
       "family": "sn",
       "label": "Dub"
     },
     {
-      "file": "sn_generic.flac",
+      "file": "sn_generic.wav",
       "family": "sn",
       "label": "Generic"
     },
     {
-      "file": "sn_zome.flac",
+      "file": "sn_zome.wav",
       "family": "sn",
       "label": "Zome"
     },
     {
-      "file": "hat_bdu.flac",
+      "file": "hat_bdu.wav",
       "family": "hat",
       "label": "Bdu"
     },
     {
-      "file": "hat_cab.flac",
+      "file": "hat_cab.wav",
       "family": "hat",
       "label": "Cab"
     },
     {
-      "file": "hat_cats.flac",
+      "file": "hat_cats.wav",
       "family": "hat",
       "label": "Cats"
     },
     {
-      "file": "hat_gem.flac",
+      "file": "hat_gem.wav",
       "family": "hat",
       "label": "Gem"
     },
     {
-      "file": "hat_gnu.flac",
+      "file": "hat_gnu.wav",
       "family": "hat",
       "label": "Gnu"
     },
     {
-      "file": "hat_gump.flac",
+      "file": "hat_gump.wav",
       "family": "hat",
       "label": "Gump"
     },
     {
-      "file": "hat_hier.flac",
+      "file": "hat_hier.wav",
       "family": "hat",
       "label": "Hier"
     },
     {
-      "file": "hat_len.flac",
+      "file": "hat_len.wav",
       "family": "hat",
       "label": "Len"
     },
     {
-      "file": "hat_mess.flac",
+      "file": "hat_mess.wav",
       "family": "hat",
       "label": "Mess"
     },
     {
-      "file": "hat_metal.flac",
+      "file": "hat_metal.wav",
       "family": "hat",
       "label": "Metal"
     },
     {
-      "file": "hat_noiz.flac",
+      "file": "hat_noiz.wav",
       "family": "hat",
       "label": "Noiz"
     },
     {
-      "file": "hat_psych.flac",
+      "file": "hat_psych.wav",
       "family": "hat",
       "label": "Psych"
     },
     {
-      "file": "hat_raw.flac",
+      "file": "hat_raw.wav",
       "family": "hat",
       "label": "Raw"
     },
     {
-      "file": "hat_sci.flac",
+      "file": "hat_sci.wav",
       "family": "hat",
       "label": "Sci"
     },
     {
-      "file": "hat_snap.flac",
+      "file": "hat_snap.wav",
       "family": "hat",
       "label": "Snap"
     },
     {
-      "file": "hat_star.flac",
+      "file": "hat_star.wav",
       "family": "hat",
       "label": "Star"
     },
     {
-      "file": "hat_tap.flac",
+      "file": "hat_tap.wav",
       "family": "hat",
       "label": "Tap"
     },
     {
-      "file": "hat_yosh.flac",
+      "file": "hat_yosh.wav",
       "family": "hat",
       "label": "Yosh"
     },
     {
-      "file": "hat_zan.flac",
+      "file": "hat_zan.wav",
       "family": "hat",
       "label": "Zan"
     },
     {
-      "file": "hat_zap.flac",
+      "file": "hat_zap.wav",
       "family": "hat",
       "label": "Zap"
     },
     {
-      "file": "hat_zild.flac",
+      "file": "hat_zild.wav",
       "family": "hat",
       "label": "Zild"
     },
     {
-      "file": "ride_tri.flac",
+      "file": "ride_tri.wav",
       "family": "ride",
       "label": "Tri"
     },
     {
-      "file": "ride_via.flac",
+      "file": "ride_via.wav",
       "family": "ride",
       "label": "Via"
     },
     {
-      "file": "perc_bell.flac",
+      "file": "perc_bell.wav",
       "family": "perc",
       "label": "Bell"
     },
     {
-      "file": "perc_bell2.flac",
+      "file": "perc_bell2.wav",
       "family": "perc",
       "label": "Bell2"
     },
     {
-      "file": "perc_door.flac",
+      "file": "perc_door.wav",
       "family": "perc",
       "label": "Door"
     },
     {
-      "file": "perc_impact1.flac",
+      "file": "perc_impact1.wav",
       "family": "perc",
       "label": "Impact1"
     },
     {
-      "file": "perc_impact2.flac",
+      "file": "perc_impact2.wav",
       "family": "perc",
       "label": "Impact2"
     },
     {
-      "file": "perc_snap.flac",
+      "file": "perc_snap.wav",
       "family": "perc",
       "label": "Snap"
     },
     {
-      "file": "perc_snap2.flac",
+      "file": "perc_snap2.wav",
       "family": "perc",
       "label": "Snap2"
     },
     {
-      "file": "perc_swash.flac",
+      "file": "perc_swash.wav",
       "family": "perc",
       "label": "Swash"
     },
     {
-      "file": "perc_swoosh.flac",
+      "file": "perc_swoosh.wav",
       "family": "perc",
       "label": "Swoosh"
     },
     {
-      "file": "perc_till.flac",
+      "file": "perc_till.wav",
       "family": "perc",
       "label": "Till"
     },
     {
-      "file": "tabla_dhec.flac",
+      "file": "tabla_dhec.wav",
       "family": "tabla",
       "label": "Dhec"
     },
     {
-      "file": "tabla_ghe1.flac",
+      "file": "tabla_ghe1.wav",
       "family": "tabla",
       "label": "Ghe1"
     },
     {
-      "file": "tabla_ghe2.flac",
+      "file": "tabla_ghe2.wav",
       "family": "tabla",
       "label": "Ghe2"
     },
     {
-      "file": "tabla_ghe3.flac",
+      "file": "tabla_ghe3.wav",
       "family": "tabla",
       "label": "Ghe3"
     },
     {
-      "file": "tabla_ghe4.flac",
+      "file": "tabla_ghe4.wav",
       "family": "tabla",
       "label": "Ghe4"
     },
     {
-      "file": "tabla_ghe5.flac",
+      "file": "tabla_ghe5.wav",
       "family": "tabla",
       "label": "Ghe5"
     },
     {
-      "file": "tabla_ghe6.flac",
+      "file": "tabla_ghe6.wav",
       "family": "tabla",
       "label": "Ghe6"
     },
     {
-      "file": "tabla_ghe7.flac",
+      "file": "tabla_ghe7.wav",
       "family": "tabla",
       "label": "Ghe7"
     },
     {
-      "file": "tabla_ghe8.flac",
+      "file": "tabla_ghe8.wav",
       "family": "tabla",
       "label": "Ghe8"
     },
     {
-      "file": "tabla_ke1.flac",
+      "file": "tabla_ke1.wav",
       "family": "tabla",
       "label": "Ke1"
     },
     {
-      "file": "tabla_ke2.flac",
+      "file": "tabla_ke2.wav",
       "family": "tabla",
       "label": "Ke2"
     },
     {
-      "file": "tabla_ke3.flac",
+      "file": "tabla_ke3.wav",
       "family": "tabla",
       "label": "Ke3"
     },
     {
-      "file": "tabla_na.flac",
+      "file": "tabla_na.wav",
       "family": "tabla",
       "label": "Na"
     },
     {
-      "file": "tabla_na_o.flac",
+      "file": "tabla_na_o.wav",
       "family": "tabla",
       "label": "Na O"
     },
     {
-      "file": "tabla_na_s.flac",
+      "file": "tabla_na_s.wav",
       "family": "tabla",
       "label": "Na S"
     },
     {
-      "file": "tabla_re.flac",
+      "file": "tabla_re.wav",
       "family": "tabla",
       "label": "Re"
     },
     {
-      "file": "tabla_tas1.flac",
+      "file": "tabla_tas1.wav",
       "family": "tabla",
       "label": "Tas1"
     },
     {
-      "file": "tabla_tas2.flac",
+      "file": "tabla_tas2.wav",
       "family": "tabla",
       "label": "Tas2"
     },
     {
-      "file": "tabla_tas3.flac",
+      "file": "tabla_tas3.wav",
       "family": "tabla",
       "label": "Tas3"
     },
     {
-      "file": "tabla_te_m.flac",
+      "file": "tabla_te_m.wav",
       "family": "tabla",
       "label": "Te M"
     },
     {
-      "file": "tabla_te_ne.flac",
+      "file": "tabla_te_ne.wav",
       "family": "tabla",
       "label": "Te Ne"
     },
     {
-      "file": "tabla_te1.flac",
+      "file": "tabla_te1.wav",
       "family": "tabla",
       "label": "Te1"
     },
     {
-      "file": "tabla_te2.flac",
+      "file": "tabla_te2.wav",
       "family": "tabla",
       "label": "Te2"
     },
     {
-      "file": "tabla_tun1.flac",
+      "file": "tabla_tun1.wav",
       "family": "tabla",
       "label": "Tun1"
     },
     {
-      "file": "tabla_tun2.flac",
+      "file": "tabla_tun2.wav",
       "family": "tabla",
       "label": "Tun2"
     },
     {
-      "file": "tabla_tun3.flac",
+      "file": "tabla_tun3.wav",
       "family": "tabla",
       "label": "Tun3"
     },
     {
-      "file": "elec_beep.flac",
+      "file": "elec_beep.wav",
       "family": "elec",
       "label": "Beep"
     },
     {
-      "file": "elec_bell.flac",
+      "file": "elec_bell.wav",
       "family": "elec",
       "label": "Bell"
     },
     {
-      "file": "elec_blip.flac",
+      "file": "elec_blip.wav",
       "family": "elec",
       "label": "Blip"
     },
     {
-      "file": "elec_blip2.flac",
+      "file": "elec_blip2.wav",
       "family": "elec",
       "label": "Blip2"
     },
     {
-      "file": "elec_blup.flac",
+      "file": "elec_blup.wav",
       "family": "elec",
       "label": "Blup"
     },
     {
-      "file": "elec_bong.flac",
+      "file": "elec_bong.wav",
       "family": "elec",
       "label": "Bong"
     },
     {
-      "file": "elec_chime.flac",
+      "file": "elec_chime.wav",
       "family": "elec",
       "label": "Chime"
     },
     {
-      "file": "elec_cymbal.flac",
+      "file": "elec_cymbal.wav",
       "family": "elec",
       "label": "Cymbal"
     },
     {
-      "file": "elec_filt_snare.flac",
+      "file": "elec_filt_snare.wav",
       "family": "elec",
       "label": "Filt Snare"
     },
     {
-      "file": "elec_flip.flac",
+      "file": "elec_flip.wav",
       "family": "elec",
       "label": "Flip"
     },
     {
-      "file": "elec_fuzz_tom.flac",
+      "file": "elec_fuzz_tom.wav",
       "family": "elec",
       "label": "Fuzz Tom"
     },
     {
-      "file": "elec_hi_snare.flac",
+      "file": "elec_hi_snare.wav",
       "family": "elec",
       "label": "Hi Snare"
     },
     {
-      "file": "elec_hollow_kick.flac",
+      "file": "elec_hollow_kick.wav",
       "family": "elec",
       "label": "Hollow Kick"
     },
     {
-      "file": "elec_lo_snare.flac",
+      "file": "elec_lo_snare.wav",
       "family": "elec",
       "label": "Lo Snare"
     },
     {
-      "file": "elec_mid_snare.flac",
+      "file": "elec_mid_snare.wav",
       "family": "elec",
       "label": "Mid Snare"
     },
     {
-      "file": "elec_ping.flac",
+      "file": "elec_ping.wav",
       "family": "elec",
       "label": "Ping"
     },
     {
-      "file": "elec_plip.flac",
+      "file": "elec_plip.wav",
       "family": "elec",
       "label": "Plip"
     },
     {
-      "file": "elec_pop.flac",
+      "file": "elec_pop.wav",
       "family": "elec",
       "label": "Pop"
     },
     {
-      "file": "elec_snare.flac",
+      "file": "elec_snare.wav",
       "family": "elec",
       "label": "Snare"
     },
     {
-      "file": "elec_soft_kick.flac",
+      "file": "elec_soft_kick.wav",
       "family": "elec",
       "label": "Soft Kick"
     },
     {
-      "file": "elec_tick.flac",
+      "file": "elec_tick.wav",
       "family": "elec",
       "label": "Tick"
     },
     {
-      "file": "elec_triangle.flac",
+      "file": "elec_triangle.wav",
       "family": "elec",
       "label": "Triangle"
     },
     {
-      "file": "elec_twang.flac",
+      "file": "elec_twang.wav",
       "family": "elec",
       "label": "Twang"
     },
     {
-      "file": "elec_twip.flac",
+      "file": "elec_twip.wav",
       "family": "elec",
       "label": "Twip"
     },
     {
-      "file": "elec_wood.flac",
+      "file": "elec_wood.wav",
       "family": "elec",
       "label": "Wood"
     },
     {
-      "file": "glitch_bass_g.flac",
+      "file": "glitch_bass_g.wav",
       "family": "glitch",
       "label": "Bass G"
     },
     {
-      "file": "glitch_perc1.flac",
+      "file": "glitch_perc1.wav",
       "family": "glitch",
       "label": "Perc1"
     },
     {
-      "file": "glitch_perc2.flac",
+      "file": "glitch_perc2.wav",
       "family": "glitch",
       "label": "Perc2"
     },
     {
-      "file": "glitch_perc3.flac",
+      "file": "glitch_perc3.wav",
       "family": "glitch",
       "label": "Perc3"
     },
     {
-      "file": "glitch_perc4.flac",
+      "file": "glitch_perc4.wav",
       "family": "glitch",
       "label": "Perc4"
     },
     {
-      "file": "glitch_perc5.flac",
+      "file": "glitch_perc5.wav",
       "family": "glitch",
       "label": "Perc5"
     },
     {
-      "file": "glitch_robot1.flac",
+      "file": "glitch_robot1.wav",
       "family": "glitch",
       "label": "Robot1"
     },
     {
-      "file": "glitch_robot2.flac",
+      "file": "glitch_robot2.wav",
       "family": "glitch",
       "label": "Robot2"
     },
     {
-      "file": "misc_burp.flac",
+      "file": "misc_burp.wav",
       "family": "misc",
       "label": "Burp"
     },
     {
-      "file": "misc_cineboom.flac",
+      "file": "misc_cineboom.wav",
       "family": "misc",
       "label": "Cineboom"
     },
     {
-      "file": "misc_crow.flac",
+      "file": "misc_crow.wav",
       "family": "misc",
       "label": "Crow"
     }

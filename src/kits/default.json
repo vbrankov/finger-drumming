@@ -8,112 +8,112 @@
       "role": "Low Tom",
       "sound": {
         "type": "bundled",
-        "file": "drum_tom_lo_hard.flac"
+        "file": "drum_tom_lo_hard.wav"
       }
     },
     {
       "role": "Mid Tom",
       "sound": {
         "type": "bundled",
-        "file": "drum_tom_mid_hard.flac"
+        "file": "drum_tom_mid_hard.wav"
       }
     },
     {
       "role": "High Tom",
       "sound": {
         "type": "bundled",
-        "file": "drum_tom_hi_hard.flac"
+        "file": "drum_tom_hi_hard.wav"
       }
     },
     {
       "role": "Crash",
       "sound": {
         "type": "bundled",
-        "file": "drum_splash_hard.flac"
+        "file": "drum_splash_hard.wav"
       }
     },
     {
       "role": "Closed Hat",
       "sound": {
         "type": "bundled",
-        "file": "drum_cymbal_closed.flac"
+        "file": "drum_cymbal_closed.wav"
       }
     },
     {
       "role": "Open Hat",
       "sound": {
         "type": "bundled",
-        "file": "drum_cymbal_open.flac"
+        "file": "drum_cymbal_open.wav"
       }
     },
     {
       "role": "Closed Hat",
       "sound": {
         "type": "bundled",
-        "file": "drum_cymbal_closed.flac"
+        "file": "drum_cymbal_closed.wav"
       }
     },
     {
       "role": "Ride",
       "sound": {
         "type": "bundled",
-        "file": "drum_cymbal_hard.flac"
+        "file": "drum_cymbal_hard.wav"
       }
     },
     {
       "role": "Sidestick",
       "sound": {
         "type": "bundled",
-        "file": "elec_wood.flac"
+        "file": "elec_wood.wav"
       }
     },
     {
       "role": "Snare",
       "sound": {
         "type": "bundled",
-        "file": "drum_snare_hard.flac"
+        "file": "drum_snare_hard.wav"
       }
     },
     {
       "role": "Snare",
       "sound": {
         "type": "bundled",
-        "file": "drum_snare_hard.flac"
+        "file": "drum_snare_hard.wav"
       }
     },
     {
       "role": "Sidestick",
       "sound": {
         "type": "bundled",
-        "file": "elec_wood.flac"
+        "file": "elec_wood.wav"
       }
     },
     {
       "role": "Crash 2",
       "sound": {
         "type": "bundled",
-        "file": "drum_splash_soft.flac"
+        "file": "drum_splash_soft.wav"
       }
     },
     {
       "role": "Kick",
       "sound": {
         "type": "bundled",
-        "file": "drum_heavy_kick.flac"
+        "file": "drum_heavy_kick.wav"
       }
     },
     {
       "role": "Kick",
       "sound": {
         "type": "bundled",
-        "file": "drum_heavy_kick.flac"
+        "file": "drum_heavy_kick.wav"
       }
     },
     {
       "role": "Cymbal",
       "sound": {
         "type": "bundled",
-        "file": "drum_cymbal_soft.flac"
+        "file": "drum_cymbal_soft.wav"
       }
     }
   ]

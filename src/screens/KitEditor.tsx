@@ -62,7 +62,7 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
   function pick(i: number) {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'audio/*,.wav,.mp3,.ogg,.flac';
+    input.accept = 'audio/*,.wav,.mp3,.ogg,.flac,.aif,.aiff';
     input.onchange = () => input.files?.[0] && setFile(i, input.files[0]);
     input.click();
   }

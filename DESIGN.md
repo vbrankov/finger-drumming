@@ -81,7 +81,8 @@ separate triplet grid.
 Samples only; no synthesizer.
 
 1. **Bundled samples** — the full percussive part of the Sonic Pi CC0
-   collection (134 one-shots, ~7 MB) in `public/sounds/`, listed in
+   collection (134 one-shots, ~16 MB as 16-bit WAV — FLAC was dropped after
+   two browsers refused to decode it) in `public/sounds/`, listed in
    `src/sounds/manifest.json` (regenerate with `npm run sounds`). Files are
    fetched only when a kit uses them. The kit editor offers them in a picker
    grouped by family, so a kit built from bundled sounds is fully shareable
