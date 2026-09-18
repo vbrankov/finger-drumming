@@ -14,7 +14,7 @@ function Dots({ n }: { n?: number }) {
 
 export default function Songs({ onPractice, onEdit }: Props) {
   const { songs, kits, scores } = useStore();
-  const sorted = [...songs].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const sorted = [...songs].sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
 
   return (
     <div className="stack">

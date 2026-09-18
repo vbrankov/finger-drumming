@@ -36,11 +36,26 @@ function mergeSeeds<T extends { id: string }>(local: T[], seeds: T[]): T[] {
   return [...local, ...seeds.filter((s) => !have.has(s.id))];
 }
 
+/** Keep only well-formed records so one bad entry cannot take the app down. */
+function readList<T extends { id: string }>(key: string, ok: (x: T) => boolean): T[] {
+  const raw = read<unknown>(key, []);
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((x): x is T => !!x && typeof x === 'object' && typeof (x as T).id === 'string' && ok(x as T));
+}
+
 let state: State = (() => {
-  const songs = mergeSeeds(read<Song[]>(KEYS.songs, []), seedSongs);
-  const kits = mergeSeeds(read<Kit[]>(KEYS.kits, []), seedKits);
-  const scores = read<Scores>(KEYS.scores, {});
-  const settings = { ...DEFAULT_SETTINGS, ...read<Partial<Settings>>(KEYS.settings, {}) };
+  const songs = mergeSeeds(
+    readList<Song>(KEYS.songs, (s) => Array.isArray(s.hits) && typeof s.bpm === 'number'),
+    seedSongs,
+  );
+  const kits = mergeSeeds(
+    readList<Kit>(KEYS.kits, (k) => Array.isArray(k.slots) && k.slots.length === 16),
+    seedKits,
+  );
+  const rawScores = read<unknown>(KEYS.scores, {});
+  const scores = rawScores && typeof rawScores === 'object' && !Array.isArray(rawScores) ? (rawScores as Scores) : {};
+  const rawSettings = read<unknown>(KEYS.settings, {});
+  const settings = { ...DEFAULT_SETTINGS, ...(rawSettings && typeof rawSettings === 'object' ? (rawSettings as Partial<Settings>) : {}) };
   return { songs, kits, scores, settings };
 })();
 
