@@ -3,12 +3,14 @@
 **App:** https://vbrankov.github.io/finger-drumming/ · **Code:** https://github.com/vbrankov/finger-drumming
 
 A practice tool for finger drumming on a 4×4 pad controller. You build or
-import short patterns, then play them on the pads while the app grades every
-hit in milliseconds and shows you whether you rushed or dragged. It runs in
-the browser; nothing is installed and nothing is uploaded anywhere.
+import short **patterns** (1–4 bars), chain them into **songs**, then play
+them on the pads while the app grades every hit in milliseconds and shows you
+whether you rushed or dragged. It runs in the browser; nothing is installed
+and nothing is uploaded anywhere.
 
 Contents: [Getting started](#getting-started) · [Playing along](#playing-along) ·
-[Songs](#songs) · [The editor](#the-editor) · [Kits](#kits) ·
+[Patterns](#patterns) · [The pattern editor](#the-pattern-editor) ·
+[Songs](#songs) · [Kits](#kits) ·
 [The sound library](#the-sound-library) · [Sharing](#sharing) ·
 [Making songs with AI](#making-songs-with-ai) · [Your data](#your-data) ·
 [Tablets, keyboard, touch](#tablets-keyboard-touch) · [Questions](#questions)
@@ -29,7 +31,7 @@ Contents: [Getting started](#getting-started) · [Playing along](#playing-along)
    what the cable says. Do this once per device.
 5. **Settings → Dynamics** (optional). Hit a pad 8 times softly, then 8 times
    hard, so the app knows what ghost notes and accents look like from you.
-6. Go to **Songs**, pick *Basic Rock*, press *Practice*, then *Start*.
+6. Go to **Patterns**, pick *Basic Rock*, press *Practice*, then *Start*.
 
 ## Playing along
 
@@ -76,20 +78,21 @@ one, it counts and lands in the same row.
 **The handle** between the grid and the pads drags to trade grid height for
 pad size; double-click resets it.
 
-## Songs
+## Patterns
 
-The Songs list shows every pattern with author, difficulty (● dots), tempo,
-kit, and your best score, easiest first. Per song: **Practice**, **Edit**,
-**Share** (copies a link), **Delete**. Tick songs and **Copy N as text** to
-share several at once (see [Sharing](#sharing)). **+ New song** opens the
-editor on an empty bar.
+The Patterns list shows every pattern with author, difficulty (● dots),
+tempo, kit, and your best score, easiest first. Per pattern: **Practice**,
+**Edit**, **Share** (copies a link), **Delete**. Tick patterns and **Copy N
+as text** to share several at once (see [Sharing](#sharing)). **+ New
+pattern** opens the editor on an empty bar.
 
 Twenty-plus rhythms ship with the app, from *Four on the Floor* (difficulty
 1) to *Linear Funk* (5), including swung feels (*Blues Shuffle*, *Jazz Ride*,
 *Swung Hip Hop*) and four-bar **phrases** with fills (*Basic Rock Phrase*,
-*Money Beat Phrase*). Editing a built-in song edits your copy.
+*Money Beat Phrase*). Editing a built-in pattern edits your copy. A pattern
+can't be deleted while a song uses it.
 
-## The editor
+## The pattern editor
 
 Fields: name, author, difficulty, **BPM**, **Bars** (1–4), **Swing**, **Kit**.
 
@@ -111,6 +114,34 @@ Fields: name, author, difficulty, **BPM**, **Bars** (1–4), **Swing**, **Kit**.
 
 Everything is on a 16th-note grid in 4/4. Triplet feels are written with
 swing rather than a triplet grid.
+
+## Songs
+
+A song is a **sequence of patterns**, each repeated some number of times:
+`Basic Rock ×3 · One-beat Fill · Money Beat ×3 · Rock with Fill …`. That's how
+grooves are actually played — a few bars of groove, a fill, the next section
+— and it's where transitions get practised.
+
+**Song editor:** name, author, difficulty, **BPM** (the whole song plays at
+this tempo; each pattern keeps its own swing), **Kit** (all patterns play on
+it). Then the sections: pick a pattern, set its repeat count, reorder with
+▲▼, duplicate, remove. *Preview* loops the whole song. Patterns are shared by
+reference — edit a pattern and every song using it changes.
+
+**Practising a song** works like a pattern, plus:
+
+- A **structure strip** above the grid shows the sections; the current one
+  is highlighted with its repeat count (2/4). The grid shows the pattern
+  that's playing, switching as the song moves on.
+- **Loop modes**: *Whole song*; *Section* (click a section in the strip);
+  *Section + next* — the fill *and* the bar you land on, which is the thing
+  worth drilling.
+- Each section gets its own score (worst three hits) shown in the strip; the
+  pass score is their average. *Best* is recorded only for whole-song loops at
+  the song's own tempo.
+
+One song ships with the app (*Rock Song*) as a template. Sharing a song
+includes all its patterns.
 
 ## Kits
 
@@ -174,20 +205,22 @@ All files are `.flac`. The default kit uses `drum_heavy_kick`,
 
 There is no account and no server; sharing is by **text**.
 
-- **Share** on a song or kit copies a link. Whoever opens it gets the item
-  added to their library and the song opened for practice. A song's kit
-  travels with it when it isn't the default.
-- **Copy N as text** (tick songs or kits first) copies one token like
-  `fd1:z7ZZPi9swEMW…` — a few hundred characters per song. Post it anywhere.
-- **Settings → Data → Paste songs or kits**: paste any text containing tokens
+- **Share** on a pattern, song or kit copies a link. Whoever opens it gets
+  the item added to their library and opened for practice. A song brings its
+  patterns; a non-default kit travels with whatever uses it.
+- **Copy N as text** (tick patterns, songs or kits first) copies one token
+  like `fd2:z7ZZPi9swEMW…` — a few hundred characters per pattern, under a
+  thousand for a whole song. Post it anywhere.
+- **Settings → Data → Paste**: paste any text containing tokens
   or links — a whole forum comment is fine — and press *Import pasted*. Items
   you already have are skipped.
-- **Conflicts.** If an incoming song or kit has the same identity as one you
+- **Conflicts.** If an incoming pattern, song or kit has the same identity as one you
   have but differs (someone posted an updated version, or you edited yours),
   a dialog lets you **Replace mine**, **Keep both** (adds a copy marked
   "(imported)"), or **Skip** — per item or for all.
-- The token starts with a version (`fd1`); a token from a newer app version
-  is refused with a message rather than misread.
+- The token starts with a version (`fd2`); a token from a newer app version
+  is refused with a message rather than misread, and older `fd1` tokens still
+  import.
 - *Export* / *Import* in Settings save and load your whole library as a JSON
   file — use it for backups or moving to another device.
 
@@ -196,38 +229,39 @@ The format is documented in [FORMAT.md](FORMAT.md).
 ## Making songs with AI
 
 You don't need to click in patterns by hand. Any AI assistant that can write
-text can write songs for the app.
+text can write patterns — and songs made of them — for the app.
 
 1. Copy the prompt below into your assistant.
 2. Say what you want: *"a slow reggae one drop at 72 bpm"*, *"three funk
    grooves with ghost notes, difficulty 3"*, *"a 4-bar rock phrase with a tom
    fill in the last bar"*.
-3. Copy the `fd1:…` line it gives you into **Settings → Data → Paste songs or
-   kits** and press *Import pasted*.
+3. Copy the `fd2:…` line it gives you into **Settings → Data → Paste** and
+   press *Import pasted*.
 4. Practise. If it's wrong, tell the assistant what to change — or fix it in
    the editor.
 
 The prompt:
 
 > You are writing drum patterns for the Finger Drumming app. Output ONE line
-> starting with `fd1:j` followed by base64url (no padding) of a JSON object
-> `{"t":"pack","v":1,"items":[…]}` where each item is
-> `{"t":"song","song":{…}}`. A song has: `id` (stable slug), `name`,
-> `author`, `difficulty` 1–5, `bpm`, optional `bars` 1–4, optional
+> starting with `fd2:j` followed by base64url (no padding) of a JSON object
+> `{"v":2,"t":"pack","items":[…]}`. Each item is
+> `{"v":2,"t":"pattern","pattern":{…}}`. A pattern has: `id` (stable slug),
+> `name`, `author`, `difficulty` 1–5, `bpm`, optional `bars` 1–4, optional
 > `swing` `{amount 50–75, unit "sixteenth"|"eighth"}`, and `hits`: a list of
 > `{pad, step, velocity?}` with `step` a 16th note from 0 to bars×16−1 (beat 1
 > = 0, beat 2 = 4, beat 3 = 8, beat 4 = 12) and `velocity` 40 for ghost notes,
 > 127 for accents, omitted for normal. Pads: Kick 13, Snare 9, Closed Hat 4,
 > Open Hat 5, Ride 7, Crash 3, Sidestick 8, Low/Mid/High Tom 0/1/2. Do not
-> place two hits on the same pad and step. Also show the pattern as a
-> readable grid so I can check it.
+> place two hits on the same pad and step. To also arrange patterns into a
+> song, add an item `{"v":2,"t":"song","song":{id,name,author,bpm,sections:[{patternId,repeat},…]},"patterns":[…the patterns it uses…]}`.
+> Also show each pattern as a readable grid so I can check it.
 
 If the assistant can't produce base64, ask it for the JSON only and paste
 that into the Python snippet in [FORMAT.md](FORMAT.md#6-producing-a-token).
 
 ## Your data
 
-Everything — songs, kits, scores, settings, calibration, uploaded samples —
+Everything — patterns, songs, kits, scores, settings, calibration, uploaded samples —
 lives in your browser's storage for this site. Nothing is sent anywhere.
 Consequences: each browser and device has its own library (use share links,
 packs or Export/Import to move things); clearing site data erases it; an
@@ -260,7 +294,7 @@ bank A.
 **Can I use my own drum sounds?** Yes — upload to a kit slot. They stay on
 your device and aren't shared.
 
-**Triplets? 3/4? Longer songs?** Triplet feel: use swing 66 %. Other time
-signatures and songs longer than 4 bars aren't supported yet.
+**Triplets? 3/4?** Triplet feel: use swing 66 %. Other time signatures aren't
+supported yet. Patterns are up to 4 bars; songs chain as many as you like.
 
 **Is the code open?** MIT licence; samples are CC0. Repository link at the top.

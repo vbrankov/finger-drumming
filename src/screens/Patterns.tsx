@@ -28,7 +28,7 @@ export default function Patterns({ onPractice, onEdit }: Props) {
 
   async function copySelected() {
     const chosen = patterns.filter((s) => selected.has(s.id));
-    const text = await packText(packPayload(chosen, [], kitFor));
+    const text = await packText(packPayload({ patterns: chosen }, { kitFor: (id) => kits.find((k) => k.id === id) ?? kitFor(chosen[0]), patterns }));
     try {
       await navigator.clipboard.writeText(text);
       alert(chosen.length + ' pattern' + (chosen.length === 1 ? '' : 's') + ' copied as text (' + text.length + ' characters). Paste it anywhere; others import it in Settings \u2192 Data.');

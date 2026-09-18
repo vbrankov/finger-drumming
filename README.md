@@ -3,8 +3,8 @@
 **Live: https://vbrankov.github.io/finger-drumming/**
 
 Practice tool for a 4×4 pad controller (or the on-screen pads / keyboard):
-build patterns in a step grid, then play them while the app grades every hit
-in milliseconds. Everything runs in the browser; songs, kits and scores stay
+build patterns in a step grid, chain them into songs, then play them while
+the app grades every hit in milliseconds. Everything runs in the browser; songs, kits and scores stay
 on your device. Share a song or kit with a link.
 
 - [MANUAL.md](MANUAL.md) — how to use it, the kit layout, the sound library,
@@ -30,8 +30,9 @@ hit will read 20–40 ms late.
 ```
 src/model/     song types, timing rules, grading  (pure, unit-tested)
 src/engine/    Web Audio, scheduler, MIDI, sample storage, calibration
-src/screens/   Songs · SongEditor · Practice · Kits · KitEditor · Settings
-src/songs/     seed songs (JSON) copied into localStorage on first run
+src/screens/   Patterns · PatternEditor · Songs · SongEditor · Practice · Kits · KitEditor · Settings
+src/patterns/  seed patterns (JSON) copied into localStorage on first run
+src/songs/     seed songs (sequences of patterns)
 src/kits/      default kit definition
 public/sounds/ bundled CC0 samples (see the README there) used by the default kit
 ```

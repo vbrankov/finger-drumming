@@ -11,7 +11,7 @@ import PatternEditor from './screens/PatternEditor';
 import Patterns from './screens/Patterns';
 import ImportDialog from './components/ImportDialog';
 import { applyImport, clearShareFromLocation, decodeShare, describeOutcome, planImport, shareTokenFromLocation } from './share';
-import type { ImportOutcome, ImportPlan, Resolution } from './share';
+import type { ImportOutcome, ImportPlan, Resolution, SharePayload } from './share';
 import { MANUAL_URL } from './links';
 import { getState, useStore } from './store';
 
@@ -26,10 +26,17 @@ type Screen =
   | { name: 'edit-song'; song: Song }
   | { name: 'edit-kit'; kit: Kit; back: Screen };
 
-function collectPatternIds(p: { t: string; pattern?: { id?: string }; items?: unknown[] }): string[] {
-  if (p.t === 'pattern') return p.pattern?.id ? [p.pattern.id] : [];
-  if (p.t === 'pack') return (p.items as { t: string; pattern?: { id?: string }; items?: unknown[] }[]).flatMap(collectPatternIds);
-  return [];
+/** The first song / pattern id a payload refers to, for opening an item that was already present. */
+function firstIds(p: SharePayload): { song?: string; pattern?: string } {
+  if (p.t === 'song') return { song: p.song.id };
+  if (p.t === 'pattern') return { pattern: p.pattern.id };
+  if (p.t === 'pack') {
+    for (const i of p.items) {
+      const r = firstIds(i);
+      if (r.song || r.pattern) return r;
+    }
+  }
+  return {};
 }
 
 const TABS: { name: 'patterns' | 'songs' | 'kits' | 'settings'; label: string }[] = [
@@ -48,28 +55,32 @@ export default function App() {
 
   function finishLinkImport(plan: ImportPlan, outcome: ImportOutcome) {
     setNotice(describeOutcome(outcome, plan));
-    if (outcome.pattern) setScreen({ name: 'practice', pattern: outcome.pattern });
+    if (outcome.song) setScreen({ name: 'practice-song', song: outcome.song });
+    else if (outcome.pattern) setScreen({ name: 'practice', pattern: outcome.pattern });
     else if (outcome.kit) setScreen({ name: 'edit-kit', kit: outcome.kit, back: { name: 'kits' } });
     else {
       // Nothing new (identical or skipped): still open what the link pointed at, if we have it.
-      const s = getState().patterns.find((x) => x.id === linkPatternIds.current[0]);
-      if (s) setScreen({ name: 'practice', pattern: s });
+      const st = getState();
+      const song = st.songs.find((x) => x.id === linkIds.current.song);
+      const pattern = st.patterns.find((x) => x.id === linkIds.current.pattern);
+      if (song) setScreen({ name: 'practice-song', song });
+      else if (pattern) setScreen({ name: 'practice', pattern });
     }
   }
-  const linkPatternIds = useRef<string[]>([]);
+  const linkIds = useRef<{ song?: string; pattern?: string }>({});
 
-  // A share link (#s=…) adds its pattern/kit to the library and opens it.
+  // A share link (#s=…) adds its content to the library and opens it.
   useEffect(() => {
     const token = shareTokenFromLocation();
     if (!token) return;
     clearShareFromLocation();
-    decodeShare(token).then((payload) => {
-      if (!payload) {
-        setNotice('That share link could not be read.');
+    decodeShare(token).then((d) => {
+      if (!d.ok) {
+        setNotice(d.reason === 'newer' ? 'That link was made with a newer version of the app; reload to update.' : 'That share link could not be read.');
         return;
       }
-      const plan = planImport([payload]);
-      linkPatternIds.current = collectPatternIds(payload);
+      const plan = planImport([d.payload]);
+      linkIds.current = firstIds(d.payload);
       if (plan.conflicts.length) setPendingPlan(plan);
       else finishLinkImport(plan, applyImport(plan, {}));
     });
@@ -101,7 +112,6 @@ export default function App() {
         <Songs
           onPractice={(song) => setScreen({ name: 'practice-song', song })}
           onEdit={(song) => setScreen({ name: 'edit-song', song })}
-          onShare={(song) => setNotice('Sharing songs is coming in the next step: ' + song.name)}
         />
       );
       break;

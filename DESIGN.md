@@ -250,6 +250,25 @@ too; *Reset default kit* restores it from the shipped JSON.
   role names + bundled file names only, never blobs — an imported kit whose
   slots pointed at user samples falls back to the default sample for that slot.
 
+## Songs (arrangements)
+
+What the app calls a **pattern** is the 1–4 bar unit above (it was called a
+song until arrangements existed). A **song** is `{ id, name, author?,
+difficulty?, bpm, kitId, sections: [{ patternId, repeat }] }` — a sequence of
+patterns by reference, each repeated. Patterns are shared by reference, so
+editing one changes every song using it; a pattern can't be deleted while a
+song uses it.
+
+`layoutSong` lays a song out on a global step axis; `makeTimeline` builds a
+Timeline from one part per repeat so each keeps its pattern's swing. Practice
+takes a pattern or a song. For a song, the pass is the loop range: the whole
+song, one section, or a section and the next (clicked in the structure strip).
+The grid shows the pattern under the playhead and switches as sections
+change. Scoring per pass: worst-3 per section, averaged over the sections in
+the loop; best is recorded only for whole-song loops at the song's tempo.
+Storage: `fd.songs` (the old `fd.songs` holding patterns migrates to
+`fd.patterns` once), `fd.songScores`.
+
 ## Sharing
 
 Share links carry the content in the URL fragment: `…/#s=<deflate+base64url
@@ -260,23 +279,32 @@ library — without duplicating something they already have — and opens it.
 Nothing is uploaded anywhere; there is no server. *Share* buttons on the Songs
 and Kits lists copy the link.
 
-**Packs** are the same payload for many items as plain text: tick songs (or
-kits) in their list, *Copy as text* → one token `fd1:<deflate+base64url>` (a
-20-song pack is ~8 KB, small enough for a forum comment). Settings → Data has
+**Wire format version 2**: payloads carry `v: 2` and `t` is `pattern`,
+`song` (with its patterns embedded), `kit` or `pack`. Version 1 (where
+`t: 'song'` meant a pattern) is still read and upgraded on import.
+
+**Packs** are the same payload for many items as plain text: tick patterns,
+songs or kits in their list, *Copy as text* → one token
+`fd2:<deflate+base64url>` (a 20-pattern pack is ~8 KB, small enough for a
+forum comment). Settings → Data has
 a paste box that imports every pack token and share link it finds in the
 pasted text, ignoring surrounding prose, skipping items already present. The
-`fd1` prefix is the format version: a token with a higher number is refused
-with a "made with a newer version" message rather than misread. A song's
-non-default kit is embedded with it, so songs never arrive without their
-layout.
+`fd2` prefix is the format version: a token with a higher number is refused
+with a "made with a newer version" message rather than misread. A non-default
+kit is embedded with whatever uses it, so nothing arrives without its layout.
+Import order is kits → patterns → songs, so "keep both" on an earlier item
+re-points the later ones to the copy.
 
 ## Screens
 
-Top-level navigation: **Songs** · **Kits** · **Settings**.
+Top-level navigation: **Patterns** · **Songs** · **Kits** · **Settings**.
 
-**Songs** — the first screen. Lists every song with name, author, difficulty,
-bpm, kit name, hit count and best score, sorted easiest first. Per row:
-*Practice*, *Edit*, *Share*, *Delete*. A *New song*
+**Patterns** — the first screen. Lists every pattern with name, author,
+difficulty, bpm, kit name, hit count and best score, sorted easiest first. Per
+row: *Practice*, *Edit*, *Share*, *Delete*.
+
+**Songs** — the arrangements, with bars, sections summary and best score;
+*Practice*, *Edit*, *Share*, *Delete*, *New song*. A *New song*
 button opens the song editor on an empty measure with the default kit
 selected. Sorted by last updated.
 
@@ -320,6 +348,6 @@ Steps 1–3 are where the risk is; the UI is routine.
 
 ## Explicitly out of scope for now
 
-Recording from pads, more than 4 bars, sections/arrangement, a
+Recording from pads, patterns longer than 4 bars, a
 synthesizer, sample-library search, accounts or cloud, per-tempo score
 tables, per-kit MIDI note maps.

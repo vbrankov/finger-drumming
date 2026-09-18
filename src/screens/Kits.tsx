@@ -21,7 +21,7 @@ export default function Kits({ onEdit }: Props) {
 
   async function copySelected() {
     const chosen = kits.filter((k) => selected.has(k.id));
-    const text = await packText(packPayload([], chosen, () => chosen[0]));
+    const text = await packText(packPayload({ kits: chosen }, { kitFor: () => chosen[0], patterns: [] }));
     try {
       await navigator.clipboard.writeText(text);
       alert(chosen.length + ' kit' + (chosen.length === 1 ? '' : 's') + ' copied as text. Others import it in Settings \u2192 Data. Bundled sounds only.');
