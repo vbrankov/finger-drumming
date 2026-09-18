@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import PadGrid from '../components/PadGrid';
-import ScrollGrid from '../components/ScrollGrid';
+import ScrollGrid, { baseFor } from '../components/ScrollGrid';
 import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
@@ -60,7 +60,11 @@ export default function Practice({ target, onBack, onSettings }: Props) {
   const [loopMode, setLoopMode] = useState<LoopMode>('song');
   const [loopSection, setLoopSection] = useState(0);
   const [running, setRunning] = useState(false);
-  const [position, setPosition] = useState<number | null>(null); // fractional pass-local step
+  // The fractional position is read every frame by the scroll grid (a ref, no re-render);
+  // React state only tracks a coarse position: per step for a pattern's static grid, per bar
+  // for a song, per beat during the count-in. `position` below is that coarse value.
+  const posRef = useRef<number | null>(null);
+  const [position, setPosition] = useState<number | null>(null);
   const [lastScore, setLastScore] = useState<number | null>(null);
   const [sectionScores, setSectionScores] = useState<Map<number, number>>(() => new Map());
   const [passCount, setPassCount] = useState(0);
@@ -237,8 +241,14 @@ export default function Practice({ target, onBack, onSettings }: Props) {
     player.current = null;
     session.current = null;
     setRunning(false);
+    posRef.current = null;
     setPosition(null);
   }
+  const getPosition = useCallback(() => {
+    const p = posRef.current;
+    if (p === null) return null;
+    return p < 0 ? p : ((p % steps) + steps) % steps;
+  }, [steps]);
 
   useEffect(() => stop, []);
   // Any change to the setup stops the run; restart to apply.
@@ -284,9 +294,19 @@ export default function Practice({ target, onBack, onSettings }: Props) {
     };
     const timer = window.setInterval(collect, 50);
     let raf = 0;
+    let lastCoarse: number | null = null;
     const tick = () => {
       const p = player.current;
-      if (p) setPosition(p.positionAt(getAudioContext().currentTime));
+      if (p) {
+        const pos = p.positionAt(getAudioContext().currentTime);
+        posRef.current = pos;
+        // Count-in: per beat. Song: per bar (the strip re-renders then). Pattern: per step (playhead cell).
+        const coarse = pos < 0 ? Math.floor(pos / 4) * 4 : song ? Math.floor(pos / STEPS) * STEPS : Math.floor(pos);
+        if (coarse !== lastCoarse) {
+          lastCoarse = coarse;
+          setPosition(coarse);
+        }
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -482,7 +502,8 @@ export default function Practice({ target, onBack, onSettings }: Props) {
             kit={kit}
             rows={rows}
             cellAt={cellAt}
-            position={position === null ? null : position < 0 ? position : passPos}
+            base={baseFor(position === null ? 0 : position < 0 ? position : passPos!)}
+            getPosition={getPosition}
             steps={steps}
             labelAt={labelAt}
             flashPads={flashPads}

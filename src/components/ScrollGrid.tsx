@@ -1,19 +1,25 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CellState } from './StepGrid';
 import { STEPS } from '../model/types';
 import type { Kit } from '../model/types';
 
 /** Columns visible at once, and where the playhead sits among them. */
-const WINDOW = 40; // 2.5 bars
-const LEAD = 8; // steps of history left of the playhead
+export const WINDOW = 40; // 2.5 bars
+export const LEAD = 8; // steps of history left of the playhead
+const RENDER_BARS = 5; // columns rendered per strip: enough for the window plus a bar of slack
 
 interface Props {
   kit: Kit;
   rows: number[];
   /** Cell content for a pass-local step; `upcoming` marks steps of the next pass (show expected only). */
   cellAt: (pad: number, step: number, upcoming: boolean) => CellState;
-  /** Fractional pass-local step; negative during count-in; null when idle. */
-  position: number | null;
+  /**
+   * First pass-local step of the rendered strip. The parent advances it once
+   * per bar; the strip re-renders only then (or when results change).
+   */
+  base: number;
+  /** Current fractional pass-local position, read every frame outside React. */
+  getPosition: () => number | null;
   /** Steps in one pass. */
   steps: number;
   /** Label for the bar starting at a pass-local step (e.g. the pattern name), if it starts something new. */
@@ -22,13 +28,18 @@ interface Props {
   onLabelClick?: (pad: number) => void;
 }
 
+/** Where the strip should sit for a given position: the playhead column is LEAD. */
+export function baseFor(position: number): number {
+  return Math.floor((Math.floor(position) - LEAD) / STEPS) * STEPS;
+}
+
 /**
- * A sliding window over the pass: columns are steps, the playhead is fixed
- * at column LEAD, and the content translates smoothly as time passes. Steps
- * beyond the pass wrap to the next pass so the loop restart is visible ahead.
+ * A sliding window over the pass. The strip of cells is rendered per bar;
+ * each frame only its CSS transform moves, driven by the audio clock.
  */
-export default function ScrollGrid({ kit, rows, cellAt, position, steps, labelAt, flashPads, onLabelClick }: Props) {
+export default function ScrollGrid({ kit, rows, cellAt, base, getPosition, steps, labelAt, flashPads, onLabelClick }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
   const [cellW, setCellW] = useState(24);
   useLayoutEffect(() => {
     const fit = () => {
@@ -39,11 +50,23 @@ export default function ScrollGrid({ kit, rows, cellAt, position, steps, labelAt
     return () => window.removeEventListener('resize', fit);
   }, []);
 
-  const pos = position ?? 0;
-  const first = Math.floor(pos) - LEAD; // pass-local step in the first rendered column
-  const count = WINDOW + STEPS; // render a bar beyond the window so nothing pops in at the edge
-  const shift = pos - Math.floor(pos); // fractional step → smooth slide
-  const cols = Array.from({ length: count }, (_, i) => first + i);
+  // The only per-frame work: move the strip so that `position` sits under the playhead.
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const el = inner.current;
+      if (el) {
+        const pos = getPosition() ?? base + LEAD;
+        el.style.transform = 'translateX(' + -(pos - LEAD - base) * cellW + 'px)';
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [base, cellW, getPosition]);
+
+  const count = RENDER_BARS * STEPS;
+  const cols = Array.from({ length: count }, (_, i) => base + i);
 
   return (
     <div className="scroll-grid" ref={ref} style={{ ['--cell-w' as string]: cellW + 'px' }}>
@@ -56,7 +79,7 @@ export default function ScrollGrid({ kit, rows, cellAt, position, steps, labelAt
       </div>
       <div className="scroll-viewport">
         <div className="scroll-playhead" style={{ left: LEAD * cellW }} />
-        <div className="scroll-inner" style={{ transform: 'translateX(' + -shift * cellW + 'px)', gridTemplateColumns: 'repeat(' + count + ', ' + cellW + 'px)' }}>
+        <div className="scroll-inner" ref={inner} style={{ gridTemplateColumns: 'repeat(' + count + ', ' + cellW + 'px)' }}>
           {cols.map((k) => {
             const inPass = ((k % steps) + steps) % steps;
             const beat = ((k % STEPS) + STEPS) % STEPS;
@@ -74,7 +97,7 @@ export default function ScrollGrid({ kit, rows, cellAt, position, steps, labelAt
               const inPass = ((k % steps) + steps) % steps;
               const beat = ((k % STEPS) + STEPS) % STEPS;
               const c = k < 0 ? { on: false } : cellAt(pad, inPass, k >= steps);
-              const cls = ['cell', beat % 4 === 0 ? 'beat' : '', beat === 0 && k !== first ? 'bar' : '', c.on ? 'on' : '', k < 0 ? 'countin' : '', c.className ?? '']
+              const cls = ['cell', beat % 4 === 0 ? 'beat' : '', beat === 0 && k !== base ? 'bar' : '', c.on ? 'on' : '', k < 0 ? 'countin' : '', c.className ?? '']
                 .filter(Boolean)
                 .join(' ');
               return (

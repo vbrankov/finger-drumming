@@ -265,8 +265,12 @@ Timeline from one part per repeat so each keeps its pattern's swing. Practice
 takes a pattern or a song. For a song, the pass is the loop range: the whole
 song, one section, or a section and the next (clicked in the structure strip).
 For a song the grid is a sliding window (`ScrollGrid`): the playhead is
-fixed 8 steps in from the left, 40 columns are visible, the content
-translates smoothly with the audio clock, bar lines carry the pattern name
+fixed 8 steps in from the left, 40 columns are visible. The strip of cells
+(5 bars) is rendered once per bar; every frame only its CSS transform is set
+directly on the element from the audio clock, outside React — the fractional
+position lives in a ref, and React state holds a coarse position (per bar for
+songs, per step for a pattern's static grid, per beat during the count-in).
+The content bar lines carry the pattern name
 where a section starts, and steps past the end of the pass show the next
 pass's expected hits (no results) so the loop restart is visible ahead. A
 lone pattern keeps the static grid, which is better for reading results. Scoring per pass: worst-3 per section, averaged over the sections in
