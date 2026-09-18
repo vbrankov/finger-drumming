@@ -330,7 +330,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
   }, [run.views, passPos, position]);
 
   /** Cell for a pass-local step. `upcoming` = a step of the next pass: expected hits only, no results. */
-  const cellAt = (pad: number, step: number, upcoming = false): CellState => {
+  const cellAt = useCallback((pad: number, step: number, upcoming = false): CellState => {
     const key = pad + ':' + step;
     const exp = expectedMap.get(key);
     const on = !!exp;
@@ -358,16 +358,16 @@ export default function Practice({ target, onBack, onSettings }: Props) {
         (played ? ' · played ' + played + (lvl && played !== lvl ? ', expected ' + lvl : '') : ''),
       data: { ...(lvl ? { lvl } : {}), ...(played ? { played: LEVEL_GLYPH[played] || '●', dyn } : {}) },
     };
-  };
+  }, [expectedMap, cells, currentPass, settings.velocityThresholds, win]);
   const cell = (pad: number, local: number): CellState => cellAt(pad, view.start + local);
-  const labelAt = (step: number): string | undefined => {
+  const labelAt = useCallback((step: number): string | undefined => {
     const v = run.views.find((v) => v.start === step);
     if (!v) return undefined;
     const prev = run.views[run.views.indexOf(v) - 1];
     // Name a bar when a section starts; inside a repeated section show the repeat count.
     if (!prev || prev.section !== v.section) return (v.pattern?.name ?? '?') + (v.repeat === 0 && (layout?.sections[v.section]?.repeat ?? 1) > 1 ? ' ×' + layout!.sections[v.section].repeat : '');
     return undefined;
-  };
+  }, [run.views, layout]);
 
   const playheadStep = passPos === null || position! < 0 ? null : Math.floor(passPos) - view.start;
   const countIn = position !== null && position < 0 ? Math.ceil(-position / 4) : null;
