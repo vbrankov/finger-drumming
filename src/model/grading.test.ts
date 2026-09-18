@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { gradePass, scoreOf, MISS_MS } from './grading';
-import { matchWindow, passDuration, passIndexOf, stepDuration } from './timing';
+import { matchWindow, nearestStep, passDuration, passIndexOf, stepDuration, stepTime } from './timing';
 import { PracticeSession } from './session';
 
 const BPM = 120; // stepDur = 0.125 s, window = 0.0625 s
@@ -23,6 +23,44 @@ describe('timing', () => {
     expect(passIndexOf(10 + pd - W / 2, 10, BPM, N)).toBe(1); // slightly early for pass 1 step 0
     expect(passIndexOf(10 + pd - W - 0.001, 10, BPM, N)).toBe(0); // late step 15 of pass 0
     expect(passIndexOf(10 - W / 2, 10, BPM, N)).toBe(0); // early for the very first hit
+  });
+});
+
+describe('swing', () => {
+  it('is straight at 50 or when absent', () => {
+    expect(stepTime(3, BPM)).toBeCloseTo(3 * SD);
+    expect(stepTime(3, BPM, { amount: 50, unit: 'sixteenth' })).toBeCloseTo(3 * SD);
+  });
+
+  it('sixteenth swing delays the odd steps; 66% is the triplet position', () => {
+    const sw = { amount: 66.67, unit: 'sixteenth' as const };
+    expect(stepTime(0, BPM, sw)).toBeCloseTo(0);
+    expect(stepTime(1, BPM, sw)).toBeCloseTo((4 / 3) * SD, 3);
+    expect(stepTime(2, BPM, sw)).toBeCloseTo(2 * SD);
+    expect(stepTime(3, BPM, sw)).toBeCloseTo(2 * SD + (4 / 3) * SD, 3);
+  });
+
+  it('eighth swing delays the "&" and keeps the 16ths between their neighbours', () => {
+    const sw = { amount: 66.67, unit: 'eighth' as const };
+    const and = (8 / 3) * SD;
+    expect(stepTime(2, BPM, sw)).toBeCloseTo(and, 3);
+    expect(stepTime(1, BPM, sw)).toBeCloseTo(and / 2, 3);
+    expect(stepTime(3, BPM, sw)).toBeCloseTo((and + 4 * SD) / 2, 3);
+    expect(stepTime(4, BPM, sw)).toBeCloseTo(4 * SD);
+  });
+
+  it('nearestStep inverts stepTime under swing', () => {
+    const sw = { amount: 70, unit: 'sixteenth' as const };
+    for (let k = 0; k < 16; k++) expect(nearestStep(stepTime(k, BPM, sw) + 0.005, BPM, 16, sw)).toBe(k);
+  });
+
+  it('grades a swung hit as on time and a straight hit as early', () => {
+    const sw = { amount: 66.67, unit: 'sixteenth' as const };
+    const expected = [{ pad: 0, step: 1 }];
+    const swung = gradePass(expected, [{ pad: 0, time: 10 + (4 / 3) * SD }], 10, BPM, N, undefined, sw);
+    expect(swung.score).toBeCloseTo(0, 0);
+    const straight = gradePass(expected, [{ pad: 0, time: 10 + SD }], 10, BPM, N, undefined, sw);
+    expect((straight.results[0] as { offsetMs: number }).offsetMs).toBeCloseTo(-SD * 1000 / 3, 0);
   });
 });
 

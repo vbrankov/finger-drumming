@@ -1,6 +1,6 @@
-import type { Hit } from './types';
+import type { Hit, Swing } from './types';
 import { gradePass, MISS_MS, type HitResult, type PadGroup, type PassResult, type PlayerHit } from './grading';
-import { matchWindow, passClosesAt, passIndexOf, passStart, stepDuration } from './timing';
+import { matchWindow, nearestStep, passClosesAt, passIndexOf, passStart, stepTime } from './timing';
 
 export type LiveResult = HitResult & { passIndex: number };
 
@@ -23,7 +23,6 @@ export class PracticeSession {
   private reported = new Set<string>(); // expectations already reported live (hit or miss)
   private nextToClose = 0;
   private readonly window: number;
-  private readonly stepDur: number;
   private readonly groupOf: PadGroup;
 
   constructor(
@@ -34,9 +33,9 @@ export class PracticeSession {
     /** Song length in 16th steps. */
     private readonly steps: number,
     groupOf?: PadGroup,
+    private readonly swing?: Swing,
   ) {
     this.window = matchWindow(bpm);
-    this.stepDur = stepDuration(bpm);
     this.groupOf = groupOf ?? ((pad) => pad);
   }
 
@@ -53,7 +52,7 @@ export class PracticeSession {
     let best: { e: Hit; offset: number } | null = null;
     for (const e of this.expected) {
       if (this.groupOf(e.pad) !== group || this.matched.has(this.key(p, e))) continue;
-      const offset = hit.time - (pStart + e.step * this.stepDur);
+      const offset = hit.time - (pStart + stepTime(e.step, this.bpm, this.swing));
       if (Math.abs(offset) <= this.window && (!best || Math.abs(offset) < Math.abs(best.offset))) best = { e, offset };
     }
     if (best) {
@@ -62,7 +61,7 @@ export class PracticeSession {
       const offsetMs = best.offset * 1000;
       return { kind: 'hit', pad: best.e.pad, step: best.e.step, offsetMs, errorMs: Math.abs(offsetMs), velocity: hit.velocity, passIndex: p };
     }
-    const step = Math.min(this.steps - 1, Math.max(0, Math.round((hit.time - pStart) / this.stepDur)));
+    const step = nearestStep(hit.time - pStart, this.bpm, this.steps, this.swing);
     return { kind: 'extra', pad: hit.pad, step, time: hit.time, errorMs: MISS_MS, passIndex: p };
   }
 
@@ -75,7 +74,7 @@ export class PracticeSession {
       for (const e of this.expected) {
         const k = this.key(p, e);
         if (this.reported.has(k)) continue;
-        if (pStart + e.step * this.stepDur + this.window <= now) {
+        if (pStart + stepTime(e.step, this.bpm, this.swing) + this.window <= now) {
           this.reported.add(k);
           live.push({ kind: 'miss', pad: e.pad, step: e.step, errorMs: MISS_MS, passIndex: p });
         }
@@ -93,7 +92,7 @@ export class PracticeSession {
       }
       passes.push({
         passIndex: p,
-        result: gradePass(this.expected, hits, passStart(p, this.songStart, this.bpm, this.steps), this.bpm, this.steps, this.groupOf),
+        result: gradePass(this.expected, hits, passStart(p, this.songStart, this.bpm, this.steps), this.bpm, this.steps, this.groupOf, this.swing),
       });
     }
     return { passes, live };

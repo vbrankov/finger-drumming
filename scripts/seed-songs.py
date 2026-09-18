@@ -82,13 +82,25 @@ SONGS = [
         (H, list(range(0, 32, 2))), (OH, [14, 30]))),
     ("linear-funk", "Linear Funk", 5, 96, 1, hits(
         (K, [0, 6, 8]), (H, [2, 3, 10, 11, 14, 15]), (S, [4, 12], ACCENT), (H2, [7]))),
+    # Swung feels: the off-beat notes land late (see Swing in the design doc).
+    ("swung-hip-hop", "Swung Hip Hop", 3, 90, 1, hits(
+        (K, [0, 7, 10]), (S, [4, 12], ACCENT), (S, [15], GHOST), (H, E8), (H2, [3, 11])),
+        {"amount": 62, "unit": "sixteenth"}),
+    ("blues-shuffle", "Blues Shuffle", 3, 104, 1, hits(
+        (K, BEATS), (S, [4, 12], ACCENT), (H, BEATS, ACCENT), (H, OFF8)),
+        {"amount": 66, "unit": "eighth"}),
+    ("jazz-ride", "Jazz Ride", 4, 140, 1, hits(
+        (RIDE, [0, 8]), (RIDE, [4, 12], ACCENT), (RIDE, [6, 14]), (H, [4, 12])),
+        {"amount": 66, "unit": "eighth"}),
 ]
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     seen = set()
-    for slug, name, difficulty, bpm, bars, hs in SONGS:
+    for entry in SONGS:
+        slug, name, difficulty, bpm, bars, hs = entry[:6]
+        swing = entry[6] if len(entry) > 6 else None
         # Trap Hats: both hands on the last two 16ths is a flourish; dedupe same-pad duplicates elsewhere.
         uniq = {}
         for h in hs:
@@ -102,6 +114,7 @@ def main():
             "difficulty": difficulty,
             "bpm": bpm,
             **({"bars": bars} if bars > 1 else {}),
+            **({"swing": swing} if swing else {}),
             "kitId": "default",
             "createdAt": "2026-09-16T00:00:00.000Z",
             "updatedAt": "2026-09-16T00:00:00.000Z",
@@ -112,7 +125,7 @@ def main():
         with open(path, "w", encoding="utf-8") as f:
             f.write(head + ',\n  "hits": [\n' + body + "\n  ]\n}\n")
         seen.add(slug + ".json")
-        print(f"{name:32s} d{difficulty} {bpm:3d} bpm {bars} bar {len(hs):2d} hits")
+        print(f"{name:32s} d{difficulty} {bpm:3d} bpm {bars} bar {len(hs):2d} hits" + (f"  swing {swing['amount']}% {swing['unit']}" if swing else ""))
     for f in os.listdir(OUT):
         if f.endswith(".json") and f not in seen:
             print("stale:", f)

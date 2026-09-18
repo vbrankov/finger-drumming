@@ -51,6 +51,7 @@ export interface Song {
   difficulty?: Difficulty; // 1 = easiest, 5 = hardest
   bpm: number;
   bars?: number; // 1..MAX_BARS, default 1
+  swing?: Swing; // straight when absent
   kitId: string;
   hits: Hit[];
   createdAt: string;
@@ -90,6 +91,19 @@ export interface ScoreRecord {
 }
 
 export type Scores = Record<string, ScoreRecord>;
+
+/**
+ * Swing delays the off-beat notes so the beat bounces: long-short instead of
+ * even. `amount` is the DAW-style percentage: 50 = straight, 66 ≈ triplet
+ * feel, 75 = maximum. `unit` says which notes swing: the 16ths ("e" and "a",
+ * hip-hop/funk) or the 8ths (the "&", shuffle/jazz).
+ */
+export interface Swing {
+  amount: number; // 50..75
+  unit: 'sixteenth' | 'eighth';
+}
+export const SWING_MIN = 50;
+export const SWING_MAX = 75;
 
 export const DEFAULT_KIT_ID = 'default';
 

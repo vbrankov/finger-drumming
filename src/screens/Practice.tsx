@@ -122,6 +122,7 @@ export default function Practice({ song, onBack }: Props) {
         hits: song.hits,
         bpm,
         steps,
+        swing: song.swing,
         kit: loaded,
         playSong: mode === 'playalong',
         metronome,
@@ -129,7 +130,7 @@ export default function Practice({ song, onBack }: Props) {
       });
       const songStart = p.start();
       player.current = p;
-      session.current = new PracticeSession(song.hits, bpm, songStart, steps, padGroupOf(kit));
+      session.current = new PracticeSession(song.hits, bpm, songStart, steps, padGroupOf(kit), song.swing);
       setLastPass(null);
       setPassCount(0);
       setCells(new Map());
@@ -243,7 +244,9 @@ export default function Practice({ song, onBack }: Props) {
           <span className="muted small">
             {song.author ? 'by ' + song.author + ' · ' : ''}
             {song.difficulty ? 'difficulty ' + song.difficulty + '/5 · ' : ''}
-            {bars} bar{bars === 1 ? '' : 's'} · kit: {kit.name}
+            {bars} bar{bars === 1 ? '' : 's'}
+            {song.swing && song.swing.amount > 50 ? ' · swing ' + song.swing.amount + '% (' + (song.swing.unit === 'eighth' ? '8ths' : '16ths') + ')' : ''} · kit:{' '}
+            {kit.name}
           </span>
         </div>
         <div className="row">

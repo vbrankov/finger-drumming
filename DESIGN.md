@@ -33,6 +33,7 @@ interface Song {
   difficulty?: 1 | 2 | 3 | 4 | 5; // set by the author; a judgment, not computed
   bpm: number;                    // default tempo; best score is only kept at this tempo
   bars?: number;                  // 1..4 bars of 4/4, default 1
+  swing?: { amount: number; unit: 'sixteenth' | 'eighth' };  // 50 = straight … 75; absent = straight
   kitId: string;                  // falls back to the default kit if not found
   hits: { pad: PadIndex; step: Step; velocity?: number }[];  // velocity encodes a level, see Dynamics
   createdAt: string; updatedAt: string;   // ISO
@@ -61,8 +62,18 @@ type Scores = Record<Song['id'], ScoreRecord>;
 ```
 
 Later extensions that must not break this: stacking blocks into a song
-structure, other time signatures / triplet grids (a `resolution` field on the
-song).
+structure, other time signatures.
+
+**Swing.** The grid stays a 16th grid; swing moves the off-beat *times*.
+`amount` is the DAW-style percentage (50 straight, 66 ≈ triplet feel, 75 max).
+With `unit: 'sixteenth'` the second 16th of each pair lands at `2·stepDur·s`
+instead of `stepDur` (hip-hop, funk). With `unit: 'eighth'` the "&" of each
+beat lands at `4·stepDur·s` instead of `2·stepDur`, and the 16ths either side
+sit halfway between their neighbours (shuffle, jazz). `stepTime(step, bpm,
+swing)` is the single source of truth: the player schedules hits with it, the
+grader expects hits at it, and extras are placed by its inverse. The
+metronome and count-in stay straight. This covers triplet feels without a
+separate triplet grid.
 
 ## Sounds
 
@@ -145,7 +156,8 @@ pass is graded independently and the display updates as each pass completes.
 
 **Grading one pass** (pure function, unit-tested)
 
-- `stepDur = 60 / bpm / 4` seconds, `passDur = bars · 16 · stepDur`.
+- `stepDur = 60 / bpm / 4` seconds, `passDur = bars · 16 · stepDur`. Expected
+  times come from `stepTime`, which applies the song's swing.
 - Match window `W = min(stepDur / 2, 0.150)` seconds.
 - A player hit at audio time `t` (after calibration) belongs to the pass `p`
   where `t ∈ [pStart − W, pEnd − W)`. This sends early hits for the next pass's
@@ -201,8 +213,8 @@ last score, best score.
 
 ## Song editor
 
-Fields: name, author, difficulty, bpm, **bars** (1–4), **kit** (dropdown of
-all kits). Below, 16 pad rows labelled by the chosen kit's roles × bars·16 step
+Fields: name, author, difficulty, bpm, **bars** (1–4), **swing** (percent and
+16ths/8ths), **kit** (dropdown of all kits). Below, 16 pad rows labelled by the chosen kit's roles × bars·16 step
 columns. Click a cell to add a hit, click again to remove it, press and drag
 vertically to set velocity. Reducing bars drops the hits past the new end,
 after a confirm. Click to toggle a hit; click the

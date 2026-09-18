@@ -1,5 +1,5 @@
-import type { Hit } from './types';
-import { matchWindow, stepDuration } from './timing';
+import type { Hit, Swing } from './types';
+import { matchWindow, nearestStep, stepTime } from './timing';
 
 export const MISS_MS = 1000;
 export const SCORE_WORST_N = 3;
@@ -47,8 +47,8 @@ export function gradePass(
   bpm: number,
   steps: number,
   groupOf: PadGroup = identity,
+  swing?: Swing,
 ): PassResult {
-  const stepDur = stepDuration(bpm);
   const window = matchWindow(bpm);
   const results: HitResult[] = [];
 
@@ -63,7 +63,7 @@ export function gradePass(
     // Every candidate pairing within the window, best first.
     const pairs: { ei: number; gi: number; offset: number }[] = [];
     exp.forEach((e, ei) => {
-      const expectedTime = passStart + e.step * stepDur;
+      const expectedTime = passStart + stepTime(e.step, bpm, swing);
       got.forEach((g, gi) => {
         const offset = g.time - expectedTime;
         if (Math.abs(offset) <= window) pairs.push({ ei, gi, offset });
@@ -85,7 +85,7 @@ export function gradePass(
     });
     got.forEach((g, gi) => {
       if (usedG.has(gi)) return;
-      const step = nearestStep(g.time, passStart, stepDur, steps);
+      const step = nearestStep(g.time - passStart, bpm, steps, swing);
       results.push({ kind: 'extra', pad: g.pad, step, time: g.time, errorMs: MISS_MS });
     });
   }
@@ -94,7 +94,3 @@ export function gradePass(
   return { results, score: scoreOf(results.map((r) => r.errorMs)) };
 }
 
-function nearestStep(time: number, passStart: number, stepDur: number, steps: number): number {
-  const s = Math.round((time - passStart) / stepDur);
-  return Math.min(steps - 1, Math.max(0, s));
-}

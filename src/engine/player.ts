@@ -1,6 +1,6 @@
-import type { Hit } from '../model/types';
+import type { Hit, Swing } from '../model/types';
 import { STEPS } from '../model/types';
-import { stepDuration } from '../model/timing';
+import { stepDuration, stepTime } from '../model/timing';
 import { getAudioContext, makeClick, playBuffer, velocityGain } from './audio';
 import { Scheduler } from './scheduler';
 
@@ -21,6 +21,7 @@ export interface PlayerOptions {
   bpm: number;
   /** Song length in 16th steps (a multiple of STEPS). */
   steps: number;
+  swing?: Swing;
   kit: LoadedKit;
   /** Play the song's drums. Off = Solo mode. */
   playSong: boolean;
@@ -72,20 +73,24 @@ export class SongPlayer {
   }
 
   private schedule(from: number, to: number): void {
-    const { hits, bpm, steps, kit, playSong, metronome } = this.opts;
+    const { hits, bpm, steps, swing, kit, playSong, metronome } = this.opts;
     const stepDur = stepDuration(bpm);
+    const passDur = steps * stepDur;
+    // Metronome and count-in are straight; song hits take their swung times.
     const first = Math.ceil((from - this.songStart) / stepDur - 1e-9);
     const last = Math.floor((to - this.songStart) / stepDur - 1e-9);
     for (let k = first; k <= last; k++) {
-      const t = this.songStart + k * stepDur;
-      const step = ((k % steps) + steps) % steps;
       const inBar = ((k % STEPS) + STEPS) % STEPS;
-      if (metronome && inBar % 4 === 0) {
-        playBuffer(inBar === 0 ? this.clickHi! : this.clickLo!, t);
-      }
-      if (k < 0 || !playSong) continue;
+      if (metronome && inBar % 4 === 0) playBuffer(inBar === 0 ? this.clickHi! : this.clickLo!, this.songStart + k * stepDur);
+    }
+    if (!playSong) return;
+    const firstPass = Math.max(0, Math.floor((from - this.songStart) / passDur));
+    const lastPass = Math.floor((to - this.songStart) / passDur);
+    for (let p = firstPass; p <= lastPass; p++) {
+      const pStart = this.songStart + p * passDur;
       for (const h of hits) {
-        if (h.step === step) playSlot(kit, h.pad, h.velocity, t);
+        const t = pStart + stepTime(h.step, bpm, swing);
+        if (t >= from && t < to) playSlot(kit, h.pad, h.velocity, t);
       }
     }
   }

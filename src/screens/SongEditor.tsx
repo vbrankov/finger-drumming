@@ -3,8 +3,8 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
 import { SongPlayer } from '../engine/player';
-import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, levelOfHit, songBars, songSteps } from '../model/types';
-import type { Difficulty, Hit, Song } from '../model/types';
+import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, SWING_MAX, SWING_MIN, levelOfHit, songBars, songSteps } from '../model/types';
+import type { Difficulty, Hit, Song, Swing } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
 import { saveSong, useStore } from '../store';
 
@@ -100,7 +100,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
   function play() {
     if (!loaded) return;
     resumeAudio().then(() => {
-      const p = new SongPlayer({ hits: song.hits, bpm: song.bpm, steps, kit: loaded, playSong: true, metronome: true, countInBars: 0 });
+      const p = new SongPlayer({ hits: song.hits, bpm: song.bpm, steps, swing: song.swing, kit: loaded, playSong: true, metronome: true, countInBars: 0 });
       p.start();
       player.current = p;
       setPlaying(true);
@@ -114,7 +114,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
       play();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song.hits, song.bpm, song.bars, loaded]);
+  }, [song.hits, song.bpm, song.bars, song.swing, loaded]);
   useEffect(() => stop, []);
 
   useEffect(() => {
@@ -169,6 +169,27 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
                   {i + 1}
                 </option>
               ))}
+            </select>
+          </label>
+          <label className="field" title="50% = straight. 66% = triplet feel. Which notes swing: the 16ths (e, a) or the 8ths (&).">
+            Swing
+            <input
+              type="number"
+              min={SWING_MIN}
+              max={SWING_MAX}
+              value={song.swing?.amount ?? 50}
+              onChange={(e) => {
+                const amount = Math.min(SWING_MAX, Math.max(SWING_MIN, Number(e.target.value) || 50));
+                patch({ swing: amount > 50 ? { amount, unit: song.swing?.unit ?? 'sixteenth' } : undefined });
+              }}
+            />
+            %
+            <select
+              value={song.swing?.unit ?? 'sixteenth'}
+              onChange={(e) => patch({ swing: { amount: song.swing?.amount ?? 62, unit: e.target.value as Swing['unit'] } })}
+            >
+              <option value="sixteenth">16ths</option>
+              <option value="eighth">8ths</option>
             </select>
           </label>
           <label className="field">

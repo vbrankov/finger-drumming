@@ -8,7 +8,7 @@ import { DEFAULT_KIT, getState, newId, saveKit, saveSong } from './store';
  * user-uploaded samples, which fall back to the default kit's sound.
  */
 
-type SharedSong = Pick<Song, 'name' | 'author' | 'difficulty' | 'bpm' | 'bars' | 'hits'>;
+type SharedSong = Pick<Song, 'name' | 'author' | 'difficulty' | 'bpm' | 'bars' | 'swing' | 'hits'>;
 type SharedKit = Pick<Kit, 'name' | 'slots'>;
 
 export type SharePayload = { t: 'song'; song: SharedSong; kit?: SharedKit } | { t: 'kit'; kit: SharedKit };
@@ -32,6 +32,7 @@ export function songPayload(song: Song, kit: Kit): SharePayload {
   if (song.author) shared.author = song.author;
   if (song.difficulty) shared.difficulty = song.difficulty;
   if (song.bars && song.bars > 1) shared.bars = song.bars;
+  if (song.swing && song.swing.amount > 50) shared.swing = song.swing;
   return kit.id === DEFAULT_KIT_ID ? { t: 'song', song: shared } : { t: 'song', song: shared, kit: stripKit(kit) };
 }
 
@@ -106,6 +107,7 @@ function sameSong(a: SharedSong, b: Song, kitId: string): boolean {
     (a.author ?? '') === (b.author ?? '') &&
     a.bpm === b.bpm &&
     (a.bars ?? 1) === (b.bars ?? 1) &&
+    JSON.stringify(a.swing ?? null) === JSON.stringify(b.swing ?? null) &&
     kitId === b.kitId &&
     JSON.stringify(a.hits) === JSON.stringify(b.hits)
   );
