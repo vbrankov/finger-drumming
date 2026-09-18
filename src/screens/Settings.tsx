@@ -5,6 +5,7 @@ import { estimateCalibrationMs, robustMean } from '../engine/calibration';
 import { onMidiHit } from '../engine/midi';
 import { SongPlayer } from '../engine/player';
 import { isTypingTarget, KEY_TO_PAD, useFlash, useMidiStatus } from '../hooks';
+import { standardNoteMap } from '../model/types';
 import { defaultKit, exportJson, importJson, updateSettings, useStore } from '../store';
 
 const CAL_BPM = 100;
@@ -176,10 +177,15 @@ export default function Settings() {
           <PadGrid kit={defaultKit()} notes={notes} flashPads={flashPads} learningPad={learning} onPadClick={(p) => setLearning(learning === p ? null : p)} />
           <div className="stack">
             <p className="muted small" style={{ margin: 0, maxWidth: 360 }}>
-              {learning !== null ? 'Hit the controller pad you want for pad ' + (learning + 1) + '…' : 'Click a pad, then hit it on the controller to map it. The map is about your controller, so it applies to every kit.'}
+              {learning !== null
+                ? 'Hit the controller pad you want for pad ' + (learning + 1) + '…'
+                : 'The standard 4×4 mapping (bottom-left = note 36, up to 51 top-right) is preset. If your controller differs: click a pad, then hit it on the controller.'}
             </p>
             <p className="muted small" style={{ margin: 0 }}>Last: {lastNote ?? '—'}</p>
-            <button onClick={() => confirm('Clear all pad mappings?') && updateSettings({ noteMap: {} })}>Clear mapping</button>
+            <div className="row">
+              <button onClick={() => updateSettings({ noteMap: standardNoteMap() })}>Reset to standard (36–51)</button>
+              <button onClick={() => confirm('Clear all pad mappings?') && updateSettings({ noteMap: {} })}>Clear</button>
+            </div>
           </div>
         </div>
       </div>

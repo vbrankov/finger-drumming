@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { Kit, Scores, Settings, Song } from './model/types';
-import { DEFAULT_KIT_ID, DEFAULT_SETTINGS } from './model/types';
+import { DEFAULT_KIT_ID, DEFAULT_SETTINGS, standardNoteMap } from './model/types';
 import defaultKitJson from './kits/default.json';
 
 const seedSongs = Object.values(import.meta.glob('./songs/*.json', { eager: true, import: 'default' })) as Song[];
@@ -56,6 +56,7 @@ let state: State = (() => {
   const scores = rawScores && typeof rawScores === 'object' && !Array.isArray(rawScores) ? (rawScores as Scores) : {};
   const rawSettings = read<unknown>(KEYS.settings, {});
   const settings = { ...DEFAULT_SETTINGS, ...(rawSettings && typeof rawSettings === 'object' ? (rawSettings as Partial<Settings>) : {}) };
+  if (!settings.noteMap || Object.keys(settings.noteMap).length === 0) settings.noteMap = standardNoteMap();
   return { songs, kits, scores, settings };
 })();
 

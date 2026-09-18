@@ -287,7 +287,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
           {unmapped
             ? 'Note ' + unmapped.note + ' from ' + unmapped.device + ' is not mapped to a pad'
             : 'No controller pads are mapped on this site yet'}
-          {' \u2014 open Settings \u2192 MIDI to map them. (Mappings are stored per site: localhost and the live site are separate.)'}
+          {' \u2014 open Settings \u2192 MIDI to map it, or reset to the standard 36\u201351 layout.'}
         </div>
       )}
 

@@ -121,9 +121,24 @@ export function padGroupOf(kit: Kit): (pad: number) => string {
   return (pad) => (kit.slots[pad]?.role ?? String(pad)).trim().toLowerCase() || String(pad);
 }
 
+/**
+ * The Akai MPC/MPD convention most 4×4 controllers ship with: bottom-left pad
+ * is note 36 (C1), rising left to right and then row by row to 51 top-right.
+ * Our pad index is row-major from the top-left, so the rows are flipped.
+ */
+export function standardNoteMap(): Record<number, PadIndex> {
+  const map: Record<number, PadIndex> = {};
+  for (let pad = 0; pad < PAD_COUNT; pad++) {
+    const row = Math.floor(pad / 4); // 0 = top
+    const col = pad % 4;
+    map[36 + (3 - row) * 4 + col] = pad;
+  }
+  return map;
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   calibrationMs: 0,
   midiDeviceId: null,
-  noteMap: {},
+  noteMap: standardNoteMap(),
   velocityThresholds: { ghost: 60, accent: 110 },
 };

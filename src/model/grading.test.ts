@@ -273,3 +273,15 @@ describe('PracticeSession', () => {
     expect(s.addHit({ pad: 14, time: 10.01 })).toMatchObject({ kind: 'hit', pad: 13, step: 0 });
   });
 });
+
+describe('standardNoteMap', () => {
+  it('puts 36 bottom-left and 51 top-right, rising left to right', async () => {
+    const { standardNoteMap } = await import('./types');
+    const m = standardNoteMap();
+    expect(m[36]).toBe(12); // bottom-left pad
+    expect(m[39]).toBe(15); // bottom-right
+    expect(m[48]).toBe(0); // top-left
+    expect(m[51]).toBe(3); // top-right
+    expect(Object.keys(m)).toHaveLength(16);
+  });
+});

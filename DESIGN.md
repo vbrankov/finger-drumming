@@ -53,7 +53,8 @@ interface Kit {
 interface Settings {
   calibrationMs: number;          // subtracted from measured hit offsets
   midiDeviceId: string | null;    // null = all inputs
-  noteMap: Record<number, PadIndex>;   // MIDI note → pad; global, it's about the controller
+  noteMap: Record<number, PadIndex>;   // MIDI note → pad; global, it's about the controller.
+                                       // Defaults to the MPC convention: 36 bottom-left … 51 top-right.
   velocityThresholds: { ghost: number; accent: number };  // from the dynamics calibration
 }
 
