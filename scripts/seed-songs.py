@@ -86,6 +86,21 @@ SONGS = [
     ("linear-funk", "Linear Funk", 5, 96, 1, hits(
         (K, [0, 6, 8]), (H, [2, 3, 10, 11, 14, 15]), (S, [4, 12], ACCENT), (H2, [7])),
         {"amount": 55, "unit": "sixteenth"}),
+    # Phrases: how a groove is actually played — crash on the downbeat, three bars
+    # of groove, a fill in bar 4 that lands back on the crash. Hats drop out during fills.
+    ("basic-rock-one-beat-fill", "Basic Rock, One-beat Fill", 2, 90, 2, hits(
+        (K, [0, 8, 16, 24]), (S, [4, 12, 20]), (H, list(range(0, 28, 2))),
+        (S, [28, 29, 30, 31]))),
+    ("basic-rock-phrase", "Basic Rock Phrase", 2, 92, 4, hits(
+        (CR, [0]),
+        (K, [0, 8, 16, 24, 32, 40, 48, 56]), (S, [4, 12, 20, 28, 36, 44, 52]),
+        (H, list(range(2, 56, 2))),
+        (S, [56, 58]), (S, [60, 61]), (HT, [62]), (LT, [63]))),
+    ("money-beat-phrase", "Money Beat Phrase", 3, 96, 4, hits(
+        (CR, [0]),
+        (K, [0, 8, 10, 16, 24, 26, 32, 40, 42, 48, 56]), (S, [4, 12, 20, 28, 36, 44, 52]),
+        (H, [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52], ACCENT), (H, [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54]),
+        (S, [56, 57]), (HT, [58, 59]), (MT, [60, 61]), (LT, [62]), (S, [63], ACCENT))),
     # Swung feels: the off-beat notes land late (see Swing in the design doc).
     ("swung-hip-hop", "Swung Hip Hop", 3, 90, 1, hits(
         (K, [0, 7, 10]), (S, [4, 12], ACCENT), (S, [15], GHOST), (H, E8), (H2, [3, 11])),
