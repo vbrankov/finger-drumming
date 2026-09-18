@@ -149,7 +149,7 @@ export default function Settings() {
       <div className="panel stack">
         <h3 style={{ margin: 0 }}>Calibration</h3>
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
-          Compensates for controller and audio output latency. Start, then tap any pad on every click for {CAL_BARS} bars at {CAL_BPM} bpm. The median offset becomes the calibration.
+          Compensates for controller and audio output latency. Start, then tap any pad on every click for {CAL_BARS} bars at {CAL_BPM} bpm. A robust mean of the offsets becomes the calibration.
         </p>
         <div className="row">
           {calRunning ? <button onClick={calStop}>■ Stop</button> : <button className="primary" onClick={calStart}>▶ Start calibration</button>}

@@ -120,9 +120,13 @@ Timestamps are converted to the audio clock with `ctx.getOutputTimestamp()`
 
 **Calibration.** Systematic error = controller input latency + audio output
 latency (`ctx.outputLatency`, ~10–40 ms on Windows). The Settings screen has a
-calibration routine: metronome clicks for 8 bars, user taps along, we take the
-median offset of the taps and store it as `calibrationMs`. Every measured
-offset in practice has `calibrationMs` subtracted. Day-one feature.
+calibration routine: metronome clicks for 8 bars, user taps along, and the
+offsets to the nearest beat are combined with a MAD-weighted robust mean
+(median M, D = median |x − M|; weight 1 within D, else D / |x − M|), stored as
+`calibrationMs`. Every measured offset in practice has `calibrationMs`
+subtracted. The value is normally negative: the tap timestamp is already
+mapped to what was audible at that instant, so the remainder is how early you
+tap to make your own sound coincide with the click. Day-one feature.
 
 ## Practice
 
