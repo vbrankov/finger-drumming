@@ -26,6 +26,15 @@ interface Props {
   onLabelClick?: (pad: number) => void;
 }
 
+/**
+ * Transform that puts `pos` under the playhead. Column pitch is the cell width
+ * plus the grid gap; using the width alone made the strip fall behind by GAP
+ * px per step and snap back at each bar.
+ */
+function translateFor(pos: number, base: number, cellW: number): string {
+  return 'translateX(' + -(pos - LEAD - base) * (cellW + GAP) + 'px)';
+}
+
 /** Where the strip should sit for a given position: the playhead column is LEAD. */
 export function baseFor(position: number): number {
   return Math.floor((Math.floor(position) - LEAD) / STEPS) * STEPS;
@@ -116,6 +125,9 @@ export default function ScrollGrid({ kit, rows, cellAt, base, getPosition, steps
       const inPass = ((k % steps) + steps) % steps;
       paint(key, el, el.dataset.static ?? '', k < 0 ? { on: false } : cellAt(Number(padS), inPass, k >= steps));
     }
+    // Position the new strip before this frame paints; otherwise the old transform shows the
+    // rebuilt content a whole bar off for one frame (a flicker of the beat columns).
+    host.style.transform = translateFor(getPosition() ?? base + LEAD, base, cellW);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base, cellW, rows, steps, kit, labelAt]);
 
@@ -138,9 +150,7 @@ export default function ScrollGrid({ kit, rows, cellAt, base, getPosition, steps
       const el = inner.current;
       if (el) {
         const pos = getPosition() ?? base + LEAD;
-        // Column pitch is the cell width plus the grid gap; using cellW alone made the strip
-        // fall behind by GAP px per step and snap back at each bar.
-        el.style.transform = 'translateX(' + -(pos - LEAD - base) * (cellW + GAP) + 'px)';
+        el.style.transform = translateFor(pos, base, cellW);
       }
       raf = requestAnimationFrame(tick);
     };
