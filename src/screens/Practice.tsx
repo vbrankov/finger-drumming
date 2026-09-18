@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import PadGrid from '../components/PadGrid';
-import ScrollGrid, { baseFor } from '../components/ScrollGrid';
+import ScrollGrid from '../components/ScrollGrid';
 import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
@@ -502,7 +502,6 @@ export default function Practice({ target, onBack, onSettings }: Props) {
             kit={kit}
             rows={rows}
             cellAt={cellAt}
-            base={baseFor(position === null ? 0 : position < 0 ? position : passPos!)}
             getPosition={getPosition}
             steps={steps}
             labelAt={labelAt}
