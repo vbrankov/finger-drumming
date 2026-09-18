@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import type { DragEvent } from 'react';
 import { newBlobId, putBlob } from '../engine/blobs';
-import { invalidateSound } from '../engine/kitLoader';
-import type { Kit, KitSlot } from '../model/types';
+import { invalidateSound, loadSound } from '../engine/kitLoader';
+import type { Kit, KitSlot, SoundRef } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
+import manifest from '../sounds/manifest.json';
 import { DEFAULT_KIT, saveKit } from '../store';
+
+const FAMILIES = Object.entries(manifest.families) as [string, string][];
+const UPLOAD = '\u0000upload';
+
+function soundValue(ref: SoundRef): string {
+  return ref.type === 'bundled' ? ref.file : 'user:' + ref.blobId;
+}
 
 interface Props {
   kit: Kit;
@@ -20,6 +28,13 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
   function patchSlot(i: number, p: Partial<KitSlot>) {
     setKit((k) => ({ ...k, slots: k.slots.with(i, { ...k.slots[i], ...p }) }));
     setDirty(true);
+  }
+
+  function pickBundled(i: number, file: string) {
+    const sound: SoundRef = { type: 'bundled', file };
+    patchSlot(i, { sound });
+    // Audition the new choice as soon as it is decoded.
+    loadSound(sound).then((buf) => buf && auditionPad({ buffers: [buf], gains: [kit.slots[i].gain ?? 1] }, 0));
   }
 
   async function setFile(i: number, file: File) {
@@ -97,12 +112,33 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
               </button>
             </div>
             <input value={slot.role} onChange={(e) => patchSlot(i, { role: e.target.value })} placeholder="Role" />
-            <div className={'file' + (slot.sound.type === 'user' ? ' user' : '')} title={slot.sound.type === 'user' ? slot.sound.name : slot.sound.file}>
-              {slot.sound.type === 'user' ? slot.sound.name : slot.sound.file}
-              {loaded && !loaded.buffers[i] ? ' (missing)' : ''}
-            </div>
+            <select
+              className={'sound' + (slot.sound.type === 'user' ? ' user' : '')}
+              value={soundValue(slot.sound)}
+              onChange={(e) => {
+                if (e.target.value === UPLOAD) pick(i);
+                else if (!e.target.value.startsWith('user:')) pickBundled(i, e.target.value);
+              }}
+              title={slot.sound.type === 'user' ? 'Your file: ' + slot.sound.name : slot.sound.file}
+            >
+              {slot.sound.type === 'user' && <option value={'user:' + slot.sound.blobId}>{'\u2191 ' + slot.sound.name}</option>}
+              {FAMILIES.map(([key, label]) => (
+                <optgroup key={key} label={label}>
+                  {manifest.sounds
+                    .filter((s) => s.family === key)
+                    .map((s) => (
+                      <option key={s.file} value={s.file}>
+                        {s.label}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+              <optgroup label="Your own">
+                <option value={UPLOAD}>Upload a file…</option>
+              </optgroup>
+            </select>
+            {loaded && !loaded.buffers[i] && <div className="file">(missing — using default)</div>}
             <div className="row">
-              <button onClick={() => pick(i)}>Replace…</button>
               {slot.sound.type === 'user' && <button onClick={() => patchSlot(i, { sound: DEFAULT_KIT.slots[i].sound })}>Reset</button>}
               <label className="field small" title="Gain">
                 <input
@@ -119,7 +155,10 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
           </div>
         ))}
       </div>
-      <p className="muted small">Drop a WAV/MP3 on a slot or use Replace. Uploaded samples stay in this browser and are never exported.</p>
+      <p className="muted small">
+        Pick from the bundled library (all CC0), or drop a WAV/MP3 on a slot to use your own. Uploaded samples stay in this browser and are never
+        exported or shared.
+      </p>
     </div>
   );
 }

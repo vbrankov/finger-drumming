@@ -67,8 +67,12 @@ song).
 
 Samples only; no synthesizer.
 
-1. **Bundled samples** — CC0 one-shots from the Sonic Pi collection in
-   `public/sounds/` (attribution in the README there). The **default kit**
+1. **Bundled samples** — the full percussive part of the Sonic Pi CC0
+   collection (134 one-shots, ~7 MB) in `public/sounds/`, listed in
+   `src/sounds/manifest.json` (regenerate with `npm run sounds`). Files are
+   fetched only when a kit uses them. The kit editor offers them in a picker
+   grouped by family, so a kit built from bundled sounds is fully shareable
+   and plays identically for everyone. The **default kit**
    (`src/kits/default.json`) uses the Quest for Groove mirror layout, the most
    common finger-drumming convention (bottom row nearest the player):
 
@@ -79,9 +83,14 @@ Samples only; no synthesizer.
    | Crash 2 | Kick | Kick | Cymbal |
 
    It is the fallback whenever a song's kit or a slot's sample is missing.
-2. **User samples** — in the kit editor, drop a WAV/MP3 onto a slot. Stored as
-   a blob in IndexedDB, referenced by `blobId`. The app never distributes user
-   audio.
+2. **User samples** — in the kit editor, drop a WAV/MP3 onto a slot or pick
+   *Upload a file…*. Stored as a blob in IndexedDB, referenced by `blobId`.
+   The app never distributes user audio; exports and share links replace such
+   slots with the default kit's sound.
+
+Sounds by URL were considered and left out: CORS makes most hosts fail
+silently, links rot, and it would have the app fetch audio from arbitrary
+sites. The bundled library covers the need without any of that.
 
 All samples are decoded to `AudioBuffer`s once at load. Playback is one-shot,
 velocity → gain. Choke groups (open hat cut by closed hat) are a later nicety.

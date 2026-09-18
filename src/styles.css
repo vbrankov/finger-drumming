@@ -191,7 +191,8 @@ table.list td.actions button { margin-left: 4px; }
   gap: 6px;
 }
 .slot.dragover { border-color: var(--accent); }
-.slot input { width: 100%; }
+.slot input, .slot select { width: 100%; }
+.slot select.user { color: var(--accent-2); }
 .slot .file { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .slot .file.user { color: var(--accent-2); }
 .slot .row { gap: 4px; }
