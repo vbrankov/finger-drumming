@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
 import { SongPlayer } from '../engine/player';
-import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, SWING_MAX, SWING_MIN, levelOfHit, songBars, songSteps } from '../model/types';
+import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, SWING_MAX, SWING_MIN, kitRows, levelOfHit, padRepOf, songBars, songSteps } from '../model/types';
 import type { Difficulty, Hit, Song, Swing } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
 import { saveSong, useStore } from '../store';
@@ -25,8 +25,12 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
   const kit = useMemo(() => kits.find((k) => k.id === song.kitId) ?? kits[0], [kits, song.kitId]);
   const steps = songSteps(song);
   const bars = songBars(song);
+  // Collapsed: one row per drum, hits stored on the row's first pad. All pads: 16 rows, exact pads.
+  const [allPads, setAllPads] = useState(() => localStorage.getItem('fd.editor.allPads') === '1');
+  const rows = useMemo(() => (allPads ? undefined : kitRows(kit).map((r) => r.pad)), [kit, allPads]);
+  const rep = useMemo(() => (allPads ? (p: number) => p : padRepOf(kit)), [kit, allPads]);
   const loaded = useLoadedKit(kit);
-  const hitMap = useMemo(() => new Map(song.hits.map((h) => [h.pad + ':' + h.step, h])), [song.hits]);
+  const hitMap = useMemo(() => new Map(song.hits.map((h) => [rep(h.pad) + ':' + h.step, h])), [song.hits, rep]);
 
   function patch(p: Partial<Song>) {
     setSong((s) => ({ ...s, ...p }));
@@ -42,7 +46,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
 
   function setHit(pad: number, step: number, hit: Hit | null) {
     setSong((s) => {
-      const rest = s.hits.filter((h) => !(h.pad === pad && h.step === step));
+      const rest = s.hits.filter((h) => !(rep(h.pad) === rep(pad) && h.step === step));
       return { ...s, hits: hit ? [...rest, hit].sort((a, b) => a.step - b.step || a.pad - b.pad) : rest };
     });
     setDirty(true);
@@ -205,6 +209,17 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
           <button onClick={() => onEditKit(song.kitId)}>Edit kit</button>
         </div>
         <div className="row">
+          <label className="field small" title="Show every pad as its own row, e.g. to write left/right hand patterns">
+            <input
+              type="checkbox"
+              checked={allPads}
+              onChange={(e) => {
+                setAllPads(e.target.checked);
+                localStorage.setItem('fd.editor.allPads', e.target.checked ? '1' : '0');
+              }}
+            />
+            all 16 pads
+          </label>
           <button onClick={() => patch({ hits: [] })} disabled={!song.hits.length}>
             Clear
           </button>
@@ -218,6 +233,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
       <StepGrid
         kit={kit}
         steps={steps}
+        rows={rows}
         cell={(pad, step) => {
           const h = hitMap.get(pad + ':' + step);
           if (!h) return { on: false };

@@ -9,7 +9,7 @@ import type { PassResult } from '../model/grading';
 import { PracticeSession } from '../model/session';
 import type { LiveResult } from '../model/session';
 import { matchWindow } from '../model/timing';
-import { LEVEL_GLYPH, levelOfHit, levelOfVelocity, padGroupOf, songBars, songSteps } from '../model/types';
+import { LEVEL_GLYPH, kitRows, levelOfHit, levelOfVelocity, padGroupOf, padRepOf, songBars, songSteps } from '../model/types';
 import type { Song } from '../model/types';
 import { auditionPad, useFlash, useLoadedKit, usePadInput } from '../hooks';
 import { kitFor, recordScore, useStore } from '../store';
@@ -95,13 +95,16 @@ export default function Practice({ song, onBack, onSettings }: Props) {
   const win = matchWindow(bpm);
   const steps = songSteps(song);
   const bars = songBars(song);
+  // One row per drum; a hit on either mirrored pad lands in the same row.
+  const rows = useMemo(() => kitRows(kit).map((r) => r.pad), [kit]);
+  const rep = useMemo(() => padRepOf(kit), [kit]);
 
   function showLive(results: LiveResult[]) {
     if (!results.length) return;
     setCells((prev) => {
       const next = new Map(prev);
       for (const r of results) {
-        const key = r.pad + ':' + r.step;
+        const key = rep(r.pad) + ':' + r.step;
         const cur = next.get(key);
         // An expected cell's own verdict (hit/miss) beats an extra landing on it.
         if (!cur || cur.passIndex < r.passIndex || r.kind !== 'extra') next.set(key, r);
@@ -204,7 +207,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
     };
   }, [running, song, bpm, steps]);
 
-  const expectedMap = useMemo(() => new Map(song.hits.map((h) => [h.pad + ':' + h.step, h])), [song]);
+  const expectedMap = useMemo(() => new Map(song.hits.map((h) => [rep(h.pad) + ':' + h.step, h])), [song, rep]);
 
   const cell = (pad: number, step: number): CellState => {
     const key = pad + ':' + step;
@@ -314,7 +317,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
       </div>
 
       <div className={'practice-grid' + (bars >= 3 ? ' dense' : '')} style={{ ['--cell-h' as string]: cellH + 'px' }}>
-        <StepGrid kit={kit} steps={steps} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
+        <StepGrid kit={kit} steps={steps} rows={rows} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
       </div>
 
       <div className="split-handle" onPointerDown={onHandlePointerDown} onDoubleClick={resetSplit} title="Drag to resize; double-click to reset">

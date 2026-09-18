@@ -77,8 +77,7 @@ SONGS = [
     ("drum-and-bass", "Drum & Bass", 4, 172, 2, hits(
         (K, [0, 10, 16, 22, 26]), (S, [4, 12, 20, 28], ACCENT), (H, list(range(0, 32, 2))), (OH, [30]))),
     ("trap-hats", "Trap Hats", 4, 70, 1, hits(
-        (K, [0, 7, 9]), (S, [8], ACCENT), (H, [0, 2, 4, 6, 8, 10, 12]), (H2, [1, 3, 5, 7, 9, 11, 13]),
-        (H, [14, 15]), (H2, [14, 15]), (OH, [15]))),
+        (K, [0, 7, 9]), (S, [8], ACCENT), (H, [0, 2, 4, 6, 8, 10, 12, 14]), (H2, [1, 3, 5, 7, 9, 11, 13]), (OH, [15]))),
     ("breakbeat", "Breakbeat", 4, 96, 2, hits(
         (K, [0, 6, 10, 16, 21, 26]), (S, [4, 12, 20, 28], ACCENT), (S, [15, 23, 31], GHOST),
         (H, list(range(0, 32, 2))), (OH, [14, 30])),
@@ -120,7 +119,6 @@ def main():
     for entry in SONGS:
         slug, name, difficulty, bpm, bars, hs = entry[:6]
         swing = entry[6] if len(entry) > 6 else None
-        # Trap Hats: both hands on the last two 16ths is a flourish; dedupe same-pad duplicates elsewhere.
         uniq = {}
         for h in hs:
             uniq[(h["pad"], h["step"])] = h

@@ -1,5 +1,5 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
-import { PAD_COUNT, STEPS } from '../model/types';
+import { PAD_COUNT, STEPS, padRepOf } from '../model/types';
 import type { Kit } from '../model/types';
 
 export interface CellState {
@@ -28,6 +28,9 @@ interface Props {
 
 export default function StepGrid({ kit, steps = STEPS, rows, cell, playheadStep, onCellPointerDown, onLabelClick, flashPads }: Props) {
   const pads = rows ?? Array.from({ length: PAD_COUNT }, (_, i) => i);
+  // When rows are collapsed by role, a flash on any pad of the group lights the row.
+  const rep = padRepOf(kit);
+  const flashRows = rows && flashPads ? new Set([...flashPads].map(rep)) : flashPads;
   return (
     <div className="step-grid" style={{ gridTemplateColumns: 'var(--label-w, 90px) repeat(' + steps + ', minmax(0, 1fr))' }}>
       <div />
@@ -41,7 +44,7 @@ export default function StepGrid({ kit, steps = STEPS, rows, cell, playheadStep,
           key={pad}
           pad={pad}
           label={kit.slots[pad]?.role ?? 'Pad ' + (pad + 1)}
-          flash={flashPads?.has(pad) ?? false}
+          flash={flashRows?.has(pad) ?? false}
           steps={steps}
           cell={cell}
           playheadStep={playheadStep}

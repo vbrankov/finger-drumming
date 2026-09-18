@@ -195,8 +195,11 @@ hits carry no velocity and get no mark. Settings has a dynamics calibration:
 8 soft hits, 8 hard hits; the thresholds sit a third and two thirds of the way
 between their robust means.
 
-**Display.** The same 16-pad × (bars·16)-step grid as the editor, bars side
-by side with a divider, with a playhead. Written accents show a bright top
+**Display.** One row per *drum* — pads sharing a role collapse into a single
+row (12 rows in the default kit), so a learner sees "Kick" once and a hit on
+either mirrored pad lands in that row. Columns are bars·16 steps, bars side
+by side with a divider, with a playhead. The 4×4 pad mirror below always
+shows all 16 physical pads. Written accents show a bright top
 edge and ▲, ghosts are dimmer with a ·. At 3–4 bars the cells are too narrow
 for numbers, so colour alone carries the verdict (the tooltip keeps the ms).
 Feedback is immediate: the instant a hit arrives it is matched to the nearest
@@ -215,8 +218,9 @@ last score, best score.
 ## Song editor
 
 Fields: name, author, difficulty, bpm, **bars** (1–4), **swing** (percent and
-16ths/8ths), **kit** (dropdown of all kits). Below, 16 pad rows labelled by the chosen kit's roles × bars·16 step
-columns. Click a cell to add a hit, click again to remove it, press and drag
+16ths/8ths), **kit** (dropdown of all kits). Below, one row per drum (collapsed like Practice; an *all 16 pads*
+checkbox shows every pad for hand-specific patterns) × bars·16 step columns.
+In collapsed mode a hit is stored on the row's first pad. Click a cell to add a hit, click again to remove it, press and drag
 vertically to set velocity. Reducing bars drops the hits past the new end,
 after a confirm. Click to toggle a hit; click the
 row label to audition that slot. Changing the kit relabels the rows and changes

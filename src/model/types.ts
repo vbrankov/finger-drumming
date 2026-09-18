@@ -122,6 +122,29 @@ export function padGroupOf(kit: Kit): (pad: number) => string {
 }
 
 /**
+ * One grid row per distinct drum, in pad order: the first pad of each role
+ * represents the group. A learner then sees "Kick" once, not twice.
+ */
+export function kitRows(kit: Kit): { pad: number; pads: number[] }[] {
+  const groupOf = padGroupOf(kit);
+  const rows = new Map<string, { pad: number; pads: number[] }>();
+  for (let pad = 0; pad < PAD_COUNT; pad++) {
+    const g = groupOf(pad);
+    const row = rows.get(g);
+    if (row) row.pads.push(pad);
+    else rows.set(g, { pad, pads: [pad] });
+  }
+  return [...rows.values()];
+}
+
+/** Map every pad to the representative pad of its row. */
+export function padRepOf(kit: Kit): (pad: number) => number {
+  const rep = new Map<number, number>();
+  for (const row of kitRows(kit)) for (const p of row.pads) rep.set(p, row.pad);
+  return (pad) => rep.get(pad) ?? pad;
+}
+
+/**
  * The Akai MPC/MPD convention most 4×4 controllers ship with: bottom-left pad
  * is note 36 (C1), rising left to right and then row by row to 51 top-right.
  * Our pad index is row-major from the top-left, so the rows are flipped.
