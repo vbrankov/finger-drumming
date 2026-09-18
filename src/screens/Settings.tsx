@@ -301,7 +301,7 @@ export default function Settings() {
           <button onClick={doImport}>Import…</button>
         </div>
         <p className="muted small" style={{ margin: 0 }}>Uploaded samples are not exported; imported kits fall back to bundled sounds for those slots.</p>
-        <h4 style={{ margin: '8px 0 0' }}>Paste patterns or kits</h4>
+        <h4 style={{ margin: '8px 0 0' }}>Paste patterns, songs or kits</h4>
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
           Paste text copied from the Patterns or Songs list (starts with <code>fd2:</code>) or share links. Anything around them is ignored, so a whole forum post works.{' '}
           <a href={FORMAT_URL} target="_blank" rel="noreferrer">
