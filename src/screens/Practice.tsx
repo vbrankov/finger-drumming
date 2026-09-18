@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import PadGrid from '../components/PadGrid';
 import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
@@ -39,6 +40,53 @@ export default function Practice({ song, onBack }: Props) {
 
   const player = useRef<SongPlayer | null>(null);
   const session = useRef<PracticeSession | null>(null);
+
+  // ── Split between grid and pads: a draggable handle sets the row height; the
+  // pads take whatever height is left. Remembered per browser.
+  const SPLIT_KEY = 'fd.practice.cellH';
+  const autoCellH = () => Math.min(30, Math.max(13, (window.innerHeight - 500) / 17));
+  const [cellH, setCellH] = useState<number>(() => {
+    const v = Number(localStorage.getItem(SPLIT_KEY));
+    return v >= 8 && v <= 48 ? v : autoCellH();
+  });
+  const padsRef = useRef<HTMLDivElement>(null);
+  const [padsWidth, setPadsWidth] = useState<number | undefined>(undefined);
+
+  function onHandlePointerDown(e: ReactPointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = cellH;
+    const move = (ev: PointerEvent) => setCellH(Math.min(48, Math.max(8, startH + (ev.clientY - startY) / 17)));
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      setCellH((h) => {
+        localStorage.setItem(SPLIT_KEY, String(h));
+        return h;
+      });
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }
+
+  function resetSplit() {
+    localStorage.removeItem(SPLIT_KEY);
+    setCellH(autoCellH());
+  }
+
+  // Size the pad grid to the space below the handle: 4 rows of 2:1 pads → width ≈ 2 × height.
+  useLayoutEffect(() => {
+    const fit = () => {
+      const el = padsRef.current;
+      if (!el) return;
+      const avail = window.innerHeight - el.getBoundingClientRect().top - 40;
+      const byHeight = (avail - 3 * 6) * 2 + 3 * 6;
+      setPadsWidth(Math.max(240, Math.min(el.clientWidth, 720, byHeight)));
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [cellH, kit, running]);
 
   const best = scores[song.id];
   const win = matchWindow(bpm);
@@ -249,12 +297,16 @@ export default function Practice({ song, onBack }: Props) {
         <div className="countin">{countIn !== null ? countIn : running ? '' : loaded ? 'ready' : 'loading…'}</div>
       </div>
 
-      <div className={'practice-grid' + (bars >= 3 ? ' dense' : '')}>
+      <div className={'practice-grid' + (bars >= 3 ? ' dense' : '')} style={{ ['--cell-h' as string]: cellH + 'px' }}>
         <StepGrid kit={kit} steps={steps} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
       </div>
 
-      <div className="pads-below">
-        <PadGrid kit={kit} flashPads={flashPads} onPadClick={clickPad} showKeys />
+      <div className="split-handle" onPointerDown={onHandlePointerDown} onDoubleClick={resetSplit} title="Drag to resize; double-click to reset">
+        <span />
+      </div>
+
+      <div className="pads-below" ref={padsRef}>
+        <PadGrid kit={kit} flashPads={flashPads} onPadClick={clickPad} showKeys width={padsWidth} />
         <p className="muted small" style={{ margin: 0 }}>
           No controller? Tap the pads or use the keyboard (keys shown on the pads).
         </p>

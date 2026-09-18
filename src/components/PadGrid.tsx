@@ -12,15 +12,17 @@ interface Props {
   /** MIDI note per pad, shown as a small label. */
   notes?: Record<number, number | undefined>;
   learningPad?: number | null;
+  /** Explicit width in px; otherwise CSS decides. */
+  width?: number;
 }
 
-export default function PadGrid({ kit, flashPads, onPadClick, showKeys, notes, learningPad }: Props) {
+export default function PadGrid({ kit, flashPads, onPadClick, showKeys, notes, learningPad, width }: Props) {
   const press = (pad: number) => (e: PointerEvent) => {
     e.preventDefault();
     onPadClick?.(pad, e.timeStamp);
   };
   return (
-    <div className="pad-grid">
+    <div className="pad-grid" style={width ? { width } : undefined}>
       {Array.from({ length: PAD_COUNT }, (_, pad) => {
         const cls = [
           'pad',

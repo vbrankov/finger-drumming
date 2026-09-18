@@ -224,7 +224,7 @@ table.list td.actions button { margin-left: 4px; }
 /* Practice: 16 rows must share the screen with the pads, so row height follows
    viewport height. ~520px is everything else on the screen (top bar, header,
    stats, pads, gaps). */
-.practice-grid { --cell-h: clamp(13px, calc((100vh - 500px) / 17), 30px); }
+.practice-grid { --cell-h: 20px; } /* overridden inline from the split handle */
 .practice-grid .step-grid { gap: 1px 2px; }
 .practice-grid .step-grid .cell { aspect-ratio: auto; height: var(--cell-h); min-height: 0; font-size: clamp(9px, calc(var(--cell-h) * 0.5), 13px); border-radius: 2px; }
 .practice-grid .step-grid .label { font-size: clamp(9px, calc(var(--cell-h) * 0.55), 12px); padding: 0 6px; }
@@ -265,3 +265,18 @@ table.list td.actions button { margin-left: 4px; }
 .slot .pitch button { padding: 2px 6px; font-size: 12px; }
 .slot .pitch .val { min-width: 2.2em; text-align: center; font-variant-numeric: tabular-nums; }
 .slot .pitch .val.set { color: var(--accent-2); font-weight: 600; }
+
+/* Drag handle between the grid and the pads. */
+.split-handle {
+  height: 14px;
+  margin: -4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+.split-handle span { width: 64px; height: 4px; border-radius: 2px; background: var(--border); }
+.split-handle:hover span, .split-handle:active span { background: var(--muted); }
+.pads-below .pad-grid { max-width: 100%; }
