@@ -44,7 +44,7 @@ export async function loadKit(kit: Kit, fallback?: Kit): Promise<LoadedKit> {
     Array.from({ length: PAD_COUNT }, async (_, i) => {
       const slot = kit.slots[i];
       let buf = slot ? await loadSound(slot.sound) : null;
-      if (!buf && fallback && fallback !== kit) buf = await loadSound(fallback.slots[i].sound);
+      if (!buf && fallback && fallback.slots[i] && fallback.slots[i].sound !== slot?.sound) buf = await loadSound(fallback.slots[i].sound);
       return buf;
     }),
   );

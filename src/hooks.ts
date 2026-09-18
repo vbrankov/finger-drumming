@@ -6,7 +6,7 @@ import type { MidiHit, MidiInputInfo } from './engine/midi';
 import { playSlot } from './engine/player';
 import type { LoadedKit } from './engine/player';
 import type { Kit } from './model/types';
-import { defaultKit, getState, useStore } from './store';
+import { DEFAULT_KIT, getState, useStore } from './store';
 
 // ── MIDI ─────────────────────────────────────────────────────────────────────
 
@@ -110,7 +110,7 @@ export function useLoadedKit(kit: Kit): LoadedKit | null {
   useEffect(() => {
     let alive = true;
     setLoaded(null);
-    loadKit(kit, defaultKit()).then((k) => alive && setLoaded(k));
+    loadKit(kit, DEFAULT_KIT).then((k) => alive && setLoaded(k));
     return () => {
       alive = false;
     };
