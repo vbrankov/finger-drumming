@@ -41,6 +41,7 @@ export default function ScrollGrid({ kit, rows, cellAt, getPosition, steps, labe
   const ref = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const cellEls = useRef<Map<string, HTMLDivElement>>(new Map());
+  const staticCls = useRef<Map<string, string>>(new Map()); // key → structural classes (beat, bar, countin)
   const applied = useRef<Map<string, string>>(new Map()); // key → signature of what the element currently shows
   const [cellW, setCellW] = useState(24);
 
@@ -79,6 +80,7 @@ export default function ScrollGrid({ kit, rows, cellAt, getPosition, steps, labe
     host.innerHTML = '';
     host.style.gridTemplateColumns = 'repeat(' + count + ', ' + cellW + 'px)';
     cellEls.current.clear();
+    staticCls.current.clear();
     applied.current.clear();
     const frag = document.createDocumentFragment();
     for (let i = 0; i < count; i++) {
@@ -102,9 +104,9 @@ export default function ScrollGrid({ kit, rows, cellAt, getPosition, steps, labe
         const k = first + i;
         const beat = ((k % STEPS) + STEPS) % STEPS;
         const el = document.createElement('div');
-        const staticCls = [beat % 4 === 0 ? 'beat' : '', beat === 0 && i !== 0 ? 'bar' : '', k < 0 ? 'countin' : ''].filter(Boolean).join(' ');
-        el.className = 'cell ' + staticCls;
-        el.dataset.static = staticCls;
+        const cls = [beat % 4 === 0 ? 'beat' : '', beat === 0 && i !== 0 ? 'bar' : '', k < 0 ? 'countin' : ''].filter(Boolean).join(' ');
+        el.className = 'cell ' + cls;
+        staticCls.current.set(pad + ':' + k, cls);
         cellEls.current.set(pad + ':' + k, el);
         frag.appendChild(el);
       }
@@ -114,7 +116,7 @@ export default function ScrollGrid({ kit, rows, cellAt, getPosition, steps, labe
       const [padS, kS] = key.split(':');
       const k = Number(kS);
       const inPass = ((k % steps) + steps) % steps;
-      paint(key, el, el.dataset.static ?? '', k < 0 ? { on: false } : cellAt(Number(padS), inPass, k >= steps));
+      paint(key, el, staticCls.current.get(key) ?? '', k < 0 ? { on: false } : cellAt(Number(padS), inPass, k >= steps));
     }
     host.style.transform = translateFor(getPosition() ?? 0, cellW);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,7 +129,7 @@ export default function ScrollGrid({ kit, rows, cellAt, getPosition, steps, labe
       const k = Number(kS);
       if (k < 0) continue;
       const inPass = ((k % steps) + steps) % steps;
-      paint(key, el, el.dataset.static ?? '', cellAt(Number(padS), inPass, k >= steps));
+      paint(key, el, staticCls.current.get(key) ?? '', cellAt(Number(padS), inPass, k >= steps));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cellAt]);
