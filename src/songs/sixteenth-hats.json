@@ -1,0 +1,31 @@
+{
+  "id": "seed-sixteenth-hats",
+  "name": "Sixteenth Hats (two hands)",
+  "author": "Claude",
+  "difficulty": 3,
+  "bpm": 92,
+  "kitId": "default",
+  "createdAt": "2026-09-16T00:00:00.000Z",
+  "updatedAt": "2026-09-16T00:00:00.000Z",
+  "hits": [
+    {"pad": 4, "step": 0, "velocity": 127},
+    {"pad": 13, "step": 0},
+    {"pad": 6, "step": 1},
+    {"pad": 4, "step": 2},
+    {"pad": 6, "step": 3},
+    {"pad": 9, "step": 4, "velocity": 127},
+    {"pad": 6, "step": 5},
+    {"pad": 4, "step": 6},
+    {"pad": 6, "step": 7},
+    {"pad": 4, "step": 8, "velocity": 127},
+    {"pad": 13, "step": 8},
+    {"pad": 6, "step": 9},
+    {"pad": 4, "step": 10},
+    {"pad": 13, "step": 10},
+    {"pad": 6, "step": 11},
+    {"pad": 9, "step": 12, "velocity": 127},
+    {"pad": 6, "step": 13},
+    {"pad": 4, "step": 14},
+    {"pad": 6, "step": 15}
+  ]
+}

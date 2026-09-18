@@ -1,0 +1,20 @@
+{
+  "id": "seed-tom-groove",
+  "name": "Tom Groove",
+  "author": "Claude",
+  "difficulty": 3,
+  "bpm": 100,
+  "kitId": "default",
+  "createdAt": "2026-09-16T00:00:00.000Z",
+  "updatedAt": "2026-09-16T00:00:00.000Z",
+  "hits": [
+    {"pad": 13, "step": 0},
+    {"pad": 0, "step": 2},
+    {"pad": 9, "step": 4},
+    {"pad": 2, "step": 6},
+    {"pad": 13, "step": 8},
+    {"pad": 0, "step": 10},
+    {"pad": 9, "step": 12},
+    {"pad": 2, "step": 14}
+  ]
+}

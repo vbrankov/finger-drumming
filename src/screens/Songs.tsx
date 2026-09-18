@@ -14,7 +14,8 @@ function Dots({ n }: { n?: number }) {
 
 export default function Songs({ onPractice, onEdit }: Props) {
   const { songs, kits, scores } = useStore();
-  const sorted = [...songs].sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+  // Easiest first, so the list reads as a progression; unrated songs last.
+  const sorted = [...songs].sort((a, b) => (a.difficulty ?? 9) - (b.difficulty ?? 9) || a.bpm - b.bpm || a.name.localeCompare(b.name));
 
   return (
     <div className="stack">

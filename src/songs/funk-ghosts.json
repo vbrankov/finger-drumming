@@ -1,0 +1,27 @@
+{
+  "id": "seed-funk-ghosts",
+  "name": "Funk with Ghost Notes",
+  "author": "Claude",
+  "difficulty": 3,
+  "bpm": 100,
+  "kitId": "default",
+  "createdAt": "2026-09-16T00:00:00.000Z",
+  "updatedAt": "2026-09-16T00:00:00.000Z",
+  "hits": [
+    {"pad": 4, "step": 0},
+    {"pad": 13, "step": 0},
+    {"pad": 4, "step": 2},
+    {"pad": 4, "step": 4},
+    {"pad": 9, "step": 4, "velocity": 127},
+    {"pad": 4, "step": 6},
+    {"pad": 9, "step": 7, "velocity": 40},
+    {"pad": 4, "step": 8},
+    {"pad": 4, "step": 10},
+    {"pad": 13, "step": 10},
+    {"pad": 9, "step": 11, "velocity": 40},
+    {"pad": 4, "step": 12},
+    {"pad": 9, "step": 12, "velocity": 127},
+    {"pad": 4, "step": 14},
+    {"pad": 9, "step": 15, "velocity": 40}
+  ]
+}

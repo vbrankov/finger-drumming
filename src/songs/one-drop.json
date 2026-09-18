@@ -1,0 +1,23 @@
+{
+  "id": "seed-one-drop",
+  "name": "Reggae One Drop",
+  "author": "Claude",
+  "difficulty": 2,
+  "bpm": 76,
+  "kitId": "default",
+  "createdAt": "2026-09-16T00:00:00.000Z",
+  "updatedAt": "2026-09-16T00:00:00.000Z",
+  "hits": [
+    {"pad": 4, "step": 0},
+    {"pad": 4, "step": 2},
+    {"pad": 4, "step": 4},
+    {"pad": 4, "step": 6},
+    {"pad": 4, "step": 8},
+    {"pad": 8, "step": 8},
+    {"pad": 13, "step": 8},
+    {"pad": 4, "step": 10},
+    {"pad": 4, "step": 12},
+    {"pad": 4, "step": 14},
+    {"pad": 5, "step": 14}
+  ]
+}

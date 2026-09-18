@@ -223,8 +223,8 @@ too; *Reset default kit* restores it from the shipped JSON.
 
 - `localStorage`: songs, kits, scores, settings — one JSON document per key.
   This is the source of truth the app reads and writes.
-- **Seeds** ship with the app: songs as `src/songs/*.json`, kits as
-  `src/kits/*.json` (authored by hand or by Claude). On startup, any seed whose
+- **Seeds** ship with the app: songs as `src/songs/*.json` (generated from
+  the table in `scripts/seed-songs.py`), kits as `src/kits/*.json`. On startup, any seed whose
   `id` is not already in localStorage is copied in. Editing a seed edits the
   local copy; the seed is not touched, and new seeds added later appear
   automatically.
@@ -248,8 +248,8 @@ and Kits lists copy the link.
 Top-level navigation: **Songs** · **Kits** · **Settings**.
 
 **Songs** — the first screen. Lists every song with name, author, difficulty,
-bpm, kit name, hit count and best score. Per row: *Practice*, *Edit*, *Share*,
-*Delete*. A *New song*
+bpm, kit name, hit count and best score, sorted easiest first. Per row:
+*Practice*, *Edit*, *Share*, *Delete*. A *New song*
 button opens the song editor on an empty measure with the default kit
 selected. Sorted by last updated.
 

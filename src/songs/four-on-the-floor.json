@@ -1,0 +1,22 @@
+{
+  "id": "seed-four-on-the-floor",
+  "name": "Four on the Floor",
+  "author": "Claude",
+  "difficulty": 1,
+  "bpm": 122,
+  "kitId": "default",
+  "createdAt": "2026-09-16T00:00:00.000Z",
+  "updatedAt": "2026-09-16T00:00:00.000Z",
+  "hits": [
+    {"pad": 13, "step": 0},
+    {"pad": 5, "step": 2},
+    {"pad": 9, "step": 4},
+    {"pad": 13, "step": 4},
+    {"pad": 5, "step": 6},
+    {"pad": 13, "step": 8},
+    {"pad": 5, "step": 10},
+    {"pad": 9, "step": 12},
+    {"pad": 13, "step": 12},
+    {"pad": 5, "step": 14}
+  ]
+}
