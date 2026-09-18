@@ -1,5 +1,4 @@
 import type { Hit } from './types';
-import { STEPS } from './types';
 import { gradePass, MISS_MS, type HitResult, type PadGroup, type PassResult, type PlayerHit } from './grading';
 import { matchWindow, passClosesAt, passIndexOf, passStart, stepDuration } from './timing';
 
@@ -32,6 +31,8 @@ export class PracticeSession {
     private readonly bpm: number,
     /** Audio time of step 0 of pass 0. */
     private readonly songStart: number,
+    /** Song length in 16th steps. */
+    private readonly steps: number,
     groupOf?: PadGroup,
   ) {
     this.window = matchWindow(bpm);
@@ -41,13 +42,13 @@ export class PracticeSession {
 
   /** Record a hit; returns the immediate verdict, or null if the pass already closed. */
   addHit(hit: PlayerHit): LiveResult | null {
-    const p = passIndexOf(hit.time, this.songStart, this.bpm);
+    const p = passIndexOf(hit.time, this.songStart, this.bpm, this.steps);
     if (p < this.nextToClose) return null;
     let list = this.pending.get(p);
     if (!list) this.pending.set(p, (list = []));
     list.push(hit);
 
-    const pStart = passStart(p, this.songStart, this.bpm);
+    const pStart = passStart(p, this.songStart, this.bpm, this.steps);
     const group = this.groupOf(hit.pad);
     let best: { e: Hit; offset: number } | null = null;
     for (const e of this.expected) {
@@ -61,16 +62,16 @@ export class PracticeSession {
       const offsetMs = best.offset * 1000;
       return { kind: 'hit', pad: best.e.pad, step: best.e.step, offsetMs, errorMs: Math.abs(offsetMs), passIndex: p };
     }
-    const step = Math.min(STEPS - 1, Math.max(0, Math.round((hit.time - pStart) / this.stepDur)));
+    const step = Math.min(this.steps - 1, Math.max(0, Math.round((hit.time - pStart) / this.stepDur)));
     return { kind: 'extra', pad: hit.pad, step, time: hit.time, errorMs: MISS_MS, passIndex: p };
   }
 
   /** Advance to `now`: report newly expired expectations as misses and grade closed passes. */
   collect(now: number): Collected {
     const live: LiveResult[] = [];
-    const current = passIndexOf(now, this.songStart, this.bpm);
+    const current = passIndexOf(now, this.songStart, this.bpm, this.steps);
     for (let p = this.nextToClose; p <= current; p++) {
-      const pStart = passStart(p, this.songStart, this.bpm);
+      const pStart = passStart(p, this.songStart, this.bpm, this.steps);
       for (const e of this.expected) {
         const k = this.key(p, e);
         if (this.reported.has(k)) continue;
@@ -82,7 +83,7 @@ export class PracticeSession {
     }
 
     const passes: Collected['passes'] = [];
-    while (passClosesAt(this.nextToClose, this.songStart, this.bpm) <= now) {
+    while (passClosesAt(this.nextToClose, this.songStart, this.bpm, this.steps) <= now) {
       const p = this.nextToClose++;
       const hits = this.pending.get(p) ?? [];
       this.pending.delete(p);
@@ -90,7 +91,10 @@ export class PracticeSession {
         this.matched.delete(this.key(p, e));
         this.reported.delete(this.key(p, e));
       }
-      passes.push({ passIndex: p, result: gradePass(this.expected, hits, passStart(p, this.songStart, this.bpm), this.bpm, this.groupOf) });
+      passes.push({
+        passIndex: p,
+        result: gradePass(this.expected, hits, passStart(p, this.songStart, this.bpm, this.steps), this.bpm, this.steps, this.groupOf),
+      });
     }
     return { passes, live };
   }

@@ -12,6 +12,8 @@ export interface LoadedKit {
 export interface PlayerOptions {
   hits: Hit[];
   bpm: number;
+  /** Song length in 16th steps (a multiple of STEPS). */
+  steps: number;
   kit: LoadedKit;
   /** Play the song's drums. Off = Solo mode. */
   playSong: boolean;
@@ -22,9 +24,9 @@ export interface PlayerOptions {
 const START_DELAY_S = 0.15;
 
 /**
- * Loops one measure forever, with an optional count-in. `songStart` is the
- * audio time of step 0 of pass 0, the reference the grader and the playhead
- * both use.
+ * Loops the song forever, with an optional count-in. `songStart` is the audio
+ * time of step 0 of pass 0, the reference the grader and the playhead both
+ * use. Metronome clicks every beat, accented on the first beat of each bar.
  */
 export class SongPlayer {
   songStart = 0;
@@ -63,15 +65,16 @@ export class SongPlayer {
   }
 
   private schedule(from: number, to: number): void {
-    const { hits, bpm, kit, playSong, metronome } = this.opts;
+    const { hits, bpm, steps, kit, playSong, metronome } = this.opts;
     const stepDur = stepDuration(bpm);
     const first = Math.ceil((from - this.songStart) / stepDur - 1e-9);
     const last = Math.floor((to - this.songStart) / stepDur - 1e-9);
     for (let k = first; k <= last; k++) {
       const t = this.songStart + k * stepDur;
-      const step = ((k % STEPS) + STEPS) % STEPS;
-      if (metronome && step % 4 === 0) {
-        playBuffer(step === 0 ? this.clickHi! : this.clickLo!, t);
+      const step = ((k % steps) + steps) % steps;
+      const inBar = ((k % STEPS) + STEPS) % STEPS;
+      if (metronome && inBar % 4 === 0) {
+        playBuffer(inBar === 0 ? this.clickHi! : this.clickLo!, t);
       }
       if (k < 0 || !playSong) continue;
       for (const h of hits) {

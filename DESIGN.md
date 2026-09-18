@@ -24,7 +24,7 @@ Anything not written down here is open.
 
 ```ts
 type PadIndex = 0..15;           // 4×4 grid, row-major, 0 = top-left
-type Step     = 0..15;           // 16th notes, one 4/4 measure
+type Step     = 0..bars*16-1;    // 16th notes from the start of the song
 
 interface Song {
   id: string;
@@ -32,6 +32,7 @@ interface Song {
   author?: string;
   difficulty?: 1 | 2 | 3 | 4 | 5; // set by the author; a judgment, not computed
   bpm: number;                    // default tempo; best score is only kept at this tempo
+  bars?: number;                  // 1..4 bars of 4/4, default 1
   kitId: string;                  // falls back to the default kit if not found
   hits: { pad: PadIndex; step: Step; velocity?: number }[];
   createdAt: string; updatedAt: string;   // ISO
@@ -58,9 +59,9 @@ interface ScoreRecord { best: number; bpm: number; at: string }
 type Scores = Record<Song['id'], ScoreRecord>;
 ```
 
-Later extensions that must not break this: multiple measures (`hits.step`
-grows beyond 15 or gains a `measure`), stacking measures into a song, other
-time signatures / triplet grids (a `resolution` field on the song).
+Later extensions that must not break this: stacking blocks into a song
+structure, other time signatures / triplet grids (a `resolution` field on the
+song).
 
 ## Sounds
 
@@ -121,12 +122,13 @@ offset in practice has `calibrationMs` subtracted. Day-one feature.
 - *Solo* — metronome + your hits only. Grading is identical.
 
 **Flow.** Pick a song, choose tempo (defaults to `song.bpm`), press start.
-One-bar count-in, then the measure **loops continuously** until stopped. Each
+One-bar count-in, then the song (all its bars) **loops continuously** until
+stopped. A pass is one full run through the song. Each
 pass is graded independently and the display updates as each pass completes.
 
 **Grading one pass** (pure function, unit-tested)
 
-- `stepDur = 60 / bpm / 4` seconds, `passDur = 16 · stepDur`.
+- `stepDur = 60 / bpm / 4` seconds, `passDur = bars · 16 · stepDur`.
 - Match window `W = min(stepDur / 2, 0.150)` seconds.
 - A player hit at audio time `t` (after calibration) belongs to the pass `p`
   where `t ∈ [pStart − W, pEnd − W)`. This sends early hits for the next pass's
@@ -147,7 +149,9 @@ pass is graded independently and the display updates as each pass completes.
 
 **Best score** is stored per song, only when practising at `song.bpm`.
 
-**Display.** The same 16-pad × 16-step grid as the editor, with a playhead.
+**Display.** The same 16-pad × (bars·16)-step grid as the editor, bars side
+by side with a divider, with a playhead. At 3–4 bars the cells are too narrow
+for numbers, so colour alone carries the verdict (the tooltip keeps the ms).
 Feedback is immediate: the instant a hit arrives it is matched to the nearest
 unclaimed expectation of that drum within the window and its cell fills with
 the offset in ms with an arrow (◂ early, late ▸) on a background that is
@@ -163,8 +167,9 @@ last score, best score.
 
 ## Song editor
 
-Fields: name, bpm, **kit** (dropdown of all kits). Below, 16 pad rows labelled
-by the chosen kit's roles × 16 step columns. Click to toggle a hit; click the
+Fields: name, author, difficulty, bpm, **bars** (1–4), **kit** (dropdown of
+all kits). Below, 16 pad rows labelled by the chosen kit's roles × bars·16 step
+columns. Reducing bars drops the hits past the new end, after a confirm. Click to toggle a hit; click the
 row label to audition that slot. Changing the kit relabels the rows and changes
 the sounds; hits stay where they are. Preview play loops the measure with the
 metronome. Save writes the song.
@@ -240,6 +245,6 @@ Steps 1–3 are where the risk is; the UI is routine.
 
 ## Explicitly out of scope for now
 
-Recording from pads, multi-measure songs, sections/arrangement, a
+Recording from pads, more than 4 bars, sections/arrangement, a
 synthesizer, sample-library search, accounts or cloud, per-tempo score
 tables, per-kit MIDI note maps.

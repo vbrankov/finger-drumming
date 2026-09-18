@@ -8,7 +8,7 @@ import type { PassResult } from '../model/grading';
 import { PracticeSession } from '../model/session';
 import type { LiveResult } from '../model/session';
 import { matchWindow } from '../model/timing';
-import { padGroupOf, STEPS } from '../model/types';
+import { padGroupOf, songBars, songSteps } from '../model/types';
 import type { Song } from '../model/types';
 import { auditionPad, useFlash, useLoadedKit, usePadInput } from '../hooks';
 import { kitFor, recordScore, useStore } from '../store';
@@ -42,6 +42,8 @@ export default function Practice({ song, onBack }: Props) {
 
   const best = scores[song.id];
   const win = matchWindow(bpm);
+  const steps = songSteps(song);
+  const bars = songBars(song);
 
   function showLive(results: LiveResult[]) {
     if (!results.length) return;
@@ -72,6 +74,7 @@ export default function Practice({ song, onBack }: Props) {
       const p = new SongPlayer({
         hits: song.hits,
         bpm,
+        steps,
         kit: loaded,
         playSong: mode === 'playalong',
         metronome,
@@ -79,7 +82,7 @@ export default function Practice({ song, onBack }: Props) {
       });
       const songStart = p.start();
       player.current = p;
-      session.current = new PracticeSession(song.hits, bpm, songStart, padGroupOf(kit));
+      session.current = new PracticeSession(song.hits, bpm, songStart, steps, padGroupOf(kit));
       setLastPass(null);
       setPassCount(0);
       setCells(new Map());
@@ -121,8 +124,8 @@ export default function Practice({ song, onBack }: Props) {
       }
       // The sweep clears the previous pass behind the playhead; cells ahead of it stay (dimmed).
       const pos = p.positionAt(now);
-      const pass = Math.max(0, Math.floor(pos / STEPS));
-      const step = pos < 0 ? -1 : Math.floor(pos) % STEPS;
+      const pass = Math.max(0, Math.floor(pos / steps));
+      const step = pos < 0 ? -1 : Math.floor(pos) % steps;
       setCurrentPass(pass);
       setCells((prev) => {
         let next: Map<string, LiveResult> | null = null;
@@ -147,7 +150,7 @@ export default function Practice({ song, onBack }: Props) {
       window.clearInterval(timer);
       cancelAnimationFrame(raf);
     };
-  }, [running, song, bpm]);
+  }, [running, song, bpm, steps]);
 
   const expectedSet = useMemo(() => new Set(song.hits.map((h) => h.pad + ':' + h.step)), [song]);
 
@@ -170,7 +173,7 @@ export default function Practice({ song, onBack }: Props) {
     };
   };
 
-  const playheadStep = position === null || position < 0 ? null : Math.floor(position) % STEPS;
+  const playheadStep = position === null || position < 0 ? null : Math.floor(position) % steps;
   const countIn = position !== null && position < 0 ? Math.ceil(-position / 4) : null;
 
   return (
@@ -182,7 +185,7 @@ export default function Practice({ song, onBack }: Props) {
           <span className="muted small">
             {song.author ? 'by ' + song.author + ' · ' : ''}
             {song.difficulty ? 'difficulty ' + song.difficulty + '/5 · ' : ''}
-            kit: {kit.name}
+            {bars} bar{bars === 1 ? '' : 's'} · kit: {kit.name}
           </span>
         </div>
         <div className="row">
@@ -236,8 +239,8 @@ export default function Practice({ song, onBack }: Props) {
         <div className="countin">{countIn !== null ? countIn : running ? '' : loaded ? 'ready' : 'loading…'}</div>
       </div>
 
-      <div className="practice-grid">
-        <StepGrid kit={kit} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
+      <div className={'practice-grid' + (bars >= 3 ? ' dense' : '')}>
+        <StepGrid kit={kit} steps={steps} cell={cell} playheadStep={playheadStep} flashPads={flashPads} onLabelClick={(pad) => auditionPad(loaded, pad)} />
       </div>
 
       <div className="pads-below">

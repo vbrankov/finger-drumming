@@ -92,10 +92,11 @@ table.list td.actions button { margin-left: 4px; }
 
 .step-grid {
   display: grid;
-  grid-template-columns: 90px repeat(16, minmax(0, 1fr));
+  --label-w: 90px;
   gap: 2px;
   user-select: none;
 }
+.step-grid .head.bar, .step-grid .cell.bar { border-left: 2px solid var(--muted); margin-left: 2px; }
 .step-grid .head {
   text-align: center;
   color: var(--muted);
@@ -230,3 +231,7 @@ table.list td.actions button { margin-left: 4px; }
 .swatch.early { background: hsl(220 75% 42%); }
 .swatch.ontime { background: hsl(120 55% 42%); }
 .swatch.late { background: hsl(0 75% 42%); }
+
+/* 3+ bars: cells too narrow for numbers; colour carries the verdict. */
+.practice-grid.dense .step-grid .cell { font-size: 0; }
+.practice-grid.dense .step-grid .cell.miss, .practice-grid.dense .step-grid .cell.extra { font-size: 10px; }

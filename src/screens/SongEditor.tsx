@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
 import { SongPlayer } from '../engine/player';
-import { DIFFICULTIES, STEPS } from '../model/types';
+import { DIFFICULTIES, MAX_BARS, songBars, songSteps } from '../model/types';
 import type { Difficulty, Hit, Song } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
 import { saveSong, useStore } from '../store';
@@ -22,12 +22,21 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
   const player = useRef<SongPlayer | null>(null);
 
   const kit = useMemo(() => kits.find((k) => k.id === song.kitId) ?? kits[0], [kits, song.kitId]);
+  const steps = songSteps(song);
+  const bars = songBars(song);
   const loaded = useLoadedKit(kit);
   const hitSet = useMemo(() => new Set(song.hits.map((h) => h.pad + ':' + h.step)), [song.hits]);
 
   function patch(p: Partial<Song>) {
     setSong((s) => ({ ...s, ...p }));
     setDirty(true);
+  }
+
+  function setBars(n: number) {
+    n = Math.min(MAX_BARS, Math.max(1, n));
+    const keep = song.hits.filter((h) => h.step < n * 16);
+    if (keep.length < song.hits.length && !confirm('Shorter song drops ' + (song.hits.length - keep.length) + ' hits past bar ' + n + '. Continue?')) return;
+    patch({ bars: n, hits: keep });
   }
 
   function toggle(pad: number, step: number) {
@@ -49,7 +58,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
   function play() {
     if (!loaded) return;
     resumeAudio().then(() => {
-      const p = new SongPlayer({ hits: song.hits, bpm: song.bpm, kit: loaded, playSong: true, metronome: true, countInBars: 0 });
+      const p = new SongPlayer({ hits: song.hits, bpm: song.bpm, steps, kit: loaded, playSong: true, metronome: true, countInBars: 0 });
       p.start();
       player.current = p;
       setPlaying(true);
@@ -63,7 +72,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
       play();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song.hits, song.bpm, loaded]);
+  }, [song.hits, song.bpm, song.bars, loaded]);
   useEffect(() => stop, []);
 
   useEffect(() => {
@@ -71,12 +80,12 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
     let raf = 0;
     const tick = () => {
       const p = player.current;
-      if (p) setPlayhead(((Math.floor(p.positionAt(getAudioContext().currentTime)) % STEPS) + STEPS) % STEPS);
+      if (p) setPlayhead(((Math.floor(p.positionAt(getAudioContext().currentTime)) % steps) + steps) % steps);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing]);
+  }, [playing, steps]);
 
   function save() {
     saveSong(song);
@@ -111,6 +120,16 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
             <input type="number" min={20} max={300} value={song.bpm} onChange={(e) => patch({ bpm: Number(e.target.value) || 90 })} />
           </label>
           <label className="field">
+            Bars
+            <select value={bars} onChange={(e) => setBars(Number(e.target.value))}>
+              {Array.from({ length: MAX_BARS }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
             Kit
             <select value={song.kitId} onChange={(e) => patch({ kitId: e.target.value })}>
               {kits.map((k) => (
@@ -135,6 +154,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
 
       <StepGrid
         kit={kit}
+        steps={steps}
         cell={(pad, step) => ({ on: hitSet.has(pad + ':' + step) })}
         playheadStep={playhead}
         onCellClick={toggle}

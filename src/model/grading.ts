@@ -1,5 +1,4 @@
 import type { Hit } from './types';
-import { STEPS } from './types';
 import { matchWindow, stepDuration } from './timing';
 
 export const MISS_MS = 1000;
@@ -46,6 +45,7 @@ export function gradePass(
   playerHits: PlayerHit[],
   passStart: number,
   bpm: number,
+  steps: number,
   groupOf: PadGroup = identity,
 ): PassResult {
   const stepDur = stepDuration(bpm);
@@ -85,7 +85,7 @@ export function gradePass(
     });
     got.forEach((g, gi) => {
       if (usedG.has(gi)) return;
-      const step = nearestStep(g.time, passStart, stepDur);
+      const step = nearestStep(g.time, passStart, stepDur, steps);
       results.push({ kind: 'extra', pad: g.pad, step, time: g.time, errorMs: MISS_MS });
     });
   }
@@ -94,7 +94,7 @@ export function gradePass(
   return { results, score: scoreOf(results.map((r) => r.errorMs)) };
 }
 
-function nearestStep(time: number, passStart: number, stepDur: number): number {
+function nearestStep(time: number, passStart: number, stepDur: number, steps: number): number {
   const s = Math.round((time - passStart) / stepDur);
-  return Math.min(STEPS - 1, Math.max(0, s));
+  return Math.min(steps - 1, Math.max(0, s));
 }

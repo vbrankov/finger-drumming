@@ -59,7 +59,7 @@ export default function Settings() {
       calTapsRef.current = [];
       setCalTaps(0);
       setCalResult(null);
-      const p = new SongPlayer({ hits: [], bpm: CAL_BPM, kit: { buffers: [], gains: [] }, playSong: false, metronome: true, countInBars: 0 });
+      const p = new SongPlayer({ hits: [], bpm: CAL_BPM, steps: 16, kit: { buffers: [], gains: [] }, playSong: false, metronome: true, countInBars: 0 });
       p.start();
       calPlayer.current = p;
       setCalRunning(true);
