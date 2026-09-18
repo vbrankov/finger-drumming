@@ -136,8 +136,7 @@ table.list td.actions button { margin-left: 4px; }
 .step-grid .cell.playhead { border-color: var(--text); }
 .step-grid .cell.playhead.on { border-color: #fff; box-shadow: 0 0 0 1px #fff inset; }
 .step-grid .cell.miss { background: var(--bad); color: #fff; font-size: 13px; }
-.step-grid .cell.extra { outline: 2px solid var(--extra); outline-offset: -2px; color: var(--extra); font-size: 14px; font-weight: 700; }
-.step-grid .cell.on.extra { color: #fff; }
+.step-grid .cell.extra { background: var(--extra); color: #fff; font-size: 14px; font-weight: 700; }
 .step-grid .cell.graded { color: #fff; font-size: 13px; font-weight: 700; }
 .step-grid .cell.stale { opacity: 0.4; }
 

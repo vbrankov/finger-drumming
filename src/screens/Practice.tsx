@@ -109,24 +109,37 @@ export default function Practice({ song, onBack }: Props) {
     if (!running) return;
     const collect = () => {
       const s = session.current;
-      if (!s) return;
-      const { passes, live } = s.collect(getAudioContext().currentTime);
+      const p = player.current;
+      if (!s || !p) return;
+      const now = getAudioContext().currentTime;
+      const { passes, live } = s.collect(now);
       showLive(live);
       for (const { result } of passes) {
         setLastPass(result);
         setPassCount((n) => n + 1);
         recordScore(song, bpm, result.score);
       }
+      // The sweep clears the previous pass behind the playhead; cells ahead of it stay (dimmed).
+      const pos = p.positionAt(now);
+      const pass = Math.max(0, Math.floor(pos / STEPS));
+      const step = pos < 0 ? -1 : Math.floor(pos) % STEPS;
+      setCurrentPass(pass);
+      setCells((prev) => {
+        let next: Map<string, LiveResult> | null = null;
+        for (const [key, r] of prev) {
+          if (r.passIndex < pass && r.step <= step) {
+            next ??= new Map(prev);
+            next.delete(key);
+          }
+        }
+        return next ?? prev;
+      });
     };
     const timer = window.setInterval(collect, 50);
     let raf = 0;
     const tick = () => {
       const p = player.current;
-      if (p) {
-        const pos = p.positionAt(getAudioContext().currentTime);
-        setPosition(pos);
-        setCurrentPass(Math.max(0, Math.floor(pos / STEPS)));
-      }
+      if (p) setPosition(p.positionAt(getAudioContext().currentTime));
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
