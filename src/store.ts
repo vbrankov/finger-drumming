@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { Kit, Scores, Settings, Song } from "./model/types";
+import type { Kit, Scores, Settings, Pattern } from "./model/types";
 import {
   DEFAULT_KIT_ID,
   DEFAULT_SETTINGS,
@@ -8,23 +8,23 @@ import {
 import defaultKitJson from "./kits/default.json";
 import manifest from "./sounds/manifest.json";
 
-const seedSongs = Object.values(
-  import.meta.glob("./songs/*.json", { eager: true, import: "default" }),
-) as Song[];
+const seedPatterns = Object.values(
+  import.meta.glob("./patterns/*.json", { eager: true, import: "default" }),
+) as Pattern[];
 const seedKits = Object.values(
   import.meta.glob("./kits/*.json", { eager: true, import: "default" }),
 ) as Kit[];
 export const DEFAULT_KIT = defaultKitJson as Kit;
 
 export interface State {
-  songs: Song[];
+  patterns: Pattern[];
   kits: Kit[];
   scores: Scores;
   settings: Settings;
 }
 
 const KEYS: Record<keyof State, string> = {
-  songs: "fd.songs",
+  patterns: "fd.patterns", // was "fd.songs" before songs became sequences of patterns
   kits: "fd.kits",
   scores: "fd.scores",
   settings: "fd.settings",
@@ -115,13 +115,26 @@ function repairKits(kits: Kit[]): { kits: Kit[]; changed: boolean } {
   return { kits: out, changed };
 }
 
+// One-time move: the library's 1-4 bar items used to live under "fd.songs".
+if (!localStorage.getItem("fd.patterns") && localStorage.getItem("fd.songs")) {
+  try {
+    const old = JSON.parse(localStorage.getItem("fd.songs") ?? "[]");
+    if (Array.isArray(old) && old.every((x) => x && Array.isArray(x.hits))) {
+      localStorage.setItem("fd.patterns", JSON.stringify(old));
+      localStorage.removeItem("fd.songs");
+    }
+  } catch {
+    /* leave it */
+  }
+}
+
 let state: State = (() => {
-  const songs = mergeSeeds(
-    readList<Song>(
-      KEYS.songs,
+  const patterns = mergeSeeds(
+    readList<Pattern>(
+      KEYS.patterns,
       (s) => Array.isArray(s.hits) && typeof s.bpm === "number",
     ),
-    seedSongs,
+    seedPatterns,
   );
   const repaired = repairKits(
     readList<Kit>(
@@ -146,7 +159,7 @@ let state: State = (() => {
   };
   if (!settings.noteMap || Object.keys(settings.noteMap).length === 0)
     settings.noteMap = standardNoteMap();
-  return { songs, kits, scores, settings };
+  return { patterns, kits, scores, settings };
 })();
 
 const listeners = new Set<() => void>();
@@ -171,25 +184,25 @@ export function useStore(): State {
   );
 }
 
-// ── Songs ────────────────────────────────────────────────────────────────────
+// ── Patterns ────────────────────────────────────────────────────────────────────
 
 export function newId(prefix: string): string {
   return prefix + "-" + crypto.randomUUID().slice(0, 8);
 }
 
-export function saveSong(song: Song): void {
-  const updated = { ...song, updatedAt: new Date().toISOString() };
-  const i = state.songs.findIndex((s) => s.id === song.id);
+export function savePattern(pattern: Pattern): void {
+  const updated = { ...pattern, updatedAt: new Date().toISOString() };
+  const i = state.patterns.findIndex((s) => s.id === pattern.id);
   set(
-    "songs",
-    i < 0 ? [...state.songs, updated] : state.songs.with(i, updated),
+    "patterns",
+    i < 0 ? [...state.patterns, updated] : state.patterns.with(i, updated),
   );
 }
 
-export function deleteSong(id: string): void {
+export function deletePattern(id: string): void {
   set(
-    "songs",
-    state.songs.filter((s) => s.id !== id),
+    "patterns",
+    state.patterns.filter((s) => s.id !== id),
   );
   if (state.scores[id]) {
     const { [id]: _, ...rest } = state.scores;
@@ -197,10 +210,10 @@ export function deleteSong(id: string): void {
   }
 }
 
-export function emptySong(): Song {
+export function emptyPattern(): Pattern {
   const now = new Date().toISOString();
   return {
-    id: newId("song"),
+    id: newId("pattern"),
     name: "Untitled",
     author: "",
     difficulty: 1,
@@ -215,9 +228,9 @@ export function emptySong(): Song {
 
 // ── Kits ─────────────────────────────────────────────────────────────────────
 
-export function kitFor(song: Song): Kit {
+export function kitFor(pattern: Pattern): Kit {
   return (
-    state.kits.find((k) => k.id === song.kitId) ??
+    state.kits.find((k) => k.id === pattern.kitId) ??
     state.kits.find((k) => k.id === DEFAULT_KIT_ID) ??
     DEFAULT_KIT
   );
@@ -233,10 +246,10 @@ export function saveKit(kit: Kit): void {
   set("kits", i < 0 ? [...state.kits, updated] : state.kits.with(i, updated));
 }
 
-/** Refused if any song uses the kit or it is the default. Returns the reason. */
+/** Refused if any pattern uses the kit or it is the default. Returns the reason. */
 export function deleteKit(id: string): string | null {
   if (id === DEFAULT_KIT_ID) return "The default kit cannot be deleted.";
-  const users = state.songs.filter((s) => s.kitId === id);
+  const users = state.patterns.filter((s) => s.kitId === id);
   if (users.length)
     return "Used by " + users.map((s) => s.name).join(", ") + ".";
   set(
@@ -265,14 +278,14 @@ export function resetDefaultKit(): void {
 
 // ── Scores ───────────────────────────────────────────────────────────────────
 
-/** Record a pass score. Only kept when practising at the song's own tempo. */
-export function recordScore(song: Song, bpm: number, score: number): boolean {
-  if (bpm !== song.bpm) return false;
-  const prev = state.scores[song.id];
+/** Record a pass score. Only kept when practising at the pattern's own tempo. */
+export function recordScore(pattern: Pattern, bpm: number, score: number): boolean {
+  if (bpm !== pattern.bpm) return false;
+  const prev = state.scores[pattern.id];
   if (prev && prev.bpm === bpm && prev.best <= score) return false;
   set("scores", {
     ...state.scores,
-    [song.id]: { best: score, bpm, at: new Date().toISOString() },
+    [pattern.id]: { best: score, bpm, at: new Date().toISOString() },
   });
   return true;
 }
@@ -295,23 +308,23 @@ export function exportJson(): string {
     ),
   }));
   return JSON.stringify(
-    { version: 1, songs: state.songs, kits, scores: state.scores },
+    { version: 1, patterns: state.patterns, kits, scores: state.scores },
     null,
     2,
   );
 }
 
-export function importJson(text: string): { songs: number; kits: number } {
+export function importJson(text: string): { patterns: number; kits: number } {
   const data = JSON.parse(text) as Partial<State> & { version?: number };
-  const songs = Array.isArray(data.songs) ? data.songs : [];
+  const patterns = Array.isArray(data.patterns) ? data.patterns : [];
   const kits = Array.isArray(data.kits) ? data.kits : [];
   const byId = <T extends { id: string }>(a: T[], b: T[]) => {
     const m = new Map(a.map((x) => [x.id, x]));
     for (const x of b) m.set(x.id, x);
     return [...m.values()];
   };
-  set("songs", byId(state.songs, songs));
+  set("patterns", byId(state.patterns, patterns));
   set("kits", byId(state.kits, kits));
   if (data.scores) set("scores", { ...state.scores, ...data.scores });
-  return { songs: songs.length, kits: kits.length };
+  return { patterns: patterns.length, kits: kits.length };
 }

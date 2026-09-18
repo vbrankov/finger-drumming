@@ -3,7 +3,7 @@ import PadGrid from '../components/PadGrid';
 import { perfToAudioTime, resumeAudio } from '../engine/audio';
 import { estimateCalibrationMs, robustMean } from '../engine/calibration';
 import { onMidiHit } from '../engine/midi';
-import { SongPlayer } from '../engine/player';
+import { PatternPlayer } from '../engine/player';
 import { isTypingTarget, KEY_TO_PAD, useFlash, useMidiStatus } from '../hooks';
 import { standardNoteMap } from '../model/types';
 import ImportDialog from '../components/ImportDialog';
@@ -48,7 +48,7 @@ export default function Settings() {
   const [calRunning, setCalRunning] = useState(false);
   const [calTaps, setCalTaps] = useState(0);
   const [calResult, setCalResult] = useState<number | null>(null);
-  const calPlayer = useRef<SongPlayer | null>(null);
+  const calPlayer = useRef<PatternPlayer | null>(null);
   const calTapsRef = useRef<number[]>([]);
 
   function calStop() {
@@ -64,7 +64,7 @@ export default function Settings() {
       calTapsRef.current = [];
       setCalTaps(0);
       setCalResult(null);
-      const p = new SongPlayer({ hits: [], bpm: CAL_BPM, steps: 16, kit: { buffers: [], gains: [], rates: [] }, playSong: false, metronome: true, countInBars: 0 });
+      const p = new PatternPlayer({ hits: [], bpm: CAL_BPM, steps: 16, kit: { buffers: [], gains: [], rates: [] }, playSong: false, metronome: true, countInBars: 0 });
       p.start();
       calPlayer.current = p;
       setCalRunning(true);
@@ -139,7 +139,7 @@ export default function Settings() {
   function finishPaste(plan: ImportPlan, res: Record<string, Resolution>) {
     const outcome = applyImport(plan, res);
     setPasteResult(describeOutcome(outcome, plan));
-    if (outcome.songs || outcome.kits || outcome.replaced) setPasted('');
+    if (outcome.patterns || outcome.kits || outcome.replaced) setPasted('');
   }
   async function doPasteImport() {
     const { payloads, unreadable, newerVersion } = await payloadsFromText(pasted);
@@ -167,7 +167,7 @@ export default function Settings() {
       if (!f) return;
       try {
         const r = importJson(await f.text());
-        alert('Imported ' + r.songs + ' songs and ' + r.kits + ' kits.');
+        alert('Imported ' + r.patterns + ' patterns and ' + r.kits + ' kits.');
       } catch (e) {
         alert('Import failed: ' + (e as Error).message);
       }
@@ -244,7 +244,7 @@ export default function Settings() {
       <div className="panel stack">
         <h3 style={{ margin: 0 }}>Dynamics</h3>
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
-          Songs mark hits as ghost, normal or accent. Teach the app what soft and hard mean on your controller: hit any pad {VEL_TAPS} times softly, then {VEL_TAPS}{' '}
+          Patterns mark hits as ghost, normal or accent. Teach the app what soft and hard mean on your controller: hit any pad {VEL_TAPS} times softly, then {VEL_TAPS}{' '}
           times hard. Keyboard and on-screen pads have no velocity and always count as normal.
         </p>
         <div className="row">
@@ -296,19 +296,19 @@ export default function Settings() {
       <div className="panel stack">
         <h3 style={{ margin: 0 }}>Data</h3>
         <div className="row">
-          <button onClick={doExport}>Export songs, kits &amp; scores</button>
+          <button onClick={doExport}>Export patterns, kits &amp; scores</button>
           <button onClick={doImport}>Import…</button>
         </div>
         <p className="muted small" style={{ margin: 0 }}>Uploaded samples are not exported; imported kits fall back to bundled sounds for those slots.</p>
-        <h4 style={{ margin: '8px 0 0' }}>Paste songs or kits</h4>
+        <h4 style={{ margin: '8px 0 0' }}>Paste patterns or kits</h4>
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
-          Paste text copied from the Songs list (starts with <code>fd1:</code>) or share links. Anything around them is ignored, so a whole forum post works.{' '}
+          Paste text copied from the Patterns list (starts with <code>fd1:</code>) or share links. Anything around them is ignored, so a whole forum post works.{' '}
           <a href={FORMAT_URL} target="_blank" rel="noreferrer">
             Format reference
           </a>{' '}
           {'\u00b7'}{' '}
           <a href={AI_URL} target="_blank" rel="noreferrer">
-            Making songs with AI
+            Making patterns with AI
           </a>
         </p>
         <textarea

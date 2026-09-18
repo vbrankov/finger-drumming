@@ -2,45 +2,45 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import StepGrid from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
-import { SongPlayer } from '../engine/player';
-import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, SWING_MAX, SWING_MIN, kitRows, levelOfHit, padRepOf, songBars, songSteps } from '../model/types';
-import type { Difficulty, Hit, Song, Swing } from '../model/types';
+import { PatternPlayer } from '../engine/player';
+import { DIFFICULTIES, LEVEL_VELOCITY, MAX_BARS, SWING_MAX, SWING_MIN, kitRows, levelOfHit, padRepOf, patternBars, patternSteps } from '../model/types';
+import type { Difficulty, Hit, Pattern, Swing } from '../model/types';
 import { auditionPad, useLoadedKit } from '../hooks';
-import { saveSong, useStore } from '../store';
+import { savePattern, useStore } from '../store';
 
 interface Props {
-  song: Song;
+  pattern: Pattern;
   onDone: () => void;
   onEditKit: (kitId: string) => void;
 }
 
-export default function SongEditor({ song: initial, onDone, onEditKit }: Props) {
+export default function PatternEditor({ pattern: initial, onDone, onEditKit }: Props) {
   const { kits } = useStore();
-  const [song, setSong] = useState<Song>(initial);
+  const [pattern, setSong] = useState<Pattern>(initial);
   const [dirty, setDirty] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [playhead, setPlayhead] = useState<number | null>(null);
-  const player = useRef<SongPlayer | null>(null);
+  const player = useRef<PatternPlayer | null>(null);
 
-  const kit = useMemo(() => kits.find((k) => k.id === song.kitId) ?? kits[0], [kits, song.kitId]);
-  const steps = songSteps(song);
-  const bars = songBars(song);
+  const kit = useMemo(() => kits.find((k) => k.id === pattern.kitId) ?? kits[0], [kits, pattern.kitId]);
+  const steps = patternSteps(pattern);
+  const bars = patternBars(pattern);
   // Collapsed: one row per drum, hits stored on the row's first pad. All pads: 16 rows, exact pads.
   const [allPads, setAllPads] = useState(() => localStorage.getItem('fd.editor.allPads') === '1');
   const rows = useMemo(() => (allPads ? undefined : kitRows(kit).map((r) => r.pad)), [kit, allPads]);
   const rep = useMemo(() => (allPads ? (p: number) => p : padRepOf(kit)), [kit, allPads]);
   const loaded = useLoadedKit(kit);
-  const hitMap = useMemo(() => new Map(song.hits.map((h) => [rep(h.pad) + ':' + h.step, h])), [song.hits, rep]);
+  const hitMap = useMemo(() => new Map(pattern.hits.map((h) => [rep(h.pad) + ':' + h.step, h])), [pattern.hits, rep]);
 
-  function patch(p: Partial<Song>) {
+  function patch(p: Partial<Pattern>) {
     setSong((s) => ({ ...s, ...p }));
     setDirty(true);
   }
 
   function setBars(n: number) {
     n = Math.min(MAX_BARS, Math.max(1, n));
-    const keep = song.hits.filter((h) => h.step < n * 16);
-    if (keep.length < song.hits.length && !confirm('Shorter song drops ' + (song.hits.length - keep.length) + ' hits past bar ' + n + '. Continue?')) return;
+    const keep = pattern.hits.filter((h) => h.step < n * 16);
+    if (keep.length < pattern.hits.length && !confirm('Shorter pattern drops ' + (pattern.hits.length - keep.length) + ' hits past bar ' + n + '. Continue?')) return;
     patch({ bars: n, hits: keep });
   }
 
@@ -104,21 +104,21 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
   function play() {
     if (!loaded) return;
     resumeAudio().then(() => {
-      const p = new SongPlayer({ hits: song.hits, bpm: song.bpm, steps, swing: song.swing, kit: loaded, playSong: true, metronome: true, countInBars: 0 });
+      const p = new PatternPlayer({ hits: pattern.hits, bpm: pattern.bpm, steps, swing: pattern.swing, kit: loaded, playSong: true, metronome: true, countInBars: 0 });
       p.start();
       player.current = p;
       setPlaying(true);
     });
   }
 
-  // Restart preview when the song changes underneath it.
+  // Restart preview when the pattern changes underneath it.
   useEffect(() => {
     if (playing) {
       stop();
       play();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song.hits, song.bpm, song.bars, song.swing, loaded]);
+  }, [pattern.hits, pattern.bpm, pattern.bars, pattern.swing, loaded]);
   useEffect(() => stop, []);
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
   }, [playing, steps]);
 
   function save() {
-    saveSong(song);
+    savePattern(pattern);
     setDirty(false);
   }
 
@@ -147,12 +147,12 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
     <div className="stack">
       <div className="row between">
         <div className="row">
-          <button onClick={back}>← Songs</button>
-          <input value={song.name} onChange={(e) => patch({ name: e.target.value })} style={{ fontSize: 16, width: 220 }} placeholder="Name" />
-          <input value={song.author ?? ''} onChange={(e) => patch({ author: e.target.value })} style={{ width: 130 }} placeholder="Author" />
+          <button onClick={back}>← Patterns</button>
+          <input value={pattern.name} onChange={(e) => patch({ name: e.target.value })} style={{ fontSize: 16, width: 220 }} placeholder="Name" />
+          <input value={pattern.author ?? ''} onChange={(e) => patch({ author: e.target.value })} style={{ width: 130 }} placeholder="Author" />
           <label className="field">
             Difficulty
-            <select value={song.difficulty ?? ''} onChange={(e) => patch({ difficulty: e.target.value ? (Number(e.target.value) as Difficulty) : undefined })}>
+            <select value={pattern.difficulty ?? ''} onChange={(e) => patch({ difficulty: e.target.value ? (Number(e.target.value) as Difficulty) : undefined })}>
               <option value="">—</option>
               {DIFFICULTIES.map((d) => (
                 <option key={d} value={d}>
@@ -163,7 +163,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
           </label>
           <label className="field">
             BPM
-            <input type="number" min={20} max={300} value={song.bpm} onChange={(e) => patch({ bpm: Number(e.target.value) || 90 })} />
+            <input type="number" min={20} max={300} value={pattern.bpm} onChange={(e) => patch({ bpm: Number(e.target.value) || 90 })} />
           </label>
           <label className="field">
             Bars
@@ -181,16 +181,16 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
               type="number"
               min={SWING_MIN}
               max={SWING_MAX}
-              value={song.swing?.amount ?? 50}
+              value={pattern.swing?.amount ?? 50}
               onChange={(e) => {
                 const amount = Math.min(SWING_MAX, Math.max(SWING_MIN, Number(e.target.value) || 50));
-                patch({ swing: amount > 50 ? { amount, unit: song.swing?.unit ?? 'sixteenth' } : undefined });
+                patch({ swing: amount > 50 ? { amount, unit: pattern.swing?.unit ?? 'sixteenth' } : undefined });
               }}
             />
             %
             <select
-              value={song.swing?.unit ?? 'sixteenth'}
-              onChange={(e) => patch({ swing: { amount: song.swing?.amount ?? 62, unit: e.target.value as Swing['unit'] } })}
+              value={pattern.swing?.unit ?? 'sixteenth'}
+              onChange={(e) => patch({ swing: { amount: pattern.swing?.amount ?? 62, unit: e.target.value as Swing['unit'] } })}
             >
               <option value="sixteenth">16ths</option>
               <option value="eighth">8ths</option>
@@ -198,7 +198,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
           </label>
           <label className="field">
             Kit
-            <select value={song.kitId} onChange={(e) => patch({ kitId: e.target.value })}>
+            <select value={pattern.kitId} onChange={(e) => patch({ kitId: e.target.value })}>
               {kits.map((k) => (
                 <option key={k.id} value={k.id}>
                   {k.name}
@@ -206,7 +206,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
               ))}
             </select>
           </label>
-          <button onClick={() => onEditKit(song.kitId)}>Edit kit</button>
+          <button onClick={() => onEditKit(pattern.kitId)}>Edit kit</button>
         </div>
         <div className="row">
           <label className="field small" title="Show every pad as its own row, e.g. to write left/right hand patterns">
@@ -220,7 +220,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
             />
             all 16 pads
           </label>
-          <button onClick={() => patch({ hits: [] })} disabled={!song.hits.length}>
+          <button onClick={() => patch({ hits: [] })} disabled={!pattern.hits.length}>
             Clear
           </button>
           {playing ? <button onClick={stop}>■ Stop</button> : <button onClick={play} disabled={!loaded}>▶ Preview</button>}
@@ -255,7 +255,7 @@ export default function SongEditor({ song: initial, onDone, onEditKit }: Props) 
       />
       <p className="muted small">
         Click a cell to add a hit, click again to remove it. Press and drag up or down to set its velocity: {'\u2265'}112 is an <b>accent</b> ({'\u25b2'}),{' '}
-        {'<'}64 a ghost ({'\u00b7'}). Click a row label to hear that pad. {song.hits.length} hits.
+        {'<'}64 a ghost ({'\u00b7'}). Click a row label to hear that pad. {pattern.hits.length} hits.
       </p>
     </div>
   );

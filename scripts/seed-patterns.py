@@ -1,5 +1,5 @@
-"""Write the seed songs in src/songs/. Edit the SONGS table and re-run:
-    python scripts/seed-songs.py
+"""Write the seed patterns in src/patterns/. Edit the SONGS table and re-run:
+    python scripts/seed-patterns.py
 
 Pads (Quest for Groove layout, row-major from the top):
     0 Low Tom   1 Mid Tom   2 High Tom  3 Crash
@@ -12,7 +12,7 @@ the intended hand in the grid.
 import json
 import os
 
-OUT = os.path.join(os.path.dirname(__file__), "..", "src", "songs")
+OUT = os.path.join(os.path.dirname(__file__), "..", "src", "patterns")
 ACCENT, GHOST = 127, 40
 K, K2, S, S2, H, H2, OH, RIDE, CR, CR2, SS, LT, MT, HT, CYM = 13, 14, 9, 10, 4, 6, 5, 7, 3, 12, 8, 0, 1, 2, 15
 

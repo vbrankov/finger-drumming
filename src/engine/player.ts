@@ -19,11 +19,11 @@ export function playSlot(kit: LoadedKit, pad: number, velocity: number | undefin
 export interface PlayerOptions {
   hits: Hit[];
   bpm: number;
-  /** Song length in 16th steps (a multiple of STEPS). */
+  /** Pattern length in 16th steps (a multiple of STEPS). */
   steps: number;
   swing?: Swing;
   kit: LoadedKit;
-  /** Play the song's drums. Off = Solo mode. */
+  /** Play the pattern's drums. Off = Solo mode. */
   playSong: boolean;
   metronome: boolean;
   countInBars: number;
@@ -32,11 +32,11 @@ export interface PlayerOptions {
 const START_DELAY_S = 0.15;
 
 /**
- * Loops the song forever, with an optional count-in. `songStart` is the audio
+ * Loops the pattern forever, with an optional count-in. `songStart` is the audio
  * time of step 0 of pass 0, the reference the grader and the playhead both
  * use. Metronome clicks every beat, accented on the first beat of each bar.
  */
-export class SongPlayer {
+export class PatternPlayer {
   songStart = 0;
   private scheduler: Scheduler | null = null;
   private clickHi: AudioBuffer | null = null;
@@ -76,7 +76,7 @@ export class SongPlayer {
     const { hits, bpm, steps, swing, kit, playSong, metronome } = this.opts;
     const stepDur = stepDuration(bpm);
     const passDur = steps * stepDur;
-    // Metronome and count-in are straight; song hits take their swung times.
+    // Metronome and count-in are straight; pattern hits take their swung times.
     const first = Math.ceil((from - this.songStart) / stepDur - 1e-9);
     const last = Math.floor((to - this.songStart) / stepDur - 1e-9);
     for (let k = first; k <= last; k++) {

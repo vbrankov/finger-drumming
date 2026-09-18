@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Kit, Song } from './model/types';
+import type { Kit, Pattern } from './model/types';
 import { useMidiStatus } from './hooks';
 import KitEditor from './screens/KitEditor';
 import Kits from './screens/Kits';
 import Practice from './screens/Practice';
 import Settings from './screens/Settings';
-import SongEditor from './screens/SongEditor';
-import Songs from './screens/Songs';
+import PatternEditor from './screens/PatternEditor';
+import Patterns from './screens/Patterns';
 import ImportDialog from './components/ImportDialog';
 import { applyImport, clearShareFromLocation, decodeShare, describeOutcome, planImport, shareTokenFromLocation } from './share';
 import type { ImportOutcome, ImportPlan, Resolution } from './share';
@@ -14,27 +14,27 @@ import { MANUAL_URL } from './links';
 import { getState, useStore } from './store';
 
 type Screen =
-  | { name: 'songs' }
+  | { name: 'patterns' }
   | { name: 'kits' }
   | { name: 'settings' }
-  | { name: 'practice'; song: Song }
-  | { name: 'edit-song'; song: Song }
+  | { name: 'practice'; pattern: Pattern }
+  | { name: 'edit-pattern'; pattern: Pattern }
   | { name: 'edit-kit'; kit: Kit; back: Screen };
 
-function collectSongIds(p: { t: string; song?: { id?: string }; items?: unknown[] }): string[] {
-  if (p.t === 'song') return p.song?.id ? [p.song.id] : [];
-  if (p.t === 'pack') return (p.items as { t: string; song?: { id?: string }; items?: unknown[] }[]).flatMap(collectSongIds);
+function collectPatternIds(p: { t: string; pattern?: { id?: string }; items?: unknown[] }): string[] {
+  if (p.t === 'pattern') return p.pattern?.id ? [p.pattern.id] : [];
+  if (p.t === 'pack') return (p.items as { t: string; pattern?: { id?: string }; items?: unknown[] }[]).flatMap(collectPatternIds);
   return [];
 }
 
-const TABS: { name: 'songs' | 'kits' | 'settings'; label: string }[] = [
-  { name: 'songs', label: 'Songs' },
+const TABS: { name: 'patterns' | 'kits' | 'settings'; label: string }[] = [
+  { name: 'patterns', label: 'Patterns' },
   { name: 'kits', label: 'Kits' },
   { name: 'settings', label: 'Settings' },
 ];
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>({ name: 'songs' });
+  const [screen, setScreen] = useState<Screen>({ name: 'patterns' });
   const [notice, setNotice] = useState<string | null>(null);
   const [pendingPlan, setPendingPlan] = useState<ImportPlan | null>(null);
   const { kits } = useStore();
@@ -42,17 +42,17 @@ export default function App() {
 
   function finishLinkImport(plan: ImportPlan, outcome: ImportOutcome) {
     setNotice(describeOutcome(outcome, plan));
-    if (outcome.song) setScreen({ name: 'practice', song: outcome.song });
+    if (outcome.pattern) setScreen({ name: 'practice', pattern: outcome.pattern });
     else if (outcome.kit) setScreen({ name: 'edit-kit', kit: outcome.kit, back: { name: 'kits' } });
     else {
       // Nothing new (identical or skipped): still open what the link pointed at, if we have it.
-      const s = getState().songs.find((x) => x.id === linkSongIds.current[0]);
-      if (s) setScreen({ name: 'practice', song: s });
+      const s = getState().patterns.find((x) => x.id === linkPatternIds.current[0]);
+      if (s) setScreen({ name: 'practice', pattern: s });
     }
   }
-  const linkSongIds = useRef<string[]>([]);
+  const linkPatternIds = useRef<string[]>([]);
 
-  // A share link (#s=…) adds its song/kit to the library and opens it.
+  // A share link (#s=…) adds its pattern/kit to the library and opens it.
   useEffect(() => {
     const token = shareTokenFromLocation();
     if (!token) return;
@@ -63,7 +63,7 @@ export default function App() {
         return;
       }
       const plan = planImport([payload]);
-      linkSongIds.current = collectSongIds(payload);
+      linkPatternIds.current = collectPatternIds(payload);
       if (plan.conflicts.length) setPendingPlan(plan);
       else finishLinkImport(plan, applyImport(plan, {}));
     });
@@ -76,12 +76,12 @@ export default function App() {
     return () => window.clearTimeout(t);
   }, [notice]);
 
-  const section = screen.name === 'practice' || screen.name === 'edit-song' ? 'songs' : screen.name === 'edit-kit' ? 'kits' : screen.name;
+  const section = screen.name === 'practice' || screen.name === 'edit-pattern' ? 'patterns' : screen.name === 'edit-kit' ? 'kits' : screen.name;
 
   let body;
   switch (screen.name) {
-    case 'songs':
-      body = <Songs onPractice={(song) => setScreen({ name: 'practice', song })} onEdit={(song) => setScreen({ name: 'edit-song', song })} />;
+    case 'patterns':
+      body = <Patterns onPractice={(pattern) => setScreen({ name: 'practice', pattern })} onEdit={(pattern) => setScreen({ name: 'edit-pattern', pattern })} />;
       break;
     case 'kits':
       body = <Kits onEdit={(kit) => setScreen({ name: 'edit-kit', kit, back: { name: 'kits' } })} />;
@@ -90,14 +90,14 @@ export default function App() {
       body = <Settings />;
       break;
     case 'practice':
-      body = <Practice key={screen.song.id} song={screen.song} onBack={() => setScreen({ name: 'songs' })} onSettings={() => setScreen({ name: 'settings' })} />;
+      body = <Practice key={screen.pattern.id} pattern={screen.pattern} onBack={() => setScreen({ name: 'patterns' })} onSettings={() => setScreen({ name: 'settings' })} />;
       break;
-    case 'edit-song':
+    case 'edit-pattern':
       body = (
-        <SongEditor
-          key={screen.song.id}
-          song={screen.song}
-          onDone={() => setScreen({ name: 'songs' })}
+        <PatternEditor
+          key={screen.pattern.id}
+          pattern={screen.pattern}
+          onDone={() => setScreen({ name: 'patterns' })}
           onEditKit={(kitId) => {
             const kit = kits.find((k) => k.id === kitId);
             if (kit) setScreen({ name: 'edit-kit', kit, back: screen });

@@ -4,31 +4,31 @@ import PadGrid from '../components/PadGrid';
 import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
-import { playSlot, SongPlayer } from '../engine/player';
+import { playSlot, PatternPlayer } from '../engine/player';
 import type { PassResult } from '../model/grading';
 import { PracticeSession } from '../model/session';
 import type { LiveResult } from '../model/session';
 import { matchWindow } from '../model/timing';
-import { LEVEL_GLYPH, kitRows, levelOfHit, levelOfVelocity, padGroupOf, padRepOf, songBars, songSteps } from '../model/types';
-import type { Song } from '../model/types';
+import { LEVEL_GLYPH, kitRows, levelOfHit, levelOfVelocity, padGroupOf, padRepOf, patternBars, patternSteps } from '../model/types';
+import type { Pattern } from '../model/types';
 import { auditionPad, useFlash, useLoadedKit, usePadInput } from '../hooks';
 import { kitFor, recordScore, useStore } from '../store';
 
 type Mode = 'playalong' | 'solo';
 
 interface Props {
-  song: Song;
+  pattern: Pattern;
   onBack: () => void;
   onSettings: () => void;
 }
 
-export default function Practice({ song, onBack, onSettings }: Props) {
+export default function Practice({ pattern, onBack, onSettings }: Props) {
   const { scores, settings } = useStore();
-  const kit = useMemo(() => kitFor(song), [song]);
+  const kit = useMemo(() => kitFor(pattern), [pattern]);
   const loaded = useLoadedKit(kit);
 
   const [mode, setMode] = useState<Mode>('playalong');
-  const [bpm, setBpm] = useState(song.bpm);
+  const [bpm, setBpm] = useState(pattern.bpm);
   const [metronome, setMetronome] = useState(true);
   const [running, setRunning] = useState(false);
   const [position, setPosition] = useState<number | null>(null); // fractional global step
@@ -41,7 +41,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
   // A controller note that is not mapped to any pad: the app would otherwise just stay silent.
   const [unmapped, setUnmapped] = useState<{ note: number; device: string } | null>(null);
 
-  const player = useRef<SongPlayer | null>(null);
+  const player = useRef<PatternPlayer | null>(null);
   const session = useRef<PracticeSession | null>(null);
 
   // ── Split between grid and pads: a draggable handle sets the row height; the
@@ -91,10 +91,10 @@ export default function Practice({ song, onBack, onSettings }: Props) {
     return () => window.removeEventListener('resize', fit);
   }, [cellH, kit, running]);
 
-  const best = scores[song.id];
+  const best = scores[pattern.id];
   const win = matchWindow(bpm);
-  const steps = songSteps(song);
-  const bars = songBars(song);
+  const steps = patternSteps(pattern);
+  const bars = patternBars(pattern);
   // One row per drum; a hit on either mirrored pad lands in the same row.
   const rows = useMemo(() => kitRows(kit).map((r) => r.pad), [kit]);
   const rep = useMemo(() => padRepOf(kit), [kit]);
@@ -125,11 +125,11 @@ export default function Practice({ song, onBack, onSettings }: Props) {
   function start() {
     if (!loaded) return;
     resumeAudio().then(() => {
-      const p = new SongPlayer({
-        hits: song.hits,
+      const p = new PatternPlayer({
+        hits: pattern.hits,
         bpm,
         steps,
-        swing: song.swing,
+        swing: pattern.swing,
         kit: loaded,
         playSong: mode === 'playalong',
         metronome,
@@ -137,7 +137,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
       });
       const songStart = p.start();
       player.current = p;
-      session.current = new PracticeSession(song.hits, bpm, songStart, steps, padGroupOf(kit), song.swing);
+      session.current = new PracticeSession(pattern.hits, bpm, songStart, steps, padGroupOf(kit), pattern.swing);
       setLastPass(null);
       setPassCount(0);
       setCells(new Map());
@@ -175,7 +175,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
       for (const { result } of passes) {
         setLastPass(result);
         setPassCount((n) => n + 1);
-        recordScore(song, bpm, result.score);
+        recordScore(pattern, bpm, result.score);
       }
       // The sweep clears the previous pass behind the playhead; cells ahead of it stay (dimmed).
       const pos = p.positionAt(now);
@@ -205,9 +205,9 @@ export default function Practice({ song, onBack, onSettings }: Props) {
       window.clearInterval(timer);
       cancelAnimationFrame(raf);
     };
-  }, [running, song, bpm, steps]);
+  }, [running, pattern, bpm, steps]);
 
-  const expectedMap = useMemo(() => new Map(song.hits.map((h) => [rep(h.pad) + ':' + h.step, h])), [song, rep]);
+  const expectedMap = useMemo(() => new Map(pattern.hits.map((h) => [rep(h.pad) + ':' + h.step, h])), [pattern, rep]);
 
   const cell = (pad: number, step: number): CellState => {
     const key = pad + ':' + step;
@@ -246,13 +246,13 @@ export default function Practice({ song, onBack, onSettings }: Props) {
     <div className="stack">
       <div className="row between">
         <div className="row">
-          <button onClick={onBack}>← Songs</button>
-          <h2 style={{ margin: 0 }}>{song.name}</h2>
+          <button onClick={onBack}>← Patterns</button>
+          <h2 style={{ margin: 0 }}>{pattern.name}</h2>
           <span className="muted small">
-            {song.author ? 'by ' + song.author + ' · ' : ''}
-            {song.difficulty ? 'difficulty ' + song.difficulty + '/5 · ' : ''}
+            {pattern.author ? 'by ' + pattern.author + ' · ' : ''}
+            {pattern.difficulty ? 'difficulty ' + pattern.difficulty + '/5 · ' : ''}
             {bars} bar{bars === 1 ? '' : 's'}
-            {song.swing && song.swing.amount > 50 ? ' · swing ' + song.swing.amount + '% (' + (song.swing.unit === 'eighth' ? '8ths' : '16ths') + ')' : ''} · kit:{' '}
+            {pattern.swing && pattern.swing.amount > 50 ? ' · swing ' + pattern.swing.amount + '% (' + (pattern.swing.unit === 'eighth' ? '8ths' : '16ths') + ')' : ''} · kit:{' '}
             {kit.name}
           </span>
         </div>
@@ -269,9 +269,9 @@ export default function Practice({ song, onBack, onSettings }: Props) {
           <label className="field">
             Tempo
             <button onClick={() => setBpm((b) => Math.max(20, b - 5))}>−</button>
-            <input type="number" value={bpm} min={20} max={300} onChange={(e) => setBpm(Number(e.target.value) || song.bpm)} />
+            <input type="number" value={bpm} min={20} max={300} onChange={(e) => setBpm(Number(e.target.value) || pattern.bpm)} />
             <button onClick={() => setBpm((b) => Math.min(300, b + 5))}>+</button>
-            {bpm !== song.bpm && <button onClick={() => setBpm(song.bpm)}>reset</button>}
+            {bpm !== pattern.bpm && <button onClick={() => setBpm(pattern.bpm)}>reset</button>}
           </label>
           {running ? (
             <button className="primary" onClick={stop}>
@@ -302,7 +302,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
           </div>
           <div className="stat">
             <div className="v">{best ? Math.round(best.best) : '—'}</div>
-            <div className="k">best{bpm !== song.bpm ? ' (at ' + song.bpm + ' bpm; not saved at ' + bpm + ')' : ''}</div>
+            <div className="k">best{bpm !== pattern.bpm ? ' (at ' + pattern.bpm + ' bpm; not saved at ' + bpm + ')' : ''}</div>
           </div>
           <div className="stat">
             <div className="v">{passCount}</div>
@@ -332,7 +332,7 @@ export default function Practice({ song, onBack, onSettings }: Props) {
       </div>
       <p className="muted small">
         <span className="swatch early" /> {'◂'} early (rushing) &nbsp; <span className="swatch ontime" /> on time &nbsp; <span className="swatch late" /> late (dragging) {'▸'} &nbsp;·&nbsp; {'▲'} accent, {'·'} ghost; the corner mark is the level you played (orange = not the level written). Dynamics are shown, not scored.
-        Score = sum of the 3 worst timing errors in a pass; miss or extra = 1000. Best is only recorded at the song&apos;s own tempo ({song.bpm} bpm).
+        Score = sum of the 3 worst timing errors in a pass; miss or extra = 1000. Best is only recorded at the pattern&apos;s own tempo ({pattern.bpm} bpm).
       </p>
     </div>
   );

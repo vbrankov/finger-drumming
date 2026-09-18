@@ -38,7 +38,7 @@ const identity: PadGroup = (pad) => pad;
  * (see passIndexOf). Matching is per pad group, greedy by smallest |offset|
  * within the window; each expected hit and each player hit is used at most
  * once. A matched hit is reported on the expected pad, so it lands on the cell
- * the song shows even if it was played on the mirror pad.
+ * the pattern shows even if it was played on the mirror pad.
  */
 export function gradePass(
   expected: Hit[],

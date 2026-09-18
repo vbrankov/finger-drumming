@@ -1,19 +1,19 @@
-import type { Kit, Song } from './model/types';
+import type { Kit, Pattern } from './model/types';
 import { DEFAULT_KIT_ID } from './model/types';
-import { DEFAULT_KIT, getState, newId, saveKit, saveSong } from './store';
+import { DEFAULT_KIT, getState, newId, saveKit, savePattern } from './store';
 
 /**
- * Share links carry the whole song (and, if it is not the default, its kit)
+ * Share links carry the whole pattern (and, if it is not the default, its kit)
  * in the URL fragment: nothing is uploaded anywhere. Kits are stripped of
  * user-uploaded samples, which fall back to the default kit's sound.
  */
 
 /** Ids travel with shared items so an updated version of something you already have is recognised. */
-type SharedSong = Pick<Song, 'name' | 'author' | 'difficulty' | 'bpm' | 'bars' | 'swing' | 'hits'> & { id?: string };
+type SharedPattern = Pick<Pattern, 'name' | 'author' | 'difficulty' | 'bpm' | 'bars' | 'swing' | 'hits'> & { id?: string };
 type SharedKit = Pick<Kit, 'name' | 'slots'> & { id?: string };
 
 export type SharePayload =
-  | { t: 'song'; song: SharedSong; kit?: SharedKit }
+  | { t: 'song'; song: SharedPattern; kit?: SharedKit }
   | { t: 'kit'; kit: SharedKit }
   | { t: 'pack'; v: number; items: SharePayload[] };
 
@@ -35,12 +35,12 @@ function stripKit(kit: Kit): SharedKit {
   };
 }
 
-export function songPayload(song: Song, kit: Kit): SharePayload {
-  const shared: SharedSong = { id: song.id, name: song.name, bpm: song.bpm, hits: song.hits };
-  if (song.author) shared.author = song.author;
-  if (song.difficulty) shared.difficulty = song.difficulty;
-  if (song.bars && song.bars > 1) shared.bars = song.bars;
-  if (song.swing && song.swing.amount > 50) shared.swing = song.swing;
+export function patternPayload(pattern: Pattern, kit: Kit): SharePayload {
+  const shared: SharedPattern = { id: pattern.id, name: pattern.name, bpm: pattern.bpm, hits: pattern.hits };
+  if (pattern.author) shared.author = pattern.author;
+  if (pattern.difficulty) shared.difficulty = pattern.difficulty;
+  if (pattern.bars && pattern.bars > 1) shared.bars = pattern.bars;
+  if (pattern.swing && pattern.swing.amount > 50) shared.swing = pattern.swing;
   return kit.id === DEFAULT_KIT_ID ? { t: 'song', song: shared } : { t: 'song', song: shared, kit: stripKit(kit) };
 }
 
@@ -48,12 +48,12 @@ export function kitPayload(kit: Kit): SharePayload {
   return { t: 'kit', kit: stripKit(kit) };
 }
 
-/** Many songs and kits in one payload; a song's non-default kit is embedded with it. */
-export function packPayload(songs: Song[], kits: Kit[], kitFor: (song: Song) => Kit): SharePayload {
+/** Many patterns and kits in one payload; a pattern's non-default kit is embedded with it. */
+export function packPayload(patterns: Pattern[], kits: Kit[], kitFor: (pattern: Pattern) => Kit): SharePayload {
   return {
     t: 'pack',
     v: PACK_VERSION,
-    items: [...kits.map(kitPayload), ...songs.map((s) => songPayload(s, kitFor(s)))],
+    items: [...kits.map(kitPayload), ...patterns.map((s) => patternPayload(s, kitFor(s)))],
   };
 }
 
@@ -128,8 +128,8 @@ export function clearShareFromLocation(): void {
 export type Resolution = 'replace' | 'both' | 'skip';
 
 export interface Conflict {
-  key: string; // 'song:<id>' | 'kit:<id>'
-  kind: 'song' | 'kit';
+  key: string; // 'pattern:<id>' | 'kit:<id>'
+  kind: 'pattern' | 'kit';
   name: string;
   author?: string;
   /** What differs, for the dialog. */
@@ -138,21 +138,21 @@ export interface Conflict {
 
 export interface ImportPlan {
   kits: SharedKit[]; // to add (no conflict)
-  songs: SharedSong[]; // to add (no conflict)
-  conflicts: { conflict: Conflict; item: SharedKit | SharedSong }[];
+  patterns: SharedPattern[]; // to add (no conflict)
+  conflicts: { conflict: Conflict; item: SharedKit | SharedPattern }[];
   skipped: number; // identical to something already present
   unreadable: number;
   newerVersion: boolean;
 }
 
-/** Hits in canonical order, with the default velocity dropped, so equal songs compare equal. */
-function canonicalHits(hits: Song['hits']): { pad: number; step: number; velocity?: number }[] {
+/** Hits in canonical order, with the default velocity dropped, so equal patterns compare equal. */
+function canonicalHits(hits: Pattern['hits']): { pad: number; step: number; velocity?: number }[] {
   return [...hits]
     .map((h) => (h.velocity && h.velocity !== 100 ? { pad: h.pad, step: h.step, velocity: h.velocity } : { pad: h.pad, step: h.step }))
     .sort((a, b) => a.step - b.step || a.pad - b.pad);
 }
 
-function songContent(s: SharedSong | Song, kitId: string): string {
+function patternContent(s: SharedPattern | Pattern, kitId: string): string {
   return JSON.stringify({
     name: s.name,
     author: s.author ?? '',
@@ -170,7 +170,7 @@ function kitContent(k: SharedKit | Kit): string {
   return JSON.stringify({ name: k.name, slots: stripped.slots });
 }
 
-function describeSongDiff(a: SharedSong, b: Song): string {
+function describePatternDiff(a: SharedPattern, b: Pattern): string {
   const d: string[] = [];
   if (a.name !== b.name) d.push('name');
   if ((a.author ?? '') !== (b.author ?? '')) d.push('author');
@@ -184,10 +184,10 @@ function describeSongDiff(a: SharedSong, b: Song): string {
 
 /** Decide what a set of payloads would do to the library, without touching it. */
 export function planImport(payloads: SharePayload[]): ImportPlan {
-  const plan: ImportPlan = { kits: [], songs: [], conflicts: [], skipped: 0, unreadable: 0, newerVersion: false };
+  const plan: ImportPlan = { kits: [], patterns: [], conflicts: [], skipped: 0, unreadable: 0, newerVersion: false };
   const state = getState();
   const seenKits = new Set<string>();
-  const seenSongs = new Set<string>();
+  const seenPatterns = new Set<string>();
 
   const addKit = (k: SharedKit) => {
     const key = k.id ?? 'content:' + kitContent(k);
@@ -203,18 +203,18 @@ export function planImport(payloads: SharePayload[]): ImportPlan {
     else plan.kits.push(k);
   };
 
-  const addSong = (sng: SharedSong, kitId: string) => {
-    const key = sng.id ?? 'content:' + songContent(sng, kitId);
-    if (seenSongs.has(key)) return;
-    seenSongs.add(key);
-    const byId = sng.id ? state.songs.find((x) => x.id === sng.id) : undefined;
+  const addSong = (sng: SharedPattern, kitId: string) => {
+    const key = sng.id ?? 'content:' + patternContent(sng, kitId);
+    if (seenPatterns.has(key)) return;
+    seenPatterns.add(key);
+    const byId = sng.id ? state.patterns.find((x) => x.id === sng.id) : undefined;
     if (byId) {
-      if (songContent(byId, byId.kitId) === songContent(sng, kitId)) plan.skipped++;
-      else plan.conflicts.push({ conflict: { key: 'song:' + sng.id, kind: 'song', name: sng.name, author: sng.author, summary: describeSongDiff(sng, byId) }, item: sng });
+      if (patternContent(byId, byId.kitId) === patternContent(sng, kitId)) plan.skipped++;
+      else plan.conflicts.push({ conflict: { key: 'pattern:' + sng.id, kind: 'pattern', name: sng.name, author: sng.author, summary: describePatternDiff(sng, byId) }, item: sng });
       return;
     }
-    if (state.songs.some((x) => songContent(x, x.kitId) === songContent(sng, kitId))) plan.skipped++;
-    else plan.songs.push(sng);
+    if (state.patterns.some((x) => patternContent(x, x.kitId) === patternContent(sng, kitId))) plan.skipped++;
+    else plan.patterns.push(sng);
   };
 
   const walk = (p: SharePayload) => {
@@ -222,7 +222,7 @@ export function planImport(payloads: SharePayload[]): ImportPlan {
     else if (p.t === 'kit') addKit(p.kit);
     else {
       if (p.kit) addKit(p.kit);
-      addSong({ ...p.song, kitId: p.kit?.id ?? DEFAULT_KIT_ID } as SharedSong, p.kit?.id ?? DEFAULT_KIT_ID);
+      addSong({ ...p.song, kitId: p.kit?.id ?? DEFAULT_KIT_ID } as SharedPattern, p.kit?.id ?? DEFAULT_KIT_ID);
     }
   };
   payloads.forEach(walk);
@@ -230,21 +230,21 @@ export function planImport(payloads: SharePayload[]): ImportPlan {
 }
 
 export interface ImportOutcome {
-  songs: number;
+  patterns: number;
   kits: number;
   replaced: number;
   skipped: number;
-  /** The first imported (or replaced) song, to open it. */
-  song?: Song;
+  /** The first imported (or replaced) pattern, to open it. */
+  pattern?: Pattern;
   kit?: Kit;
 }
 
 /**
  * Apply a plan with the user's resolutions for its conflicts. Kits go first
- * so songs can be re-pointed when a kit was kept as a copy.
+ * so patterns can be re-pointed when a kit was kept as a copy.
  */
 export function applyImport(plan: ImportPlan, resolutions: Record<string, Resolution>): ImportOutcome {
-  const out: ImportOutcome = { songs: 0, kits: 0, replaced: 0, skipped: plan.skipped };
+  const out: ImportOutcome = { patterns: 0, kits: 0, replaced: 0, skipped: plan.skipped };
   const now = new Date().toISOString();
   const kitIdMap = new Map<string, string>(); // incoming kit id → local kit id
 
@@ -255,14 +255,14 @@ export function applyImport(plan: ImportPlan, resolutions: Record<string, Resolu
     if (k.id) kitIdMap.set(k.id, id);
     return kit;
   };
-  const saveIncomingSong = (sng: SharedSong, id: string) => {
-    const kitIdIn = (sng as SharedSong & { kitId?: string }).kitId ?? DEFAULT_KIT_ID;
+  const saveIncomingPattern = (sng: SharedPattern, id: string) => {
+    const kitIdIn = (sng as SharedPattern & { kitId?: string }).kitId ?? DEFAULT_KIT_ID;
     const kitId = kitIdMap.get(kitIdIn) ?? (getState().kits.some((k) => k.id === kitIdIn) ? kitIdIn : DEFAULT_KIT_ID);
-    const { id: _id, kitId: _k, ...rest } = sng as SharedSong & { kitId?: string };
-    const song: Song = { id, ...rest, kitId, createdAt: now, updatedAt: now };
-    saveSong(song);
-    out.song ??= song;
-    return song;
+    const { id: _id, kitId: _k, ...rest } = sng as SharedPattern & { kitId?: string };
+    const pattern: Pattern = { id, ...rest, kitId, createdAt: now, updatedAt: now };
+    savePattern(pattern);
+    out.pattern ??= pattern;
+    return pattern;
   };
 
   for (const k of plan.kits) saveIncomingKit(k, k.id ?? newId('kit'));
@@ -280,20 +280,20 @@ export function applyImport(plan: ImportPlan, resolutions: Record<string, Resolu
   }
   out.kits += plan.kits.length;
 
-  for (const sng of plan.songs) saveIncomingSong(sng, sng.id ?? newId('song'));
+  for (const sng of plan.patterns) saveIncomingPattern(sng, sng.id ?? newId('pattern'));
   for (const { conflict, item } of plan.conflicts) {
-    if (conflict.kind !== 'song') continue;
+    if (conflict.kind !== 'pattern') continue;
     const r = resolutions[conflict.key] ?? 'skip';
     if (r === 'skip') out.skipped++;
     else if (r === 'replace') {
-      saveIncomingSong(item as SharedSong, item.id!);
+      saveIncomingPattern(item as SharedPattern, item.id!);
       out.replaced++;
     } else {
-      saveIncomingSong({ ...(item as SharedSong), name: item.name + ' (imported)' }, newId('song'));
-      out.songs++;
+      saveIncomingPattern({ ...(item as SharedPattern), name: item.name + ' (imported)' }, newId('pattern'));
+      out.patterns++;
     }
   }
-  out.songs += plan.songs.length;
+  out.patterns += plan.patterns.length;
   return out;
 }
 
@@ -318,7 +318,7 @@ export async function payloadsFromText(text: string): Promise<{ payloads: ShareP
 
 export function describeOutcome(o: ImportOutcome, plan?: Pick<ImportPlan, 'unreadable' | 'newerVersion'>): string {
   const parts: string[] = [];
-  if (o.songs) parts.push(o.songs + ' song' + (o.songs === 1 ? '' : 's'));
+  if (o.patterns) parts.push(o.patterns + ' pattern' + (o.patterns === 1 ? '' : 's'));
   if (o.kits) parts.push(o.kits + ' kit' + (o.kits === 1 ? '' : 's'));
   let msg = parts.length ? 'Added ' + parts.join(' and ') + '.' : '';
   if (o.replaced) msg += ' Replaced ' + o.replaced + '.';

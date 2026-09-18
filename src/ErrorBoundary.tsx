@@ -35,7 +35,7 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
           <button
             className="danger"
             onClick={() => {
-              if (!confirm('Delete all songs, kits, scores and settings stored in this browser?')) return;
+              if (!confirm('Delete all patterns, kits, scores and settings stored in this browser?')) return;
               localStorage.clear();
               location.reload();
             }}

@@ -35,7 +35,7 @@ export function stepTime(step: number, bpm: number, swing?: Swing): number {
   }
 }
 
-/** Nearest step to a time within a pass (inverse of stepTime), clamped to the song. */
+/** Nearest step to a time within a pass (inverse of stepTime), clamped to the pattern. */
 export function nearestStep(timeInPass: number, bpm: number, steps: number, swing?: Swing): number {
   let best = 0;
   let bestD = Infinity;
@@ -49,7 +49,7 @@ export function nearestStep(timeInPass: number, bpm: number, steps: number, swin
   return best;
 }
 
-/** Seconds per pass (the whole song, `steps` 16ths long). */
+/** Seconds per pass (the whole pattern, `steps` 16ths long). */
 export function passDuration(bpm: number, steps: number): number {
   return stepDuration(bpm) * steps;
 }

@@ -5,7 +5,7 @@ import { PracticeSession } from './session';
 
 const BPM = 120; // stepDur = 0.125 s, window = 0.0625 s
 const SD = stepDuration(BPM);
-const N = 16; // one-bar songs unless stated
+const N = 16; // one-bar patterns unless stated
 
 describe('timing', () => {
   it('derives step duration and window from bpm', () => {
@@ -202,8 +202,8 @@ describe('gradePass with pad groups (mirror layout)', () => {
   });
 });
 
-describe('multi-bar songs', () => {
-  it('treats the whole song as one pass and places extras beyond bar 1', () => {
+describe('multi-bar patterns', () => {
+  it('treats the whole pattern as one pass and places extras beyond bar 1', () => {
     const steps = 32;
     const expected = [{ pad: 0, step: 0 }, { pad: 0, step: 20 }];
     const s = new PracticeSession(expected, BPM, 10, steps);

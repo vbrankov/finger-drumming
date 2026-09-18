@@ -5,7 +5,7 @@ export const MAX_BARS = 4;
 
 /** 0..15, 4×4 grid, row-major, 0 = top-left */
 export type PadIndex = number;
-/** 16th-note index from the start of the song: 0..bars*16-1 */
+/** 16th-note index from the start of the pattern: 0..bars*16-1 */
 export type Step = number;
 
 export interface Hit {
@@ -21,7 +21,7 @@ export interface Hit {
  */
 export type Level = 'ghost' | 'normal' | 'accent';
 export const LEVELS: Level[] = ['ghost', 'normal', 'accent'];
-/** Velocity stored in a song for each level. */
+/** Velocity stored in a pattern for each level. */
 export const LEVEL_VELOCITY: Record<Level, number> = { ghost: 40, normal: 100, accent: 127 };
 export const LEVEL_GLYPH: Record<Level, string> = { ghost: '\u00b7', normal: '', accent: '\u25b2' };
 
@@ -30,7 +30,7 @@ export interface VelocityThresholds {
   accent: number; // played velocity at or above this is an accent
 }
 
-/** Level a song hit was written at. */
+/** Level a pattern hit was written at. */
 export function levelOfHit(h: Pick<Hit, 'velocity'>): Level {
   const v = h.velocity ?? LEVEL_VELOCITY.normal;
   return v < 64 ? 'ghost' : v >= 112 ? 'accent' : 'normal';
@@ -44,7 +44,7 @@ export function levelOfVelocity(v: number, t: VelocityThresholds): Level {
 export const DIFFICULTIES = [1, 2, 3, 4, 5] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 
-export interface Song {
+export interface Pattern {
   id: string;
   name: string;
   author?: string;
@@ -107,13 +107,13 @@ export const SWING_MAX = 75;
 
 export const DEFAULT_KIT_ID = 'default';
 
-export function songBars(song: Pick<Song, 'bars'>): number {
-  return Math.min(MAX_BARS, Math.max(1, song.bars ?? 1));
+export function patternBars(pattern: Pick<Pattern, 'bars'>): number {
+  return Math.min(MAX_BARS, Math.max(1, pattern.bars ?? 1));
 }
 
-/** Total 16th-note steps in the song. */
-export function songSteps(song: Pick<Song, 'bars'>): number {
-  return songBars(song) * STEPS;
+/** Total 16th-note steps in the pattern. */
+export function patternSteps(pattern: Pick<Pattern, 'bars'>): number {
+  return patternBars(pattern) * STEPS;
 }
 
 /** Pads sharing a role name (case-insensitive) are the same drum, e.g. mirrored kicks. */

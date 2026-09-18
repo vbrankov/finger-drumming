@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function Kits({ onEdit }: Props) {
-  const { kits, songs } = useStore();
+  const { kits, patterns } = useStore();
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const toggle = (id: string) =>
     setSelected((s) => {
@@ -57,7 +57,7 @@ export default function Kits({ onEdit }: Props) {
         </thead>
         <tbody>
           {kits.map((k) => {
-            const users = songs.filter((s) => s.kitId === k.id).length;
+            const users = patterns.filter((s) => s.kitId === k.id).length;
             return (
               <tr key={k.id}>
                 <td>
@@ -65,7 +65,7 @@ export default function Kits({ onEdit }: Props) {
                 </td>
                 <td>{k.name}</td>
                 <td className="muted">{k.slots.filter((s) => s.sound.type === 'user').length} / 16</td>
-                <td className="muted">{users} song{users === 1 ? '' : 's'}</td>
+                <td className="muted">{users} pattern{users === 1 ? '' : 's'}</td>
                 <td className="actions">
                   <button onClick={() => onEdit(k)}>Edit</button>
                   <button onClick={() => onEdit(duplicateKit(k))}>Duplicate</button>

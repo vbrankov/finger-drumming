@@ -30,7 +30,7 @@ export class PracticeSession {
     private readonly bpm: number,
     /** Audio time of step 0 of pass 0. */
     private readonly songStart: number,
-    /** Song length in 16th steps. */
+    /** Pattern length in 16th steps. */
     private readonly steps: number,
     groupOf?: PadGroup,
     private readonly swing?: Swing,
