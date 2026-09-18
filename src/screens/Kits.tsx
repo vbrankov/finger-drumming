@@ -1,5 +1,6 @@
 import type { Kit } from '../model/types';
 import { DEFAULT_KIT_ID } from '../model/types';
+import { copyLink, kitPayload, shareLink } from '../share';
 import { defaultKit, deleteKit, duplicateKit, resetDefaultKit, useStore } from '../store';
 
 interface Props {
@@ -37,6 +38,9 @@ export default function Kits({ onEdit }: Props) {
                 <td className="actions">
                   <button onClick={() => onEdit(k)}>Edit</button>
                   <button onClick={() => onEdit(duplicateKit(k))}>Duplicate</button>
+                  <button onClick={() => shareLink(kitPayload(k)).then((url) => copyLink(url, 'kit \u201c' + k.name + '\u201d'))} title="Copy a link that adds this kit to someone's library (bundled sounds only)">
+                    Share
+                  </button>
                   {k.id === DEFAULT_KIT_ID ? (
                     <button onClick={() => confirm('Reset the default kit to the shipped samples?') && resetDefaultKit()}>Reset</button>
                   ) : (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Kit, Song } from './model/types';
 import { useMidiStatus } from './hooks';
 import KitEditor from './screens/KitEditor';
@@ -7,6 +7,7 @@ import Practice from './screens/Practice';
 import Settings from './screens/Settings';
 import SongEditor from './screens/SongEditor';
 import Songs from './screens/Songs';
+import { clearShareFromLocation, decodeShare, importShared, shareTokenFromLocation } from './share';
 import { useStore } from './store';
 
 type Screen =
@@ -25,8 +26,36 @@ const TABS: { name: 'songs' | 'kits' | 'settings'; label: string }[] = [
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'songs' });
+  const [notice, setNotice] = useState<string | null>(null);
   const { kits } = useStore();
   const midi = useMidiStatus();
+
+  // A share link (#s=…) adds its song/kit to the library and opens it.
+  useEffect(() => {
+    const token = shareTokenFromLocation();
+    if (!token) return;
+    clearShareFromLocation();
+    decodeShare(token).then((payload) => {
+      if (!payload) {
+        setNotice('That share link could not be read.');
+        return;
+      }
+      const r = importShared(payload);
+      if (r.song) {
+        setNotice((r.added ? 'Added ' : 'You already had ') + '\u201c' + r.song.name + '\u201d' + (r.song.author ? ' by ' + r.song.author : '') + '.');
+        setScreen({ name: 'practice', song: r.song });
+      } else {
+        setNotice((r.added ? 'Added kit ' : 'You already had kit ') + '\u201c' + r.kit.name + '\u201d.');
+        setScreen({ name: 'edit-kit', kit: r.kit, back: { name: 'kits' } });
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = window.setTimeout(() => setNotice(null), 6000);
+    return () => window.clearTimeout(t);
+  }, [notice]);
 
   const section = screen.name === 'practice' || screen.name === 'edit-song' ? 'songs' : screen.name === 'edit-kit' ? 'kits' : screen.name;
 
@@ -77,6 +106,11 @@ export default function App() {
           {midi.ok ? (midi.inputs.length ? 'MIDI: ' + midi.inputs.map((i) => i.name).join(', ') : 'MIDI: no inputs') : (midi.error ?? 'MIDI…')}
         </span>
       </header>
+      {notice && (
+        <div className="notice" onClick={() => setNotice(null)}>
+          {notice}
+        </div>
+      )}
       <main>{body}</main>
     </div>
   );

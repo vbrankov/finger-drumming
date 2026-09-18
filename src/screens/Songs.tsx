@@ -1,5 +1,6 @@
 import type { Song } from '../model/types';
-import { deleteSong, emptySong, useStore } from '../store';
+import { copyLink, shareLink, songPayload } from '../share';
+import { deleteSong, emptySong, kitFor, useStore } from '../store';
 
 interface Props {
   onPractice: (song: Song) => void;
@@ -56,6 +57,9 @@ export default function Songs({ onPractice, onEdit }: Props) {
                     Practice
                   </button>
                   <button onClick={() => onEdit(s)}>Edit</button>
+                  <button onClick={() => shareLink(songPayload(s, kitFor(s))).then((url) => copyLink(url, '\u201c' + s.name + '\u201d'))} title="Copy a link that adds this song to someone's library">
+                    Share
+                  </button>
                   <button className="danger" onClick={() => confirm('Delete "' + s.name + '"?') && deleteSong(s.id)}>
                     Delete
                   </button>

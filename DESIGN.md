@@ -205,12 +205,23 @@ too; *Reset default kit* restores it from the shipped JSON.
   role names + bundled file names only, never blobs — an imported kit whose
   slots pointed at user samples falls back to the default sample for that slot.
 
+## Sharing
+
+Share links carry the content in the URL fragment: `…/#s=<deflate+base64url
+JSON>`. A song link holds the song and, if it is not the default kit, its kit
+(roles and bundled sounds only; uploaded samples fall back to the default).
+A kit link holds a kit. Opening a link adds the content to the visitor's
+library — without duplicating something they already have — and opens it.
+Nothing is uploaded anywhere; there is no server. *Share* buttons on the Songs
+and Kits lists copy the link.
+
 ## Screens
 
 Top-level navigation: **Songs** · **Kits** · **Settings**.
 
-**Songs** — the first screen. Lists every song with name, bpm, kit name, hit
-count and best score. Per row: *Practice*, *Edit*, *Delete*. A *New song*
+**Songs** — the first screen. Lists every song with name, author, difficulty,
+bpm, kit name, hit count and best score. Per row: *Practice*, *Edit*, *Share*,
+*Delete*. A *New song*
 button opens the song editor on an empty measure with the default kit
 selected. Sorted by last updated.
 

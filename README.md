@@ -1,8 +1,12 @@
 # Finger Drumming
 
-Personal practice tool for a 4×4 pad controller: build one-measure patterns in
-a step grid, then play them back on the pads while the app grades every hit in
-milliseconds. Design and decisions: [DESIGN.md](DESIGN.md).
+**Live: https://vbrankov.github.io/finger-drumming/**
+
+Practice tool for a 4×4 pad controller (or the on-screen pads / keyboard):
+build patterns in a step grid, then play them while the app grades every hit
+in milliseconds. Everything runs in the browser; songs, kits and scores stay
+on your device. Share a song or kit with a link. Design and decisions:
+[DESIGN.md](DESIGN.md).
 
 ## Run
 

@@ -236,3 +236,12 @@ table.list td.actions button { margin-left: 4px; }
 /* 3+ bars: cells too narrow for numbers; colour carries the verdict. */
 .practice-grid.dense .step-grid .cell { font-size: 0; }
 .practice-grid.dense .step-grid .cell.miss, .practice-grid.dense .step-grid .cell.extra { font-size: 10px; }
+
+.notice {
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
