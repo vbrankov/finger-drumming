@@ -147,12 +147,13 @@ export default function Practice({ song, onBack }: Props) {
     if (r.kind === 'miss') return { on, className: 'miss' + stale, content: '✕', title: 'Missed' };
     if (r.kind === 'extra') return { on, className: 'extra' + stale, content: '+', title: 'Extra hit' };
     const ms = Math.round(r.offsetMs);
+    const abs = Math.abs(ms);
     return {
       on,
       className: 'graded' + stale,
-      style: { background: offsetColor(r.errorMs, win * 1000) },
-      content: ms > 0 ? '+' + ms : ms,
-      title: (ms > 0 ? 'Late ' : 'Early ') + Math.abs(ms) + ' ms',
+      style: { background: offsetColor(r.offsetMs, win * 1000) },
+      content: ms < 0 ? '◂' + abs : ms > 0 ? abs + '▸' : abs,
+      title: (ms > 0 ? 'Late (dragging) ' : ms < 0 ? 'Early (rushing) ' : 'On time ') + abs + ' ms',
     };
   };
 
@@ -233,15 +234,19 @@ export default function Practice({ song, onBack }: Props) {
         </p>
       </div>
       <p className="muted small">
-        Score = sum of the 3 worst errors in a pass. Miss or extra hit = 1000. Best is only recorded at the song&apos;s own tempo ({song.bpm} bpm).
+        <span className="swatch early" /> {'◂'} early (rushing) &nbsp; <span className="swatch ontime" /> on time &nbsp; <span className="swatch late" /> late (dragging) {'▸'} &nbsp;·&nbsp; Score = sum of the 3 worst
+        errors in a pass; miss or extra = 1000. Best is only recorded at the song&apos;s own tempo ({song.bpm} bpm).
       </p>
     </div>
   );
 }
 
-/** Green at 0, amber around half the window, red at the window edge. */
-function offsetColor(errorMs: number, windowMs: number): string {
-  const t = Math.min(1, errorMs / windowMs);
-  const hue = 120 * (1 - t);
-  return 'hsl(' + hue + ' 70% 42%)';
+/**
+ * Green when on time; leans blue the earlier (rushing) and red the later
+ * (dragging) the hit was, reaching full colour at the window edge.
+ */
+export function offsetColor(offsetMs: number, windowMs: number): string {
+  const t = Math.min(1, Math.abs(offsetMs) / windowMs);
+  const hue = offsetMs < 0 ? 120 + 100 * t : 120 - 120 * t; // 120 green → 220 blue | → 0 red
+  return 'hsl(' + hue + ' ' + (55 + 20 * t) + '% 42%)';
 }

@@ -150,7 +150,9 @@ pass is graded independently and the display updates as each pass completes.
 **Display.** The same 16-pad × 16-step grid as the editor, with a playhead.
 Feedback is immediate: the instant a hit arrives it is matched to the nearest
 unclaimed expectation of that drum within the window and its cell fills with
-the signed offset in ms on a green → amber → red background; a miss turns its
+the offset in ms with an arrow (◂ early, late ▸) on a background that is
+green when on time and leans blue the more you rushed, red the more you
+dragged, saturating at the window edge; a miss turns its
 cell red the moment its window expires; an extra appears at once in its landing
 cell. The previous pass stays visible dimmed and is overwritten cell by cell as
 the next pass sweeps through. The pass score is computed from the full greedy
