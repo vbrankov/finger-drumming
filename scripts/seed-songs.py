@@ -54,9 +54,11 @@ SONGS = [
     ("one-drop", "Reggae One Drop", 2, 76, 1, hits(
         (K, [8]), (SS, [8]), (H, E8), (OH, [14]))),
     ("boom-bap", "Boom Bap", 3, 88, 1, hits(
-        (K, [0, 7, 10]), (S, [4, 12]), (S, [3, 11], GHOST), (H, BEATS, ACCENT), (H, [2, 6, 10]), (OH, [14]))),
+        (K, [0, 7, 10]), (S, [4, 12]), (S, [3, 11], GHOST), (H, BEATS, ACCENT), (H, [2, 6, 10]), (OH, [14])),
+        {"amount": 56, "unit": "sixteenth"}),
     ("funk-ghosts", "Funk with Ghost Notes", 3, 100, 1, hits(
-        (K, [0, 10]), (S, [4, 12], ACCENT), (S, [7, 11, 15], GHOST), (H, E8))),
+        (K, [0, 10]), (S, [4, 12], ACCENT), (S, [7, 11, 15], GHOST), (H, E8)),
+        {"amount": 55, "unit": "sixteenth"}),
     ("tom-groove", "Tom Groove", 3, 100, 1, hits(
         (K, [0, 8]), (S, [4, 12]), (LT, [2, 10]), (HT, [6, 14]))),
     ("sixteenth-hats", "Sixteenth Hats (two hands)", 3, 92, 1, hits(
@@ -79,9 +81,11 @@ SONGS = [
         (H, [14, 15]), (H2, [14, 15]), (OH, [15]))),
     ("breakbeat", "Breakbeat", 4, 96, 2, hits(
         (K, [0, 6, 10, 16, 21, 26]), (S, [4, 12, 20, 28], ACCENT), (S, [15, 23, 31], GHOST),
-        (H, list(range(0, 32, 2))), (OH, [14, 30]))),
+        (H, list(range(0, 32, 2))), (OH, [14, 30])),
+        {"amount": 54, "unit": "sixteenth"}),
     ("linear-funk", "Linear Funk", 5, 96, 1, hits(
-        (K, [0, 6, 8]), (H, [2, 3, 10, 11, 14, 15]), (S, [4, 12], ACCENT), (H2, [7]))),
+        (K, [0, 6, 8]), (H, [2, 3, 10, 11, 14, 15]), (S, [4, 12], ACCENT), (H2, [7])),
+        {"amount": 55, "unit": "sixteenth"}),
     # Swung feels: the off-beat notes land late (see Swing in the design doc).
     ("swung-hip-hop", "Swung Hip Hop", 3, 90, 1, hits(
         (K, [0, 7, 10]), (S, [4, 12], ACCENT), (S, [15], GHOST), (H, E8), (H2, [3, 11])),

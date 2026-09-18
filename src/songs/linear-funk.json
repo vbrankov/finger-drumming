@@ -4,6 +4,10 @@
   "author": "Claude",
   "difficulty": 5,
   "bpm": 96,
+  "swing": {
+    "amount": 55,
+    "unit": "sixteenth"
+  },
   "kitId": "default",
   "createdAt": "2026-09-16T00:00:00.000Z",
   "updatedAt": "2026-09-16T00:00:00.000Z",

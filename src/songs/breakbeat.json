@@ -5,6 +5,10 @@
   "difficulty": 4,
   "bpm": 96,
   "bars": 2,
+  "swing": {
+    "amount": 54,
+    "unit": "sixteenth"
+  },
   "kitId": "default",
   "createdAt": "2026-09-16T00:00:00.000Z",
   "updatedAt": "2026-09-16T00:00:00.000Z",
