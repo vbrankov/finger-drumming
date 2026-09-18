@@ -33,3 +33,9 @@ public/sounds/ bundled CC0 samples (see the README there) used by the default ki
 ```bash
 npm test
 ```
+
+## License
+
+Code: [MIT](LICENSE). Bundled drum samples: CC0, from the
+[Sonic Pi](https://github.com/sonic-pi-net/sonic-pi) collection — see
+[public/sounds/README.md](public/sounds/README.md).
