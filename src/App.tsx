@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Kit, Song } from './model/types';
 import { useMidiStatus } from './hooks';
 import KitEditor from './screens/KitEditor';
@@ -7,8 +7,11 @@ import Practice from './screens/Practice';
 import Settings from './screens/Settings';
 import SongEditor from './screens/SongEditor';
 import Songs from './screens/Songs';
-import { clearShareFromLocation, decodeShare, importShared, shareTokenFromLocation } from './share';
-import { useStore } from './store';
+import ImportDialog from './components/ImportDialog';
+import { applyImport, clearShareFromLocation, decodeShare, describeOutcome, planImport, shareTokenFromLocation } from './share';
+import type { ImportOutcome, ImportPlan, Resolution } from './share';
+import { MANUAL_URL } from './links';
+import { getState, useStore } from './store';
 
 type Screen =
   | { name: 'songs' }
@@ -17,6 +20,12 @@ type Screen =
   | { name: 'practice'; song: Song }
   | { name: 'edit-song'; song: Song }
   | { name: 'edit-kit'; kit: Kit; back: Screen };
+
+function collectSongIds(p: { t: string; song?: { id?: string }; items?: unknown[] }): string[] {
+  if (p.t === 'song') return p.song?.id ? [p.song.id] : [];
+  if (p.t === 'pack') return (p.items as { t: string; song?: { id?: string }; items?: unknown[] }[]).flatMap(collectSongIds);
+  return [];
+}
 
 const TABS: { name: 'songs' | 'kits' | 'settings'; label: string }[] = [
   { name: 'songs', label: 'Songs' },
@@ -27,8 +36,21 @@ const TABS: { name: 'songs' | 'kits' | 'settings'; label: string }[] = [
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'songs' });
   const [notice, setNotice] = useState<string | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<ImportPlan | null>(null);
   const { kits } = useStore();
   const midi = useMidiStatus();
+
+  function finishLinkImport(plan: ImportPlan, outcome: ImportOutcome) {
+    setNotice(describeOutcome(outcome, plan));
+    if (outcome.song) setScreen({ name: 'practice', song: outcome.song });
+    else if (outcome.kit) setScreen({ name: 'edit-kit', kit: outcome.kit, back: { name: 'kits' } });
+    else {
+      // Nothing new (identical or skipped): still open what the link pointed at, if we have it.
+      const s = getState().songs.find((x) => x.id === linkSongIds.current[0]);
+      if (s) setScreen({ name: 'practice', song: s });
+    }
+  }
+  const linkSongIds = useRef<string[]>([]);
 
   // A share link (#s=…) adds its song/kit to the library and opens it.
   useEffect(() => {
@@ -40,15 +62,12 @@ export default function App() {
         setNotice('That share link could not be read.');
         return;
       }
-      const r = importShared(payload);
-      if (r.song) {
-        setNotice((r.added ? 'Added ' : 'You already had ') + '\u201c' + r.song.name + '\u201d' + (r.song.author ? ' by ' + r.song.author : '') + '.');
-        setScreen({ name: 'practice', song: r.song });
-      } else {
-        setNotice((r.added ? 'Added kit ' : 'You already had kit ') + '\u201c' + r.kit.name + '\u201d.');
-        setScreen({ name: 'edit-kit', kit: r.kit, back: { name: 'kits' } });
-      }
+      const plan = planImport([payload]);
+      linkSongIds.current = collectSongIds(payload);
+      if (plan.conflicts.length) setPendingPlan(plan);
+      else finishLinkImport(plan, applyImport(plan, {}));
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -102,6 +121,9 @@ export default function App() {
             </button>
           ))}
         </nav>
+        <a className="help" href={MANUAL_URL} target="_blank" rel="noreferrer" title="Manual">
+          Help
+        </a>
         <span className={'status' + (midi.ok ? '' : ' bad')}>
           {midi.ok ? (midi.inputs.length ? 'MIDI: ' + midi.inputs.map((i) => i.name).join(', ') : 'MIDI: no inputs') : (midi.error ?? 'MIDI…')}
         </span>
@@ -110,6 +132,17 @@ export default function App() {
         <div className="notice" onClick={() => setNotice(null)}>
           {notice}
         </div>
+      )}
+      {pendingPlan && (
+        <ImportDialog
+          conflicts={pendingPlan.conflicts.map((c) => c.conflict)}
+          onCancel={() => setPendingPlan(null)}
+          onDone={(res: Record<string, Resolution>) => {
+            const plan = pendingPlan;
+            setPendingPlan(null);
+            finishLinkImport(plan, applyImport(plan, res));
+          }}
+        />
       )}
       <main>{body}</main>
     </div>

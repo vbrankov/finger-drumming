@@ -5,8 +5,12 @@
 Practice tool for a 4×4 pad controller (or the on-screen pads / keyboard):
 build patterns in a step grid, then play them while the app grades every hit
 in milliseconds. Everything runs in the browser; songs, kits and scores stay
-on your device. Share a song or kit with a link. Design and decisions:
-[DESIGN.md](DESIGN.md).
+on your device. Share a song or kit with a link.
+
+- [MANUAL.md](MANUAL.md) — how to use it, the kit layout, the sound library,
+  sharing, making songs with AI.
+- [FORMAT.md](FORMAT.md) — the share/pack format, for scripts and AI agents.
+- [DESIGN.md](DESIGN.md) — design and decisions.
 
 ## Run
 

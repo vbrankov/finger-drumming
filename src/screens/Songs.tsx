@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Song } from '../model/types';
 import { copyLink, packPayload, packText, shareLink, songPayload } from '../share';
 import { deleteSong, emptySong, kitFor, useStore } from '../store';
+import { AI_URL } from '../links';
 
 interface Props {
   onPractice: (song: Song) => void;
@@ -53,6 +54,13 @@ export default function Songs({ onPractice, onEdit }: Props) {
           </button>
         </div>
       </div>
+      <p className="muted small" style={{ margin: 0 }}>
+        Want more rhythms? Build them in the editor, paste ones people share (Settings {'\u2192'} Data), or{' '}
+        <a href={AI_URL} target="_blank" rel="noreferrer">
+          have an AI write them
+        </a>
+        .
+      </p>
       {sorted.length === 0 ? (
         <p className="muted">No songs yet.</p>
       ) : (

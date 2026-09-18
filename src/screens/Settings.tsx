@@ -6,8 +6,11 @@ import { onMidiHit } from '../engine/midi';
 import { SongPlayer } from '../engine/player';
 import { isTypingTarget, KEY_TO_PAD, useFlash, useMidiStatus } from '../hooks';
 import { standardNoteMap } from '../model/types';
-import { importText } from '../share';
+import ImportDialog from '../components/ImportDialog';
+import { applyImport, describeOutcome, payloadsFromText, planImport } from '../share';
+import type { ImportPlan, Resolution } from '../share';
 import { defaultKit, exportJson, importJson, updateSettings, useStore } from '../store';
+import { AI_URL, FORMAT_URL } from '../links';
 
 const CAL_BPM = 100;
 const CAL_BARS = 8;
@@ -132,17 +135,17 @@ export default function Settings() {
   // ── Paste import: pack tokens and share links ───────────────────────────
   const [pasted, setPasted] = useState('');
   const [pasteResult, setPasteResult] = useState<string | null>(null);
+  const [pastePlan, setPastePlan] = useState<ImportPlan | null>(null);
+  function finishPaste(plan: ImportPlan, res: Record<string, Resolution>) {
+    const outcome = applyImport(plan, res);
+    setPasteResult(describeOutcome(outcome, plan));
+    if (outcome.songs || outcome.kits || outcome.replaced) setPasted('');
+  }
   async function doPasteImport() {
-    const r = await importText(pasted);
-    const parts = [];
-    if (r.songs) parts.push(r.songs + ' song' + (r.songs === 1 ? '' : 's'));
-    if (r.kits) parts.push(r.kits + ' kit' + (r.kits === 1 ? '' : 's'));
-    let msg = parts.length ? 'Added ' + parts.join(' and ') + '.' : 'Nothing new to add.';
-    if (r.skipped) msg += ' Skipped ' + r.skipped + ' you already had.';
-    if (r.unreadable) msg += ' ' + r.unreadable + ' item' + (r.unreadable === 1 ? '' : 's') + ' could not be read.';
-    if (r.newerVersion) msg += ' Some items were made with a newer version of the app; update to import them.';
-    setPasteResult(msg);
-    if (r.songs || r.kits) setPasted('');
+    const { payloads, unreadable, newerVersion } = await payloadsFromText(pasted);
+    const plan = { ...planImport(payloads), unreadable, newerVersion };
+    if (plan.conflicts.length) setPastePlan(plan);
+    else finishPaste(plan, {});
   }
 
   // ── Export / import ────────────────────────────────────────────────────
@@ -299,7 +302,14 @@ export default function Settings() {
         <p className="muted small" style={{ margin: 0 }}>Uploaded samples are not exported; imported kits fall back to bundled sounds for those slots.</p>
         <h4 style={{ margin: '8px 0 0' }}>Paste songs or kits</h4>
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
-          Paste text copied from the Songs list (starts with <code>fd1:</code>) or share links. Anything around them is ignored, so a whole forum post works.
+          Paste text copied from the Songs list (starts with <code>fd1:</code>) or share links. Anything around them is ignored, so a whole forum post works.{' '}
+          <a href={FORMAT_URL} target="_blank" rel="noreferrer">
+            Format reference
+          </a>{' '}
+          {'\u00b7'}{' '}
+          <a href={AI_URL} target="_blank" rel="noreferrer">
+            Making songs with AI
+          </a>
         </p>
         <textarea
           value={pasted}
@@ -314,6 +324,17 @@ export default function Settings() {
           </button>
           {pasteResult && <span className="small">{pasteResult}</span>}
         </div>
+        {pastePlan && (
+          <ImportDialog
+            conflicts={pastePlan.conflicts.map((c) => c.conflict)}
+            onCancel={() => setPastePlan(null)}
+            onDone={(res) => {
+              const plan = pastePlan;
+              setPastePlan(null);
+              finishPaste(plan, res);
+            }}
+          />
+        )}
       </div>
     </div>
   );

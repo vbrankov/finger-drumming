@@ -65,7 +65,9 @@ input[type='number'] { width: 5em; }
 .topbar nav { display: flex; gap: 4px; }
 .topbar nav button { background: none; border: none; color: var(--muted); }
 .topbar nav button.active { color: var(--text); background: var(--panel-2); }
-.topbar .status { margin-left: auto; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40%; }
+.topbar .help { margin-left: auto; color: var(--muted); text-decoration: none; font-size: 13px; padding: 4px 8px; border-radius: var(--radius); }
+.topbar .help:hover { color: var(--text); background: var(--panel-2); }
+.topbar .status { margin-left: 0; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40%; }
 .topbar .status.bad { color: var(--bad); }
 
 .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -283,3 +285,9 @@ table.list td.actions button { margin-left: 4px; }
 .pads-below .pad-grid { max-width: 100%; }
 
 .notice.warn { background: var(--accent-2); color: #1a1a1a; margin-bottom: 0; }
+
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 10; padding: 16px; }
+.modal { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; max-width: 720px; width: 100%; max-height: 90vh; overflow: auto; }
+.modal table.list td.actions button { padding: 3px 8px; font-size: 12px; }
+
+a { color: var(--accent); }
