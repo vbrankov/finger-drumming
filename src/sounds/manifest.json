@@ -138,6 +138,11 @@
       "label": "Roll"
     },
     {
+      "file": "drum_sidestick.wav",
+      "family": "drum",
+      "label": "Sidestick"
+    },
+    {
       "file": "drum_snare_hard.wav",
       "family": "drum",
       "label": "Snare Hard"

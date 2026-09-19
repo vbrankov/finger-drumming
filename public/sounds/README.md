@@ -5,7 +5,12 @@ Every file here is from the Sonic Pi project's sample collection
 README they are sourced from freesound.org and released under Creative Commons
 0 (public domain): http://creativecommons.org/publicdomain/zero/1.0/
 
-File names are Sonic Pi's own, converted from FLAC to 16-bit WAV so every
+`drum_sidestick.wav` is not from Sonic Pi: it is derived here from
+`drum_snare_hard` and `drum_tom_hi_hard` (their attacks with a fast decay and
+a short tick), so it inherits their CC0 status. The set has no recorded
+cross-stick.
+
+File names are otherwise Sonic Pi's own, converted from FLAC to 16-bit WAV so every
 browser decodes them (FLAC decoding proved unreliable in some browsers). The
 percussive families are included
 (bd, drum, sn, hat, ride, perc, tabla, elec, glitch, misc); loops, ambient

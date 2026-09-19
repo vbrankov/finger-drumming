@@ -204,7 +204,7 @@ Files are fetched only when a kit uses them.
 
 All files are `.wav` (16-bit, 44.1 kHz). The default kit uses `drum_heavy_kick`,
 `drum_snare_hard`, `drum_cymbal_closed/open/hard/soft`, `drum_splash_hard/soft`,
-`drum_tom_*_hard` and `tabla_tas1` (sidestick — the set has no true cross-stick; `tabla_te1` and `tabla_dhec` are alternatives).
+`drum_tom_*_hard` and `drum_sidestick` (a cross-stick made from the snare's and tom's attack; the set has no recorded one).
 
 ## Sharing
 

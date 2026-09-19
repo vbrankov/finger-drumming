@@ -70,8 +70,8 @@ function readList<T extends { id: string }>(
 const RENAMED_SOUNDS: Record<string, string> = {
   "kick.flac": "drum_heavy_kick.wav",
   "snare.flac": "drum_snare_hard.wav",
-  "sidestick.flac": "tabla_tas1.wav",
-  "rim.flac": "tabla_tas1.wav",
+  "sidestick.flac": "drum_sidestick.wav",
+  "rim.flac": "drum_sidestick.wav",
   "hat-closed.flac": "drum_cymbal_closed.wav",
   "hat-open.flac": "drum_cymbal_open.wav",
   "ride.flac": "drum_cymbal_hard.wav",
