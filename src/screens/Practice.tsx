@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import PadGrid from '../components/PadGrid';
 import ScrollGrid from '../components/ScrollGrid';
+import TempoKnob from '../components/TempoKnob';
 import StepGrid from '../components/StepGrid';
 import type { CellState } from '../components/StepGrid';
 import { getAudioContext, resumeAudio } from '../engine/audio';
@@ -22,9 +23,9 @@ import { DEFAULT_KIT, kitFor, recordScore, recordSongScore, useStore } from '../
 type Mode = 'drums' | 'click' | 'silent';
 const MODE_KEY = 'fd.practice.mode';
 const MODES: [Mode, string, string][] = [
-  ['drums', 'Drums', "Hear the pattern's drums"],
-  ['click', 'Click', 'Metronome only'],
-  ['silent', 'Nothing', 'Only your own drums (count-in still clicks)'],
+  ['drums', '\u{1F941} Drums', "Hear the pattern's drums"],
+  ['click', '\u23F1 Click', 'Metronome only'],
+  ['silent', '\u{1F507} Nothing', 'Only your own drums (count-in still clicks)'],
 ];
 function readMode(): Mode {
   const v = localStorage.getItem(MODE_KEY);
@@ -70,6 +71,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
     setModeState(m);
     localStorage.setItem(MODE_KEY, m);
   };
+  const modeIndex = Math.max(0, MODES.findIndex((m) => m[0] === mode));
   const [bpm, setBpm] = useState(defaultBpm);
   const [loopMode, setLoopMode] = useState<LoopMode>('song');
   const [loopSection, setLoopSection] = useState(0);
@@ -401,17 +403,16 @@ export default function Practice({ target, onBack, onSettings }: Props) {
           </span>
         </div>
         <div className="row">
-          {MODES.map(([m, label, title]) => (
-            <button key={m} className={mode === m ? 'active' : ''} title={title} onClick={() => setMode(m)}>
-              {label}
-            </button>
-          ))}
+          <button
+            className="mode-cycle"
+            title={MODES[modeIndex][2] + ' \u2014 click to change'}
+            onClick={() => setMode(MODES[(modeIndex + 1) % MODES.length][0])}
+          >
+            {MODES[modeIndex][1]}
+          </button>
           <label className="field">
             Tempo
-            <button onClick={() => setBpm((b) => Math.max(20, b - 5))}>−</button>
-            <input type="number" value={bpm} min={20} max={300} onChange={(e) => setBpm(Number(e.target.value) || defaultBpm)} />
-            <button onClick={() => setBpm((b) => Math.min(300, b + 5))}>+</button>
-            {bpm !== defaultBpm && <button onClick={() => setBpm(defaultBpm)}>reset</button>}
+            <TempoKnob value={bpm} defaultValue={defaultBpm} onChange={setBpm} />
           </label>
           {running ? (
             <button className="primary" onClick={stop}>

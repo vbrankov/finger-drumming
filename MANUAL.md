@@ -40,10 +40,12 @@ column per 16th note, the beats numbered 1–4 — and your 16 pads below it.
 
 - **Start** gives a one-bar count-in, then the pattern **loops** until you
   stop. Every loop is a *pass* and is graded on its own.
-- **Drums / Click / Nothing** chooses what you hear besides your own hits:
-  the pattern's drums, a metronome, or only yourself (the count-in always
-  clicks). The choice is remembered across patterns.
-- **Tempo** overrides the song's tempo for this session. Your best score is
+- The **Drums / Click / Nothing** button cycles through what you hear
+  besides your own hits: the pattern's drums, a metronome, or only yourself
+  (the count-in always clicks). The choice is remembered across patterns.
+- **Tempo**: press the number and drag up or down (or use the mouse wheel);
+  double-click it to go back to the pattern's own tempo. It overrides the
+  tempo for this session. Your best score is
   only saved at the song's own tempo, so the number means something.
 
 **Feedback appears the instant you hit.** A cell fills with your offset in
