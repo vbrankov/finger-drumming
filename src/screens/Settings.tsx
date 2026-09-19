@@ -5,7 +5,7 @@ import { estimateCalibrationMs, robustMean } from '../engine/calibration';
 import { onMidiHit } from '../engine/midi';
 import { PatternPlayer } from '../engine/player';
 import { patternTimeline } from '../model/timing';
-import { isTypingTarget, KEY_TO_PAD, useFlash, useMidiStatus } from '../hooks';
+import { auditionPad, isTypingTarget, KEY_TO_PAD, useFlash, useLoadedKit, useMidiStatus } from '../hooks';
 import { standardNoteMap } from '../model/types';
 import ImportDialog from '../components/ImportDialog';
 import { applyImport, describeOutcome, payloadsFromText, planImport } from '../share';
@@ -51,6 +51,10 @@ export default function Settings() {
   const [calResult, setCalResult] = useState<number | null>(null);
   const calPlayer = useRef<PatternPlayer | null>(null);
   const calTapsRef = useRef<number[]>([]);
+  // Each tap also sounds its drum right away, so the player can hear the flam
+  // between their hit and the click close up as they lock in.
+  const calKit = useLoadedKit(defaultKit());
+  const CAL_FALLBACK_PAD = 9; // snare, for unmapped notes and the on-screen target
 
   function calStop() {
     const p = calPlayer.current;
@@ -74,17 +78,19 @@ export default function Settings() {
   }
 
   // Any MIDI note (mapped or not), pad key, or tap on the target counts while calibrating.
-  const tap = (perfTime: number) => {
+  const tap = (perfTime: number, pad = CAL_FALLBACK_PAD, velocity?: number) => {
     if (!calPlayer.current) return;
+    auditionPad(calKit, calKit?.buffers[pad] ? pad : CAL_FALLBACK_PAD, velocity);
     calTapsRef.current.push(perfToAudioTime(perfTime));
     setCalTaps(calTapsRef.current.length);
   };
   useEffect(() => {
     if (!calRunning) return;
-    const off = onMidiHit((m) => tap(m.perfTime));
+    const off = onMidiHit((m) => tap(m.perfTime, settings.noteMap[m.note] ?? CAL_FALLBACK_PAD, m.velocity));
     const key = (e: KeyboardEvent) => {
       if (e.repeat || isTypingTarget(e)) return;
-      if (KEY_TO_PAD[e.key.toLowerCase()] !== undefined) tap(e.timeStamp);
+      const pad = KEY_TO_PAD[e.key.toLowerCase()];
+      if (pad !== undefined) tap(e.timeStamp, pad);
     };
     window.addEventListener('keydown', key);
     return () => {
@@ -92,7 +98,7 @@ export default function Settings() {
       window.removeEventListener('keydown', key);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calRunning]);
+  }, [calRunning, calKit, settings.noteMap]);
   useEffect(() => () => calPlayer.current?.stop(), []);
 
   // ── Velocity calibration: soft hits, then hard hits ───────────────────
@@ -214,7 +220,7 @@ export default function Settings() {
       <div className="panel stack">
         <h3 style={{ margin: 0 }}>Calibration</h3>
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
-          Compensates for controller and audio output latency. Start, then tap any pad on every click for {CAL_BARS} bars at {CAL_BPM} bpm. A robust mean of the offsets becomes the calibration.
+          Compensates for controller and audio output latency. Start, then play any pad on every click for {CAL_BARS} bars at {CAL_BPM} bpm. Your pad sounds too: when your drum and the click land as one sound, you are in sync. A robust mean of the offsets becomes the calibration.
         </p>
         <div className="row">
           {calRunning ? <button onClick={calStop}>■ Stop</button> : <button className="primary" onClick={calStart}>▶ Start calibration</button>}
