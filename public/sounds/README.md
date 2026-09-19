@@ -5,10 +5,10 @@ Every file here is from the Sonic Pi project's sample collection
 README they are sourced from freesound.org and released under Creative Commons
 0 (public domain): http://creativecommons.org/publicdomain/zero/1.0/
 
-`drum_sidestick.wav` is not from Sonic Pi: it is derived here from
-`drum_snare_hard` and `drum_tom_hi_hard` (their attacks with a fast decay and
-a short tick), so it inherits their CC0 status. The set has no recorded
-cross-stick.
+`drum_sidestick.wav` is not from Sonic Pi (the set has no recorded
+cross-stick). It is "acoustic side stick.wav" by KEVOY on freesound.org,
+https://freesound.org/people/KEVOY/sounds/82280/ , Creative Commons 0
+(public domain), trimmed to 0.3 s and converted to mono 16-bit 44.1 kHz.
 
 File names are otherwise Sonic Pi's own, converted from FLAC to 16-bit WAV so every
 browser decodes them (FLAC decoding proved unreliable in some browsers). The
