@@ -150,8 +150,9 @@ tap to make your own sound coincide with the click. Day-one feature.
 ## Practice
 
 **Modes**
-- *Play-along* — song drums + metronome + your hits, all audible.
-- *Solo* — metronome + your hits only. Grading is identical.
+- *Drums* — the pattern's drums + your hits.
+- *Click* — metronome + your hits.
+- *Nothing* — your hits only (the count-in still clicks). Grading is identical.
 
 **Flow.** Pick a song, choose tempo (defaults to `song.bpm`), press start.
 One-bar count-in, then the song (all its bars) **loops continuously** until

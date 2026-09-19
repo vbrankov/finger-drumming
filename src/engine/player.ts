@@ -100,7 +100,8 @@ export class PatternPlayer {
     const last = Math.floor((to - this.songStart) / stepDur - 1e-9);
     for (let k = first; k <= last; k++) {
       const inBar = ((k % STEPS) + STEPS) % STEPS;
-      if (metronome && inBar % 4 === 0) playBuffer(inBar === 0 ? this.clickHi! : this.clickLo!, this.songStart + k * stepDur);
+      // The count-in always clicks; after it, only when the metronome is on.
+      if ((metronome || k < 0) && inBar % 4 === 0) playBuffer(inBar === 0 ? this.clickHi! : this.clickLo!, this.songStart + k * stepDur);
     }
     if (!playSong) return;
     const firstPass = Math.max(0, Math.floor((from - this.songStart) / passDur));

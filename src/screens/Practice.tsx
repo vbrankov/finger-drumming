@@ -18,7 +18,18 @@ import type { Hit, Pattern, Song, Swing } from '../model/types';
 import { auditionPad, useFlash, useLoadedKit, usePadInput } from '../hooks';
 import { DEFAULT_KIT, kitFor, recordScore, recordSongScore, useStore } from '../store';
 
-type Mode = 'playalong' | 'solo';
+/** What you hear besides your own drums: the pattern's drums, a click, or nothing. Remembered across patterns. */
+type Mode = 'drums' | 'click' | 'silent';
+const MODE_KEY = 'fd.practice.mode';
+const MODES: [Mode, string, string][] = [
+  ['drums', 'Drums', "Hear the pattern's drums"],
+  ['click', 'Click', 'Metronome only'],
+  ['silent', 'Nothing', 'Only your own drums (count-in still clicks)'],
+];
+function readMode(): Mode {
+  const v = localStorage.getItem(MODE_KEY);
+  return MODES.some((m) => m[0] === v) ? (v as Mode) : 'drums';
+}
 type LoopMode = 'song' | 'section' | 'section+next';
 
 /** A pattern practised on its own, or a song (a sequence of patterns). */
@@ -54,9 +65,12 @@ export default function Practice({ target, onBack, onSettings }: Props) {
   const author = song ? song.author : pattern!.author;
   const difficulty = song ? song.difficulty : pattern!.difficulty;
 
-  const [mode, setMode] = useState<Mode>('playalong');
+  const [mode, setModeState] = useState<Mode>(readMode);
+  const setMode = (m: Mode) => {
+    setModeState(m);
+    localStorage.setItem(MODE_KEY, m);
+  };
   const [bpm, setBpm] = useState(defaultBpm);
-  const [metronome, setMetronome] = useState(true);
   const [loopMode, setLoopMode] = useState<LoopMode>('song');
   const [loopSection, setLoopSection] = useState(0);
   const [running, setRunning] = useState(false);
@@ -223,7 +237,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
     if (!loaded || steps === 0) return;
     resumeAudio().then(() => {
       const tl = makeTimeline(bpm, run.parts);
-      const p = new PatternPlayer({ hits: run.hits, timeline: tl, kit: loaded, playSong: mode === 'playalong', metronome, countInBars: 1 });
+      const p = new PatternPlayer({ hits: run.hits, timeline: tl, kit: loaded, playSong: mode === 'drums', metronome: mode === 'click', countInBars: 1 });
       const songStart = p.start();
       player.current = p;
       session.current = new PracticeSession(run.hits, tl, songStart, padGroupOf(kit));
@@ -255,7 +269,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
   useEffect(() => {
     if (running) stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, bpm, metronome, loaded, loopMode, loopSection]);
+  }, [mode, bpm, loaded, loopMode, loopSection]);
 
   // Pass collection on an interval (keeps grading while the tab is hidden);
   // playhead on rAF. Both read the audio clock.
@@ -387,15 +401,11 @@ export default function Practice({ target, onBack, onSettings }: Props) {
           </span>
         </div>
         <div className="row">
-          <button className={mode === 'playalong' ? 'active' : ''} onClick={() => setMode('playalong')}>
-            Play-along
-          </button>
-          <button className={mode === 'solo' ? 'active' : ''} onClick={() => setMode('solo')}>
-            Solo
-          </button>
-          <button className={metronome ? 'active' : ''} onClick={() => setMetronome((m) => !m)}>
-            Click
-          </button>
+          {MODES.map(([m, label, title]) => (
+            <button key={m} className={mode === m ? 'active' : ''} title={title} onClick={() => setMode(m)}>
+              {label}
+            </button>
+          ))}
           <label className="field">
             Tempo
             <button onClick={() => setBpm((b) => Math.max(20, b - 5))}>−</button>
