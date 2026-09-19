@@ -64,7 +64,7 @@
       "role": "Sidestick",
       "sound": {
         "type": "bundled",
-        "file": "elec_wood.wav"
+        "file": "tabla_tas1.wav"
       }
     },
     {
@@ -85,7 +85,7 @@
       "role": "Sidestick",
       "sound": {
         "type": "bundled",
-        "file": "elec_wood.wav"
+        "file": "tabla_tas1.wav"
       }
     },
     {
