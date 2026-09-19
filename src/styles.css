@@ -52,6 +52,7 @@ input, select, textarea {
 input[type='number'] { width: 5em; }
 
 .app { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.app.detail { padding-top: 8px; }
 
 .topbar {
   display: flex;

@@ -102,6 +102,9 @@ export default function App() {
           ? 'kits'
           : screen.name;
 
+  // Practice and the editors drop the top bar to save vertical space; their own "← Back" button leads out.
+  const detail = !TABS.some((t) => t.name === screen.name);
+
   let body;
   switch (screen.name) {
     case 'patterns':
@@ -149,23 +152,25 @@ export default function App() {
   }
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <h1>Finger Drumming</h1>
-        <nav>
-          {TABS.map((t) => (
-            <button key={t.name} className={section === t.name ? 'active' : ''} onClick={() => setScreen({ name: t.name } as Screen)}>
-              {t.label}
-            </button>
-          ))}
-        </nav>
-        <a className="help" href={MANUAL_URL} target="_blank" rel="noreferrer" title="Manual">
-          Help
-        </a>
-        <span className={'status' + (midi.ok ? '' : ' bad')}>
-          {midi.ok ? (midi.inputs.length ? 'MIDI: ' + midi.inputs.map((i) => i.name).join(', ') : 'MIDI: no inputs') : (midi.error ?? 'MIDI…')}
-        </span>
-      </header>
+    <div className={'app' + (detail ? ' detail' : '')}>
+      {!detail && (
+        <header className="topbar">
+          <h1>Finger Drumming</h1>
+          <nav>
+            {TABS.map((t) => (
+              <button key={t.name} className={section === t.name ? 'active' : ''} onClick={() => setScreen({ name: t.name } as Screen)}>
+                {t.label}
+              </button>
+            ))}
+          </nav>
+          <a className="help" href={MANUAL_URL} target="_blank" rel="noreferrer" title="Manual">
+            Help
+          </a>
+          <span className={'status' + (midi.ok ? '' : ' bad')}>
+            {midi.ok ? (midi.inputs.length ? 'MIDI: ' + midi.inputs.map((i) => i.name).join(', ') : 'MIDI: no inputs') : (midi.error ?? 'MIDI…')}
+          </span>
+        </header>
+      )}
       {notice && (
         <div className="notice" onClick={() => setNotice(null)}>
           {notice}

@@ -139,7 +139,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
   // ── Split between grid and pads: a draggable handle sets the row height; the
   // pads take whatever height is left. Remembered per browser.
   const SPLIT_KEY = 'fd.practice.cellH';
-  const autoCellH = () => Math.min(30, Math.max(12, (window.innerHeight - (isSong ? 580 : 500)) / 17));
+  const autoCellH = () => Math.min(30, Math.max(12, (window.innerHeight - (isSong ? 520 : 440)) / 17));
   const [cellH, setCellH] = useState<number>(() => {
     const v = Number(localStorage.getItem(SPLIT_KEY));
     return v >= 8 && v <= 48 ? v : autoCellH();
