@@ -268,29 +268,26 @@ export default function Practice({ target, onBack, onSettings }: Props) {
       const now = getAudioContext().currentTime;
       const { passes, live } = s.collect(now);
       showLive(live);
-      for (const { result } of passes) {
+      for (const { passIndex, result } of passes) {
         const score = scorePass(result);
         setLastScore(score);
         setPassCount((n) => n + 1);
         if (song) {
           if (loopMode === 'song') recordSongScore(song, bpm, score);
         } else recordScore(pattern!, bpm, score);
-      }
-      // The sweep clears the previous pass behind the playhead; cells ahead of it stay (dimmed).
-      const pos = p.positionAt(now);
-      const pass = Math.max(0, Math.floor(pos / steps));
-      const step = pos < 0 ? -1 : Math.floor(pos) % steps;
-      setCurrentPass(pass);
-      setCells((prev) => {
-        let next: Map<string, LiveResult> | null = null;
-        for (const [key, r] of prev) {
-          if (r.passIndex < pass && r.step <= step) {
-            next ??= new Map(prev);
-            next.delete(key);
+        // A finished pass is wiped from the grid; early hits already belonging to the next pass stay.
+        setCells((prev) => {
+          let next: Map<string, LiveResult> | null = null;
+          for (const [key, r] of prev) {
+            if (r.passIndex <= passIndex) {
+              next ??= new Map(prev);
+              next.delete(key);
+            }
           }
-        }
-        return next ?? prev;
-      });
+          return next ?? prev;
+        });
+      }
+      setCurrentPass(Math.max(0, Math.floor(p.positionAt(now) / steps)));
     };
     const timer = window.setInterval(collect, 50);
     let raf = 0;
@@ -340,7 +337,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
     if (!r) return base;
     const stale = r.passIndex < currentPass ? ' stale' : '';
     if (r.kind === 'miss') return { ...base, className: base.className + ' miss' + stale, content: '✕', title: 'Missed' };
-    if (r.kind === 'extra') return { ...base, className: base.className + ' extra' + stale, content: '+', title: 'Extra hit' };
+    if (r.kind === 'extra') return { ...base, className: base.className + ' extra' + stale, content: '✕', title: 'Extra hit: nothing written here' };
     const ms = Math.round(r.offsetMs);
     const abs = Math.abs(ms);
     // Dynamics: shown, not scored. Keyboard and touch have no velocity and always read as normal.
@@ -524,7 +521,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
         </p>
       </div>
       <p className="muted small">
-        <span className="swatch early" /> {'◂'} early (rushing) &nbsp; <span className="swatch ontime" /> on time &nbsp; <span className="swatch late" /> late (dragging) {'▸'} &nbsp;·&nbsp; {'▲'} accent, {'·'} ghost; the corner mark is the level you played (orange = not the level written). Dynamics are shown, not scored.
+        <span className="swatch early" /> {'◂'} early (rushing) &nbsp; <span className="swatch ontime" /> on time &nbsp; <span className="swatch late" /> late (dragging) {'▸'} &nbsp;·&nbsp; {'✕'} on red = missed, {'✕'} on dark = hit where nothing is written. {'▲'} accent, {'·'} ghost; the corner mark is the level you played (orange = not the level written). Dynamics are shown, not scored.
         Score = sum of the 3 worst timing errors{song ? ' per section, averaged over the loop' : ' in a pass'}; miss or extra = 1000. Best is only recorded at the {isSong ? 'song' : 'pattern'}&apos;s own tempo ({defaultBpm} bpm)
         {song ? ' when looping the whole song' : ''}.
       </p>
