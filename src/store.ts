@@ -6,6 +6,7 @@ import {
   standardNoteMap,
 } from "./model/types";
 import defaultKitJson from "./kits/default.json";
+import { mergeSeeds } from "./model/seeds";
 import manifest from "./sounds/manifest.json";
 
 const seedPatterns = Object.values(
@@ -26,6 +27,7 @@ export interface State {
   settings: Settings;
 }
 
+const SEEDS_KEY = "fd.seeds"; // id → fingerprint of the bundled version last copied in
 const KEYS: Record<keyof State, string> = {
   patterns: "fd.patterns", // was "fd.songs" before songs became sequences of patterns
   songs: "fd.songs",
@@ -42,12 +44,6 @@ function read<T>(key: string, fallback: T): T {
   } catch {
     return fallback;
   }
-}
-
-/** Copy in any seed whose id is not present. Local edits win. */
-function mergeSeeds<T extends { id: string }>(local: T[], seeds: T[]): T[] {
-  const have = new Set(local.map((x) => x.id));
-  return [...local, ...seeds.filter((s) => !have.has(s.id))];
 }
 
 /** Keep only well-formed records so one bad entry cannot take the app down. */
@@ -144,17 +140,27 @@ if (!localStorage.getItem("fd.patterns") && localStorage.getItem("fd.songs")) {
 }
 
 let state: State = (() => {
-  const patterns = mergeSeeds(
+  // id → fingerprint of the seed version copied in, so unedited seeds follow app updates.
+  const rawRecorded = read<unknown>(SEEDS_KEY, {});
+  const recorded = rawRecorded && typeof rawRecorded === "object" && !Array.isArray(rawRecorded) ? (rawRecorded as Record<string, string>) : {};
+  const before = JSON.stringify(recorded);
+  const mp = mergeSeeds(
     readList<Pattern>(
       KEYS.patterns,
       (s) => Array.isArray(s.hits) && typeof s.bpm === "number",
     ),
     seedPatterns,
+    recorded,
   );
-  const songs = mergeSeeds(
+  const patterns = mp.list;
+  if (mp.changed) localStorage.setItem(KEYS.patterns, JSON.stringify(patterns));
+  const ms = mergeSeeds(
     readList<Song>(KEYS.songs, (s) => Array.isArray(s.sections) && typeof s.bpm === "number"),
     seedSongs,
+    recorded,
   );
+  const songs = ms.list;
+  if (ms.changed) localStorage.setItem(KEYS.songs, JSON.stringify(songs));
   const rawSongScores = read<unknown>(KEYS.songScores, {});
   const songScores = rawSongScores && typeof rawSongScores === "object" && !Array.isArray(rawSongScores) ? (rawSongScores as Scores) : {};
   const repaired = repairKits(
@@ -163,9 +169,11 @@ let state: State = (() => {
       (k) => Array.isArray(k.slots) && k.slots.length === 16,
     ),
   );
-  const kits = mergeSeeds(repaired.kits, seedKits);
-  if (repaired.changed)
-    localStorage.setItem(KEYS.kits, JSON.stringify(repaired.kits));
+  const mk = mergeSeeds(repaired.kits, seedKits, recorded);
+  const kits = mk.list;
+  if (repaired.changed || mk.changed)
+    localStorage.setItem(KEYS.kits, JSON.stringify(mk.changed ? kits : repaired.kits));
+  if (JSON.stringify(recorded) !== before) localStorage.setItem(SEEDS_KEY, JSON.stringify(recorded));
   const rawScores = read<unknown>(KEYS.scores, {});
   const scores =
     rawScores && typeof rawScores === "object" && !Array.isArray(rawScores)

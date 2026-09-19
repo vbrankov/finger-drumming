@@ -155,6 +155,9 @@ row is nearest you (MIDI notes 36–39 on the bottom row, up to 48–51 on top).
 Recommended pads when writing for the default kit: **Kick 13, Snare 9,
 Closed Hat 4, Open Hat 5, Ride 7, Crash 3, Sidestick 8, toms 0/1/2.**
 
+A drummer has one hi-hat: on a step where the open hat plays, do not also
+write the closed hat (the app chokes one with the other, which sounds wrong).
+
 ## 4. Swing
 
 `"swing": { "amount": A, "unit": U }` — omit for straight time.
@@ -217,7 +220,8 @@ Paste this, then describe what you want:
 > = 0, beat 2 = 4, beat 3 = 8, beat 4 = 12) and `velocity` 40 for ghost notes,
 > 127 for accents, omitted for normal. Pads: Kick 13, Snare 9, Closed Hat 4,
 > Open Hat 5, Ride 7, Crash 3, Sidestick 8, Low/Mid/High Tom 0/1/2. Do not
-> place two hits on the same pad and step. To also arrange patterns into a
+> place two hits on the same pad and step, and never the closed and open
+> hat on the same step (one hi-hat: an open-hat step replaces the closed one). To also arrange patterns into a
 > song, add an item `{"v":2,"t":"song","song":{id,name,author,bpm,sections:[{patternId,repeat},…]},"patterns":[…the patterns it uses…]}`.
 > Also show each pattern as a readable grid so I can check it.
 

@@ -52,7 +52,7 @@ SONGS = [
     ("half-time", "Half-time", 2, 80, 1, hits(
         (K, [0, 10]), (S, [8], ACCENT), (H, E8), (H, [0, 8], ACCENT))),
     ("one-drop", "Reggae One Drop", 2, 76, 1, hits(
-        (K, [8]), (SS, [8]), (H, E8), (OH, [14]))),
+        (K, [8]), (SS, [8]), (H, [s for s in E8 if s != 14]), (OH, [14]))),
     ("boom-bap", "Boom Bap", 3, 88, 1, hits(
         (K, [0, 7, 10]), (S, [4, 12]), (S, [3, 11], GHOST), (H, BEATS, ACCENT), (H, [2, 6, 10]), (OH, [14])),
         {"amount": 56, "unit": "sixteenth"}),
@@ -75,12 +75,12 @@ SONGS = [
         (SS, [0, 3, 6, 18, 21]),
         (H, list(range(0, 32, 2))))),
     ("drum-and-bass", "Drum & Bass", 4, 172, 2, hits(
-        (K, [0, 10, 16, 22, 26]), (S, [4, 12, 20, 28], ACCENT), (H, list(range(0, 32, 2))), (OH, [30]))),
+        (K, [0, 10, 16, 22, 26]), (S, [4, 12, 20, 28], ACCENT), (H, [s for s in range(0, 32, 2) if s != 30]), (OH, [30]))),
     ("trap-hats", "Trap Hats", 4, 70, 1, hits(
         (K, [0, 7, 9]), (S, [8], ACCENT), (H, [0, 2, 4, 6, 8, 10, 12, 14]), (H2, [1, 3, 5, 7, 9, 11, 13]), (OH, [15]))),
     ("breakbeat", "Breakbeat", 4, 96, 2, hits(
         (K, [0, 6, 10, 16, 21, 26]), (S, [4, 12, 20, 28], ACCENT), (S, [15, 23, 31], GHOST),
-        (H, list(range(0, 32, 2))), (OH, [14, 30])),
+        (H, [s for s in range(0, 32, 2) if s not in (14, 30)]), (OH, [14, 30])),
         {"amount": 54, "unit": "sixteenth"}),
     ("linear-funk", "Linear Funk", 5, 96, 1, hits(
         (K, [0, 6, 8]), (H, [2, 3, 10, 11, 14, 15]), (S, [4, 12], ACCENT), (H2, [7])),
