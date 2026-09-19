@@ -2,63 +2,71 @@
   "id": "default",
   "name": "Default",
   "createdAt": "2026-09-16T00:00:00.000Z",
-  "updatedAt": "2026-09-16T00:00:00.000Z",
+  "updatedAt": "2026-09-19T00:00:00.000Z",
   "slots": [
     {
       "role": "Low Tom",
       "sound": {
         "type": "bundled",
         "file": "drum_tom_lo_hard.wav"
-      }
+      },
+      "gain": 0.45
     },
     {
       "role": "Mid Tom",
       "sound": {
         "type": "bundled",
         "file": "drum_tom_mid_hard.wav"
-      }
+      },
+      "gain": 0.45
     },
     {
       "role": "High Tom",
       "sound": {
         "type": "bundled",
         "file": "drum_tom_hi_hard.wav"
-      }
+      },
+      "gain": 0.45
     },
     {
       "role": "Crash",
       "sound": {
         "type": "bundled",
         "file": "drum_splash_hard.wav"
-      }
+      },
+      "gain": 0.3
     },
     {
       "role": "Closed Hat",
       "sound": {
         "type": "bundled",
         "file": "drum_cymbal_closed.wav"
-      }
+      },
+      "gain": 0.55
     },
     {
       "role": "Open Hat",
       "sound": {
         "type": "bundled",
         "file": "drum_cymbal_open.wav"
-      }
+      },
+      "gain": 0.3
     },
     {
       "role": "Closed Hat",
       "sound": {
         "type": "bundled",
         "file": "drum_cymbal_closed.wav"
-      }
+      },
+      "gain": 0.55
     },
     {
       "role": "Ride",
       "sound": {
         "type": "bundled",
         "file": "drum_cymbal_hard.wav"
-      }
+      },
+      "gain": 0.4
     },
     {
       "role": "Sidestick",
@@ -93,7 +101,8 @@
       "sound": {
         "type": "bundled",
         "file": "drum_splash_soft.wav"
-      }
+      },
+      "gain": 0.5
     },
     {
       "role": "Kick",
@@ -114,7 +123,8 @@
       "sound": {
         "type": "bundled",
         "file": "drum_cymbal_soft.wav"
-      }
+      },
+      "gain": 0.7
     }
   ]
 }
