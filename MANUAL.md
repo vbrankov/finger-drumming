@@ -37,6 +37,8 @@ Contents: [Getting started](#getting-started) · [Playing along](#playing-along)
 
 The practice screen shows the pattern as a grid — one row per drum, one
 column per 16th note, the beats numbered 1–4 — and your 16 pads below it.
+Rows follow the pads: pad 1 (bottom-left on the controller) is the bottom
+row, pad 2 the one above it, and so on up to pad 16 at the top.
 
 - **Start** gives a one-bar count-in, then the pattern **loops** until you
   stop. Every loop is a *pass* and is graded on its own.

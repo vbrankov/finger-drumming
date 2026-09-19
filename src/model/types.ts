@@ -140,8 +140,24 @@ export function padGroupOf(kit: Kit): (pad: number) => string {
 }
 
 /**
- * One grid row per distinct drum, in pad order: the first pad of each role
- * represents the group. A learner then sees "Kick" once, not twice.
+ * The pad's number as a player counts them: 1 is bottom-left, 2 to its right,
+ * … 16 top-right (the order of the standard MIDI notes 36–51).
+ */
+export function padNumber(pad: number): number {
+  return (3 - Math.floor(pad / 4)) * 4 + (pad % 4) + 1;
+}
+
+/** All pads top to bottom as grid rows: pad 16 first, pad 1 last, like a piano roll. */
+export function padDisplayOrder(): number[] {
+  return Array.from({ length: PAD_COUNT }, (_, i) => i).sort((a, b) => padNumber(b) - padNumber(a));
+}
+
+/**
+ * One grid row per distinct drum, ordered like the pads (highest number on
+ * top, pad 1 at the bottom); a row sits where its lowest-numbered pad is. The
+ * first pad by index of each role represents the group, so hits written on a
+ * collapsed row land on the pad the docs recommend. A learner then sees
+ * "Kick" once, not twice.
  */
 export function kitRows(kit: Kit): { pad: number; pads: number[] }[] {
   const groupOf = padGroupOf(kit);
@@ -152,7 +168,8 @@ export function kitRows(kit: Kit): { pad: number; pads: number[] }[] {
     if (row) row.pads.push(pad);
     else rows.set(g, { pad, pads: [pad] });
   }
-  return [...rows.values()];
+  const lowest = (r: { pads: number[] }) => Math.min(...r.pads.map(padNumber));
+  return [...rows.values()].sort((a, b) => lowest(b) - lowest(a));
 }
 
 /** Map every pad to the representative pad of its row. */

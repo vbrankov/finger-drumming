@@ -135,6 +135,8 @@ layout; every installation already has the default kit.
 
 Pads are numbered row by row from the top-left; on a controller the bottom
 row is nearest you (MIDI notes 36–39 on the bottom row, up to 48–51 on top).
+(The app's grids list rows from the top-right pad down to the bottom-left
+one, like a piano roll; that is display only.)
 
 | pad | 0 | 1 | 2 | 3 |
 |---|---|---|---|---|
