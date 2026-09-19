@@ -52,7 +52,16 @@ export async function loadKit(kit: Kit, fallback?: Kit): Promise<LoadedKit> {
     buffers,
     gains: kit.slots.map((s) => s?.gain ?? 1),
     rates: kit.slots.map((s) => Math.pow(2, (s?.pitch ?? 0) / 12)),
+    chokes: kit.slots.map((s) => chokeGroupOf(s?.role ?? '')),
   };
+}
+
+/**
+ * Hi-hats choke each other: a closed (or pedal) hat cuts a ringing open hat,
+ * as on a real kit. Derived from the role name so it works for any kit.
+ */
+export function chokeGroupOf(role: string): string | null {
+  return /hat/i.test(role) && !/hatch|chat|that/i.test(role) ? 'hat' : null;
 }
 
 export function invalidateSound(ref: SoundRef): void {

@@ -65,7 +65,7 @@ export default function Settings() {
       calTapsRef.current = [];
       setCalTaps(0);
       setCalResult(null);
-      const p = new PatternPlayer({ hits: [], timeline: patternTimeline(CAL_BPM, 16), kit: { buffers: [], gains: [], rates: [] }, playSong: false, metronome: true, countInBars: 0 });
+      const p = new PatternPlayer({ hits: [], timeline: patternTimeline(CAL_BPM, 16), kit: { buffers: [], gains: [], rates: [], chokes: [] }, playSong: false, metronome: true, countInBars: 0 });
       p.start();
       calPlayer.current = p;
       setCalRunning(true);

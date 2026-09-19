@@ -109,8 +109,10 @@ sites. The bundled library covers the need without any of that.
 All samples are decoded to `AudioBuffer`s once at load. Playback is one-shot,
 velocity → gain, and each slot can be transposed in semitones (`pitch`, played
 as `playbackRate = 2^(pitch/12)`, so it also shortens or lengthens the sample
-the way a sampler would). Choke groups (open hat cut by closed hat) are a
-later nicety.
+the way a sampler would). **Choke group:** slots whose role names a hat form
+one group; a new hit in the group fades the group's ringing voices out over
+20 ms, so a closed or pedal hat cuts an open hat as on a real kit. Applies to
+playback and to the player's own hits.
 
 ## Audio scheduling
 

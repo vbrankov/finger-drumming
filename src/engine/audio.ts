@@ -12,19 +12,35 @@ export async function resumeAudio(): Promise<AudioContext> {
   return c;
 }
 
-export function playBuffer(buffer: AudioBuffer, when: number, gain = 1, rate = 1): void {
+export interface Voice {
+  src: AudioBufferSourceNode;
+  gain: GainNode;
+}
+
+export function playBuffer(buffer: AudioBuffer, when: number, gain = 1, rate = 1): Voice {
   const c = getAudioContext();
   const src = c.createBufferSource();
   src.buffer = buffer;
   if (rate !== 1) src.playbackRate.value = rate;
-  if (gain === 1) {
-    src.connect(c.destination);
-  } else {
-    const g = c.createGain();
-    g.gain.value = gain;
-    src.connect(g).connect(c.destination);
-  }
+  const g = c.createGain();
+  g.gain.value = gain;
+  src.connect(g).connect(c.destination);
   src.start(Math.max(when, c.currentTime));
+  return { src, gain: g };
+}
+
+/** Fade a voice out quickly at `when` (a choke), then free it. */
+export function chokeVoice(v: Voice, when: number): void {
+  const c = getAudioContext();
+  const t = Math.max(when, c.currentTime);
+  v.gain.gain.cancelScheduledValues(t);
+  v.gain.gain.setValueAtTime(v.gain.gain.value, t);
+  v.gain.gain.linearRampToValueAtTime(0, t + 0.02);
+  try {
+    v.src.stop(t + 0.03);
+  } catch {
+    /* already stopped */
+  }
 }
 
 export function decodeAudio(data: ArrayBuffer): Promise<AudioBuffer> {

@@ -52,10 +52,11 @@ milliseconds:
 - **◂17** you were 17 ms **early** (rushing) — the cell leans **blue**.
 - **17▸** 17 ms **late** (dragging) — the cell leans **red**.
 - Green is on time. The colour saturates toward the edge of the timing window.
-- **✕** on red: you missed that hit. **+** on purple: you hit something that
-  wasn't in the pattern (a stray, or the wrong drum).
-- The previous pass stays visible dimmed and is wiped as the playhead sweeps
-  through the next one, so you can compare passes.
+- **✕** on red: you missed that hit. **✕** on a plain cell: you hit something
+  that wasn't in the pattern (a stray, or the wrong drum).
+- The grid is cleared when a pass ends, so each loop starts clean.
+- Hi-hats choke each other: a closed hat cuts a ringing open hat, as on a
+  real kit.
 
 **Dynamics.** Patterns can mark hits as ghost notes (**·**, played quietly)
 and accents (**▲**, played hard). When you play with a controller, a small

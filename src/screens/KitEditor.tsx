@@ -29,7 +29,7 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
     setKit((k) => ({ ...k, slots: k.slots.with(i, { ...k.slots[i], ...p }) }));
     setDirty(true);
     if (p.pitch !== undefined && loaded?.buffers[i]) {
-      auditionPad({ buffers: [loaded.buffers[i]], gains: [kit.slots[i].gain ?? 1], rates: [Math.pow(2, p.pitch / 12)] }, 0);
+      auditionPad({ buffers: [loaded.buffers[i]], gains: [kit.slots[i].gain ?? 1], rates: [Math.pow(2, p.pitch / 12)], chokes: [null] }, 0);
     }
   }
 
@@ -37,7 +37,7 @@ export default function KitEditor({ kit: initial, onDone }: Props) {
     const sound: SoundRef = { type: 'bundled', file };
     patchSlot(i, { sound });
     // Audition the new choice as soon as it is decoded.
-    loadSound(sound).then((buf) => buf && auditionPad({ buffers: [buf], gains: [kit.slots[i].gain ?? 1], rates: [Math.pow(2, (kit.slots[i].pitch ?? 0) / 12)] }, 0));
+    loadSound(sound).then((buf) => buf && auditionPad({ buffers: [buf], gains: [kit.slots[i].gain ?? 1], rates: [Math.pow(2, (kit.slots[i].pitch ?? 0) / 12)], chokes: [null] }, 0));
   }
 
   async function setFile(i: number, file: File) {

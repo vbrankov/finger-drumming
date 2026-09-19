@@ -2,19 +2,38 @@ import type { Hit } from '../model/types';
 import { STEPS } from '../model/types';
 import { stepDuration } from '../model/timing';
 import type { Timeline } from '../model/timing';
-import { getAudioContext, makeClick, playBuffer, velocityGain } from './audio';
+import { chokeVoice, getAudioContext, makeClick, playBuffer, velocityGain } from './audio';
+import type { Voice } from './audio';
 import { Scheduler } from './scheduler';
 
 export interface LoadedKit {
   buffers: (AudioBuffer | null)[]; // by pad index
   gains: number[];
   rates: number[]; // playback rate from the slot's pitch
+  /** Choke group per pad (e.g. 'hat'), or null. A new hit in a group cuts the group's ringing voices. */
+  chokes: (string | null)[];
 }
+
+/** Voices still ringing per choke group, so a closed hat can cut an open one. */
+const ringing = new Map<string, Voice[]>();
 
 /** Play one slot of a loaded kit at `when` (audio time) with the given velocity. */
 export function playSlot(kit: LoadedKit, pad: number, velocity: number | undefined, when: number): void {
   const buf = kit.buffers[pad];
-  if (buf) playBuffer(buf, when, velocityGain(velocity) * (kit.gains[pad] ?? 1), kit.rates[pad] ?? 1);
+  if (!buf) return;
+  const group = kit.chokes[pad] ?? null;
+  if (group) {
+    for (const v of ringing.get(group) ?? []) chokeVoice(v, when);
+    ringing.set(group, []);
+  }
+  const voice = playBuffer(buf, when, velocityGain(velocity) * (kit.gains[pad] ?? 1), kit.rates[pad] ?? 1);
+  if (group) {
+    ringing.get(group)!.push(voice);
+    voice.src.onended = () => {
+      const list = ringing.get(group);
+      if (list) ringing.set(group, list.filter((x) => x !== voice));
+    };
+  }
 }
 
 export interface PlayerOptions {
