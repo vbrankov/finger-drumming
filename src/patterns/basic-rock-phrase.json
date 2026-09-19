@@ -3,6 +3,7 @@
   "name": "Basic Rock Phrase",
   "author": "Claude",
   "difficulty": 2,
+  "style": "Rock",
   "bpm": 92,
   "bars": 4,
   "kitId": "default",

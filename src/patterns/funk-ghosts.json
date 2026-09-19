@@ -3,6 +3,7 @@
   "name": "Funk with Ghost Notes",
   "author": "Claude",
   "difficulty": 3,
+  "style": "Funk",
   "bpm": 100,
   "swing": {
     "amount": 55,

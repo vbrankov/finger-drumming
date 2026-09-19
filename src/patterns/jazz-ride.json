@@ -3,6 +3,7 @@
   "name": "Jazz Ride",
   "author": "Claude",
   "difficulty": 4,
+  "style": "Jazz",
   "bpm": 140,
   "swing": {
     "amount": 66,

@@ -49,6 +49,8 @@ export interface Pattern {
   name: string;
   author?: string;
   difficulty?: Difficulty; // 1 = easiest, 5 = hardest
+  style?: string; // "Rock", "Funk", … for grouping; free text
+  tags?: string[]; // "fill" marks a one-off bar meant to end a phrase
   bpm: number;
   bars?: number; // 1..MAX_BARS, default 1
   swing?: Swing; // straight when absent

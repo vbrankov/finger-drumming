@@ -3,6 +3,7 @@
   "name": "Basic Rock, One-beat Fill",
   "author": "Claude",
   "difficulty": 2,
+  "style": "Rock",
   "bpm": 90,
   "bars": 2,
   "kitId": "default",

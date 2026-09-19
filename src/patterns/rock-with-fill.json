@@ -3,6 +3,7 @@
   "name": "Rock with Fill",
   "author": "Claude",
   "difficulty": 2,
+  "style": "Rock",
   "bpm": 92,
   "bars": 2,
   "kitId": "default",

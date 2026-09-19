@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Pattern } from '../model/types';
 import { copyLink, packPayload, packText, shareLink, patternPayload } from '../share';
 import { deletePattern, emptyPattern, kitFor, useStore } from '../store';
@@ -7,6 +7,7 @@ import { AI_URL } from '../links';
 interface Props {
   onPractice: (pattern: Pattern) => void;
   onEdit: (pattern: Pattern) => void;
+  onLibrary: () => void;
 }
 
 function Dots({ n }: { n?: number }) {
@@ -14,9 +15,16 @@ function Dots({ n }: { n?: number }) {
   return <span className="dots">{'●'.repeat(n) + '○'.repeat(5 - n)}</span>;
 }
 
-export default function Patterns({ onPractice, onEdit }: Props) {
+export default function Patterns({ onPractice, onEdit, onLibrary }: Props) {
   const { patterns, kits, scores } = useStore();
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [style, setStyle] = useState<string | null>(null);
+  const styles = useMemo(() => {
+    const c = new Map<string, number>();
+    for (const p of patterns) c.set(p.style ?? 'Other', (c.get(p.style ?? 'Other') ?? 0) + 1);
+    return [...c.entries()].sort((a, b) => b[1] - a[1]);
+  }, [patterns]);
+  const visible = style === null ? patterns : patterns.filter((p) => (p.style ?? 'Other') === style);
   const toggle = (id: string) =>
     setSelected((s) => {
       const n = new Set(s);
@@ -24,7 +32,7 @@ export default function Patterns({ onPractice, onEdit }: Props) {
       else n.add(id);
       return n;
     });
-  const allSelected = selected.size === patterns.length && patterns.length > 0;
+  const allSelected = visible.length > 0 && visible.every((p) => selected.has(p.id));
 
   async function copySelected() {
     const chosen = patterns.filter((s) => selected.has(s.id));
@@ -37,7 +45,7 @@ export default function Patterns({ onPractice, onEdit }: Props) {
     }
   }
   // Easiest first, so the list reads as a progression; unrated patterns last.
-  const sorted = [...patterns].sort((a, b) => (a.difficulty ?? 9) - (b.difficulty ?? 9) || a.bpm - b.bpm || a.name.localeCompare(b.name));
+  const sorted = [...visible].sort((a, b) => (a.difficulty ?? 9) - (b.difficulty ?? 9) || a.bpm - b.bpm || a.name.localeCompare(b.name));
 
   return (
     <div className="stack">
@@ -55,12 +63,28 @@ export default function Patterns({ onPractice, onEdit }: Props) {
         </div>
       </div>
       <p className="muted small" style={{ margin: 0 }}>
-        Want more rhythms? Build them in the editor, paste ones people share (Settings {'\u2192'} Data), or{' '}
+        Want more rhythms? Pick from the{' '}
+        <a href="#" onClick={(e) => { e.preventDefault(); onLibrary(); }}>
+          Library
+        </a>
+        , build them in the editor, paste ones people share (Settings {'\u2192'} Data), or{' '}
         <a href={AI_URL} target="_blank" rel="noreferrer">
           have an AI write them
         </a>
         .
       </p>
+      {styles.length > 1 && (
+        <div className="row wrap chips">
+          <button className={style === null ? 'active' : ''} onClick={() => setStyle(null)}>
+            All <span className="muted">{patterns.length}</span>
+          </button>
+          {styles.map(([s, n]) => (
+            <button key={s} className={style === s ? 'active' : ''} onClick={() => setStyle(style === s ? null : s)}>
+              {s} <span className="muted">{n}</span>
+            </button>
+          ))}
+        </div>
+      )}
       {sorted.length === 0 ? (
         <p className="muted">No patterns yet.</p>
       ) : (
@@ -71,7 +95,7 @@ export default function Patterns({ onPractice, onEdit }: Props) {
                 <input
                   type="checkbox"
                   checked={allSelected}
-                  onChange={() => setSelected(allSelected ? new Set() : new Set(patterns.map((s) => s.id)))}
+                  onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((s) => s.id)))}
                   title="Select all"
                 />
               </th>
@@ -91,7 +115,10 @@ export default function Patterns({ onPractice, onEdit }: Props) {
                 <td>
                   <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
                 </td>
-                <td>{s.name}</td>
+                <td>
+                  {s.name}
+                  {s.tags?.includes('fill') && <span className="tag">fill</span>}
+                </td>
                 <td className="muted">{s.author || '—'}</td>
                 <td title={s.difficulty ? s.difficulty + ' / 5' : 'not set'}>
                   <Dots n={s.difficulty} />

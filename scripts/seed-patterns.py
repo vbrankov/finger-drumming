@@ -113,6 +113,16 @@ SONGS = [
 ]
 
 
+STYLE = {
+    "four-on-the-floor": "Dance", "basic-rock": "Rock", "money-beat-accents": "Rock", "motown": "Soul",
+    "disco": "Dance", "half-time": "Rock", "one-drop": "Reggae", "boom-bap": "Hip-hop",
+    "funk-ghosts": "Funk", "tom-groove": "Rock", "sixteenth-hats": "Funk", "rock-with-fill": "Rock",
+    "bossa-nova": "Latin", "drum-and-bass": "Dance", "trap-hats": "Hip-hop", "breakbeat": "Dance",
+    "linear-funk": "Funk", "basic-rock-one-beat-fill": "Rock", "basic-rock-phrase": "Rock",
+    "money-beat-phrase": "Rock", "swung-hip-hop": "Hip-hop", "blues-shuffle": "Blues", "jazz-ride": "Jazz",
+}
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     seen = set()
@@ -129,6 +139,7 @@ def main():
             "name": name,
             "author": "Claude",
             "difficulty": difficulty,
+            "style": STYLE[slug],
             "bpm": bpm,
             **({"bars": bars} if bars > 1 else {}),
             **({"swing": swing} if swing else {}),

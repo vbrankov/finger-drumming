@@ -3,6 +3,7 @@
   "name": "Boom Bap",
   "author": "Claude",
   "difficulty": 3,
+  "style": "Hip-hop",
   "bpm": 88,
   "swing": {
     "amount": 56,

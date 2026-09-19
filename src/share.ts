@@ -15,7 +15,7 @@ export const FORMAT_VERSION = 2;
 const PARAM = 's';
 
 /** Ids travel with shared items so an updated version of something you already have is recognised. */
-export type SharedPattern = Pick<Pattern, 'name' | 'author' | 'difficulty' | 'bpm' | 'bars' | 'swing' | 'hits'> & { id?: string };
+export type SharedPattern = Pick<Pattern, 'name' | 'author' | 'difficulty' | 'style' | 'tags' | 'bpm' | 'bars' | 'swing' | 'hits'> & { id?: string };
 export type SharedKit = Pick<Kit, 'name' | 'slots'> & { id?: string };
 export type SharedSong = Pick<Song, 'name' | 'author' | 'difficulty' | 'bpm' | 'sections'> & { id?: string };
 
@@ -45,6 +45,8 @@ function stripPattern(pattern: Pattern): SharedPattern {
   if (pattern.difficulty) shared.difficulty = pattern.difficulty;
   if (pattern.bars && pattern.bars > 1) shared.bars = pattern.bars;
   if (pattern.swing && pattern.swing.amount > 50) shared.swing = pattern.swing;
+  if (pattern.style) shared.style = pattern.style;
+  if (pattern.tags?.length) shared.tags = pattern.tags;
   return shared;
 }
 

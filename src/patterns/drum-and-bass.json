@@ -3,6 +3,7 @@
   "name": "Drum & Bass",
   "author": "Claude",
   "difficulty": 4,
+  "style": "Dance",
   "bpm": 172,
   "bars": 2,
   "kitId": "default",

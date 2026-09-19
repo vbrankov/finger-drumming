@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Kit, Pattern, Song } from './model/types';
 import { useMidiStatus } from './hooks';
 import KitEditor from './screens/KitEditor';
+import Library from './screens/Library';
 import Kits from './screens/Kits';
 import Practice from './screens/Practice';
 import SongEditor from './screens/SongEditor';
@@ -17,6 +18,7 @@ import { getState, useStore } from './store';
 
 type Screen =
   | { name: 'patterns' }
+  | { name: 'library' }
   | { name: 'songs' }
   | { name: 'kits' }
   | { name: 'settings' }
@@ -39,8 +41,9 @@ function firstIds(p: SharePayload): { song?: string; pattern?: string } {
   return {};
 }
 
-const TABS: { name: 'patterns' | 'songs' | 'kits' | 'settings'; label: string }[] = [
+const TABS: { name: 'patterns' | 'library' | 'songs' | 'kits' | 'settings'; label: string }[] = [
   { name: 'patterns', label: 'Patterns' },
+  { name: 'library', label: 'Library' },
   { name: 'songs', label: 'Songs' },
   { name: 'kits', label: 'Kits' },
   { name: 'settings', label: 'Settings' },
@@ -108,7 +111,10 @@ export default function App() {
   let body;
   switch (screen.name) {
     case 'patterns':
-      body = <Patterns onPractice={(pattern) => setScreen({ name: 'practice', pattern })} onEdit={(pattern) => setScreen({ name: 'edit-pattern', pattern })} />;
+      body = <Patterns onPractice={(pattern) => setScreen({ name: 'practice', pattern })} onEdit={(pattern) => setScreen({ name: 'edit-pattern', pattern })} onLibrary={() => setScreen({ name: 'library' })} />;
+      break;
+    case 'library':
+      body = <Library onPractice={(pattern) => setScreen({ name: 'practice', pattern })} />;
       break;
     case 'songs':
       body = (

@@ -30,8 +30,9 @@ hit will read 20–40 ms late.
 ```
 src/model/     song types, timing rules, grading  (pure, unit-tested)
 src/engine/    Web Audio, scheduler, MIDI, sample storage, calibration
-src/screens/   Patterns · PatternEditor · Songs · SongEditor · Practice · Kits · KitEditor · Settings
+src/screens/   Patterns · Library · PatternEditor · Songs · SongEditor · Practice · Kits · KitEditor · Settings
 src/patterns/  seed patterns (JSON) copied into localStorage on first run
+src/library/   pattern collections offered in the Library tab (gmd.json: Groove MIDI Dataset)
 src/songs/     seed songs (sequences of patterns)
 src/kits/      default kit definition
 public/sounds/ bundled CC0 samples (see the README there) used by the default kit
@@ -47,4 +48,9 @@ npm test
 
 Code: [MIT](LICENSE). Bundled drum samples: CC0, from the
 [Sonic Pi](https://github.com/sonic-pi-net/sonic-pi) collection — see
-[public/sounds/README.md](public/sounds/README.md).
+[public/sounds/README.md](public/sounds/README.md). The Library's grooves
+and fills are derived from the
+[Groove MIDI Dataset](https://magenta.tensorflow.org/datasets/groove) by
+Google Magenta (Gillick et al., "Learning to Groove with Inverse Sequence
+Transformations", ICML 2019), CC BY 4.0; see `scripts/gmd-patterns.py` for
+how they were made.

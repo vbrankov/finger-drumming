@@ -3,6 +3,7 @@
   "name": "Motown",
   "author": "Claude",
   "difficulty": 2,
+  "style": "Soul",
   "bpm": 112,
   "kitId": "default",
   "createdAt": "2026-09-16T00:00:00.000Z",

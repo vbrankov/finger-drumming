@@ -58,6 +58,8 @@ and ignores everything else, so tokens can sit inside a forum post.
   "name": "My Groove",
   "author": "Your name",      // optional
   "difficulty": 2,            // optional, 1 (easiest) … 5
+  "style": "Funk",              // optional, free text used to group the list
+  "tags": ["fill"],             // optional; "fill" = a bar meant to end a phrase
   "bpm": 96,                  // default tempo; the best score is only kept at this tempo
   "bars": 1,                  // optional, 1 … 4; omit for 1
   "swing": { "amount": 56, "unit": "sixteenth" },   // optional, see §4

@@ -3,6 +3,7 @@
   "name": "Bossa Nova",
   "author": "Claude",
   "difficulty": 3,
+  "style": "Latin",
   "bpm": 132,
   "bars": 2,
   "kitId": "default",

@@ -3,6 +3,7 @@
   "name": "Linear Funk",
   "author": "Claude",
   "difficulty": 5,
+  "style": "Funk",
   "bpm": 96,
   "swing": {
     "amount": 55,

@@ -3,6 +3,7 @@
   "name": "Blues Shuffle",
   "author": "Claude",
   "difficulty": 3,
+  "style": "Blues",
   "bpm": 104,
   "swing": {
     "amount": 66,
