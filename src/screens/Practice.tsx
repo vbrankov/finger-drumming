@@ -205,7 +205,7 @@ export default function Practice({ target, onBack, onSettings }: Props) {
 
   const clickPad = usePadInput((hit) => {
     flash(hit.pad);
-    if (loaded) playSlot(loaded, hit.pad, hit.velocity, getAudioContext().currentTime);
+    if (loaded && settings.monitor) playSlot(loaded, hit.pad, hit.velocity, getAudioContext().currentTime);
     // Only a controller reports real velocity; keyboard and touch hits carry none, so no dynamics mark for them.
     const r = session.current?.addHit({ pad: hit.pad, time: hit.time, velocity: hit.source === 'midi' ? hit.velocity : undefined });
     if (r) showLive([r]);
@@ -414,6 +414,11 @@ export default function Practice({ target, onBack, onSettings }: Props) {
             Tempo
             <TempoKnob value={bpm} defaultValue={defaultBpm} onChange={setBpm} />
           </label>
+          {!settings.monitor && (
+            <span className="muted small" title="Your hits are not sounded here (Settings \u2192 Audio). Grading is unaffected.">
+              pads muted
+            </span>
+          )}
           {running ? (
             <button className="primary" onClick={stop}>
               ■ Stop

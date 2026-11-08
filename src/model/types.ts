@@ -102,6 +102,8 @@ export interface Settings {
   midiDeviceId: string | null;
   noteMap: Record<number, PadIndex>;
   velocityThresholds: VelocityThresholds;
+  /** Sound the player's own hits here. Off when another program (a DAW on ASIO) makes the sound. */
+  monitor: boolean;
 }
 
 export interface ScoreRecord {
@@ -201,4 +203,5 @@ export const DEFAULT_SETTINGS: Settings = {
   midiDeviceId: null,
   noteMap: standardNoteMap(),
   velocityThresholds: { ghost: 60, accent: 110 },
+  monitor: true,
 };

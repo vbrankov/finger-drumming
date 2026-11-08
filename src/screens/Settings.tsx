@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import PadGrid from '../components/PadGrid';
-import { perfToAudioTime, resumeAudio } from '../engine/audio';
+import { getAudioContext, perfToAudioTime, resumeAudio } from '../engine/audio';
 import { estimateCalibrationMs, robustMean } from '../engine/calibration';
 import { onMidiHit } from '../engine/midi';
 import { PatternPlayer } from '../engine/player';
@@ -46,6 +46,19 @@ export default function Settings() {
   }, [learning, settings.noteMap, flash]);
 
   // ── Calibration ────────────────────────────────────────────────────────
+  // What the browser reports for its own output latency, so the ASIO question has a number.
+  const [outLatency, setOutLatency] = useState<number | null>(null);
+  useEffect(() => {
+    const read = () => {
+      const c = getAudioContext();
+      const ms = ((c.baseLatency || 0) + (c.outputLatency || 0)) * 1000;
+      setOutLatency(ms > 0 ? Math.round(ms) : null);
+    };
+    read();
+    const t = window.setInterval(read, 2000);
+    return () => window.clearInterval(t);
+  }, []);
+
   const [calRunning, setCalRunning] = useState(false);
   const [calTaps, setCalTaps] = useState(0);
   const [calResult, setCalResult] = useState<number | null>(null);
@@ -80,7 +93,8 @@ export default function Settings() {
   // Any MIDI note (mapped or not), pad key, or tap on the target counts while calibrating.
   const tap = (perfTime: number, pad = CAL_FALLBACK_PAD, velocity?: number) => {
     if (!calPlayer.current) return;
-    auditionPad(calKit, calKit?.buffers[pad] ? pad : CAL_FALLBACK_PAD, velocity);
+    // With monitoring off the sound comes from elsewhere (a DAW); don't double it.
+    if (settings.monitor) auditionPad(calKit, calKit?.buffers[pad] ? pad : CAL_FALLBACK_PAD, velocity);
     calTapsRef.current.push(perfToAudioTime(perfTime));
     setCalTaps(calTapsRef.current.length);
   };
@@ -218,9 +232,24 @@ export default function Settings() {
       </div>
 
       <div className="panel stack">
+        <h3 style={{ margin: 0 }}>Audio</h3>
+        <label className="row" style={{ gap: 8 }}>
+          <input type="checkbox" checked={settings.monitor} onChange={(e) => updateSettings({ monitor: e.target.checked })} />
+          Play my hits in this app
+        </label>
+        <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
+          Turn this off to play your drums through another program: send the controller to a DAW (Ableton, Reaper, FL Studio) on an
+          ASIO driver and let it make the sound, while this app only watches the notes and grades them. A browser has no ASIO, so
+          sound from here is only as fast as the system mixer allows{outLatency === null ? '' : ', about ' + outLatency + ' ms on this machine'}.
+          The pattern and the click still play from here, so with your hits muted practise with <b>Click</b> or <b>Nothing</b>, and{' '}
+          <b>run the calibration again</b> afterwards: it then measures your controller against the other program's output.
+        </p>
+      </div>
+
+      <div className="panel stack">
         <h3 style={{ margin: 0 }}>Calibration</h3>
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
-          Compensates for controller and audio output latency. Start, then play any pad on every click for {CAL_BARS} bars at {CAL_BPM} bpm. Your pad sounds too: when your drum and the click land as one sound, you are in sync. A robust mean of the offsets becomes the calibration.
+          Compensates for controller and audio output latency. Start, then play any pad on every click for {CAL_BARS} bars at {CAL_BPM} bpm. You hear your pad as well{settings.monitor ? '' : ' (from wherever it sounds now)'}: when your drum and the click land as one sound, you are in sync. A robust mean of the offsets becomes the calibration.
         </p>
         <div className="row">
           {calRunning ? <button onClick={calStop}>■ Stop</button> : <button className="primary" onClick={calStart}>▶ Start calibration</button>}

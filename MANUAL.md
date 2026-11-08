@@ -45,6 +45,12 @@ row, pad 2 the one above it, and so on up to pad 16 at the top.
 - The **Drums / Click / Nothing** button cycles through what you hear
   besides your own hits: the pattern's drums, a metronome, or only yourself
   (the count-in always clicks). The choice is remembered across patterns.
+- Hearing your hits late? A browser cannot use an ASIO driver, so its sound
+  is only as fast as the system mixer allows. Settings -> Audio -> **Play my
+  hits in this app** turns the app's own drums off, so you can send the
+  controller to a DAW on ASIO and let it play them while this app only
+  grades. Re-run the calibration afterwards: the latency it has to cancel is
+  then the DAW's, not the browser's.
 - **Tempo**: press the number and drag up or down (or use the mouse wheel);
   double-click it to go back to the pattern's own tempo. It overrides the
   tempo for this session. Your best score is
