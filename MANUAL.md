@@ -51,6 +51,19 @@ row, pad 2 the one above it, and so on up to pad 16 at the top.
   controller to a DAW on ASIO and let it play them while this app only
   grades. Re-run the calibration afterwards: the latency it has to cancel is
   then the DAW's, not the browser's.
+- **Measure latency** (Settings -> Audio) finds out how late, instead of
+  guessing. It plays a short click and listens for it with your microphone,
+  so the number comes from the room; then, if you like, it listens to your
+  finger landing on the pad and to the drum that follows, and the gap between
+  those two is the whole chain you actually feel. Speakers, not headphones —
+  the microphone has to hear what comes out. Nothing is recorded or kept: the
+  app only looks for the moment a sound starts.
+  The browser's own figure is printed beside it for comparison, split into
+  its own buffer and the part the output device adds. The device's share is
+  usually the bigger one, and that part is about the device, not the app:
+  onboard and HDMI outputs are slow, a USB interface is quicker, Bluetooth is
+  hopeless. Note also that a browser reports *no* device latency until it has
+  played something, so the figure looks far too good before your first hit.
 - **Tempo**: press the number and drag up or down (or use the mouse wheel);
   double-click it to go back to the pattern's own tempo. It overrides the
   tempo for this session. Your best score is

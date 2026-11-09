@@ -1,8 +1,36 @@
 let ctx: AudioContext | null = null;
 
+/**
+ * 'interactive' is already the smallest buffer Chrome will give: measured on
+ * Windows, `latencyHint: 0` reported exactly the same 10 ms of browser buffer
+ * and 40 ms of device buffer, and 'playback' was worse (20 + 48). So there is
+ * nothing to tune here — the 40 ms belongs to the output device, and the way
+ * past it is a different device or a DAW on ASIO, not a flag.
+ */
 export function getAudioContext(): AudioContext {
   if (!ctx) ctx = new AudioContext({ latencyHint: 'interactive' });
   return ctx;
+}
+
+/**
+ * What the browser says its own output costs. outputLatency reads 0 until the
+ * context has actually run, so an idle context looks ten times better than it
+ * is; `running` says whether to believe the figure at all.
+ */
+export interface OutputLatency {
+  /** Our own buffer, ms. */
+  baseMs: number;
+  /** What the device and the system mixer add after us, ms. */
+  deviceMs: number;
+  totalMs: number;
+  running: boolean;
+}
+
+export function reportedOutputLatency(): OutputLatency {
+  const c = getAudioContext();
+  const baseMs = (c.baseLatency || 0) * 1000;
+  const deviceMs = (c.outputLatency || 0) * 1000;
+  return { baseMs, deviceMs, totalMs: baseMs + deviceMs, running: c.state === 'running' && deviceMs > 0 };
 }
 
 /** Must be called from a user gesture before anything can be heard. */

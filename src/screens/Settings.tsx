@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import PadGrid from '../components/PadGrid';
-import { getAudioContext, perfToAudioTime, resumeAudio } from '../engine/audio';
+import { perfToAudioTime, reportedOutputLatency, resumeAudio } from '../engine/audio';
+import type { OutputLatency } from '../engine/audio';
+import LatencyTest from '../components/LatencyTest';
 import { estimateCalibrationMs, robustMean } from '../engine/calibration';
 import { onMidiHit } from '../engine/midi';
 import { PatternPlayer } from '../engine/player';
@@ -46,14 +48,10 @@ export default function Settings() {
   }, [learning, settings.noteMap, flash]);
 
   // ── Calibration ────────────────────────────────────────────────────────
-  // What the browser reports for its own output latency, so the ASIO question has a number.
-  const [outLatency, setOutLatency] = useState<number | null>(null);
+  // What the browser claims its own output costs, so the ASIO question has a number.
+  const [outLatency, setOutLatency] = useState<OutputLatency | null>(null);
   useEffect(() => {
-    const read = () => {
-      const c = getAudioContext();
-      const ms = ((c.baseLatency || 0) + (c.outputLatency || 0)) * 1000;
-      setOutLatency(ms > 0 ? Math.round(ms) : null);
-    };
+    const read = () => setOutLatency(reportedOutputLatency());
     read();
     const t = window.setInterval(read, 2000);
     return () => window.clearInterval(t);
@@ -240,10 +238,34 @@ export default function Settings() {
         <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
           Turn this off to play your drums through another program: send the controller to a DAW (Ableton, Reaper, FL Studio) on an
           ASIO driver and let it make the sound, while this app only watches the notes and grades them. A browser has no ASIO, so
-          sound from here is only as fast as the system mixer allows{outLatency === null ? '' : ', about ' + outLatency + ' ms on this machine'}.
-          The pattern and the click still play from here, so with your hits muted practise with <b>Click</b> or <b>Nothing</b>, and{' '}
-          <b>run the calibration again</b> afterwards: it then measures your controller against the other program's output.
+          sound from here is only as fast as the system mixer allows. The pattern and the click still play from here, so with your
+          hits muted practise with <b>Click</b> or <b>Nothing</b>, and <b>run the calibration again</b> afterwards: it then measures
+          your controller against the other program's output.
         </p>
+
+        <h4 style={{ margin: '4px 0 0' }}>How late is it, really?</h4>
+        <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
+          {outLatency?.running ? (
+            <>
+              This browser reports <b>{Math.round(outLatency.totalMs)} ms</b> on the way out: {Math.round(outLatency.baseMs)} ms of
+              its own buffer and {Math.round(outLatency.deviceMs)} ms in the output device and the system mixer. The device's share
+              is not ours to shrink — a different output device can be worlds better (onboard and HDMI are slow, a USB interface is
+              quicker, Bluetooth is hopeless), and a DAW on ASIO skips the mixer altogether.
+            </>
+          ) : (
+            <>
+              The browser will not say what its output costs until it has actually played something — hit a pad, or run the test
+              below, and this line fills in. (An idle context reports no device latency at all, which makes it look ten times
+              faster than it is.)
+            </>
+          )}
+        </p>
+        <p className="muted small" style={{ margin: 0, maxWidth: 600 }}>
+          Either way that figure is only the browser's own opinion of its output. The test below measures the real thing with your
+          microphone: first how late a click reaches the room, then the gap between your finger landing on the pad and the drum
+          coming out — the whole chain, measured from the room rather than reported.
+        </p>
+        <LatencyTest reportedMs={outLatency?.running ? Math.round(outLatency.totalMs) : null} />
       </div>
 
       <div className="panel stack">
